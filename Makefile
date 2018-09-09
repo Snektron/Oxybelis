@@ -3,15 +3,15 @@
 TARGET := oxybelis
 SRC := src
 BUILD := build
-RESOURCE := resource
-CXXFLAGS := -I$(SRC) -I$(BUILD)/resource -std=c++17 -Wall -O3
+ASSETS := assets
+CXXFLAGS := -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++17 -Wall -O3
 LDFLAGS := 
 
 find = $(shell find $1 -type f -name $2 -print)
 
 SRCS := $(patsubst $(SRC)/%, %, $(call find, $(SRC)/, "*.cpp"))
 OBJECTS := $(SRCS:%.cpp=%.o)
-RSRCS := $(call find, $(RESOURCE)/, "*")
+RSRCS := $(call find, $(ASSETS)/, "*")
 
 ESC := 
 RED := $(ESC)[1;31m
@@ -24,27 +24,27 @@ TOTAL := $(words $(OBJECTS) . .)
 progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info $(WHITE)[$(YELLOW)$(words $(PROCESSED))$(WHITE)/$(YELLOW)$(TOTAL)$(WHITE)] $1$(CLEAR)))
 
 vpath %.cpp $(SRC)
-vpath resources.o $(BUILD)/resource
+vpath resources.o $(BUILD)/$(ASSETS)
 vpath %.o $(BUILD)/objects
 vpath $(TARGET) $(BUILD)/target
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS) resources.o
+$(TARGET): $(OBJECTS) $(ASSETS).o
 	@$(call progress,$(RED)Linking $@)
 	@mkdir -p $(BUILD)/target
-	@$(CXX) -o $(BUILD)/target/$@ $(OBJECTS:%=$(BUILD)/objects/%) $(BUILD)/resource/resources.o $(LDFLAGS)
+	@$(CXX) -o $(BUILD)/target/$@ $(OBJECTS:%=$(BUILD)/objects/%) $(BUILD)/$(ASSETS)/$(ASSETS).o $(LDFLAGS)
 
 %.o: %.cpp
 	@$(call progress,$(BLUE)Compiling $<)
 	@mkdir -p $(BUILD)/objects/$(dir $@)
 	@$(CXX) -c $(CXXFLAGS) -o $(BUILD)/objects/$@ $<
 
-resources.o: $(RSRCS)
-	@$(call progress,$(BLUE)Compiling resources)
-	@mkdir -p $(BUILD)/resource
-	@python3 ./genrsrc.py -p _res_ -I resource -o $(BUILD)/resource/resources.asm $(BUILD)/resource/resources.h $(^:$(RESOURCE)/%=%)
-	@$(CXX) -x assembler -c -I$(RESOURCE) -o $(BUILD)/resource/$@ $(BUILD)/resource/resources.asm
+$(ASSETS).o: $(RSRCS)
+	@$(call progress,$(BLUE)Compiling assets)
+	@mkdir -p $(BUILD)/$(ASSETS)
+	@python3 ./genrsrc.py -p _$(ASSETS)_ -I $(ASSETS) -n $(ASSETS) -o $(BUILD)/$(ASSETS)/$(ASSETS).asm $(BUILD)/$(ASSETS)/$(ASSETS).h $(^:$(ASSETS)/%=%)
+	@$(CXX) -x assembler -c -I$(ASSETS) -o $(BUILD)/$(ASSETS)/$@ $(BUILD)/$(ASSETS)/$(ASSETS).asm
 
 clean:
 	@echo Cleaning build files
