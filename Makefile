@@ -4,7 +4,7 @@ TARGET := oxybelis
 SRC := src
 BUILD := build
 RESOURCE := resource
-CXXFLAGS := -I$(SRC) -std=c++17 -Wall -O3
+CXXFLAGS := -I$(SRC) -I$(BUILD)/resource -std=c++17 -Wall -O3
 LDFLAGS := 
 
 find = $(shell find $1 -type f -name $2 -print)
@@ -20,7 +20,7 @@ BLUE := $(ESC)[1;34m
 YELLOW := $(ESC)[1;33m
 CLEAR := $(ESC)[0m
 
-TOTAL := $(words $(OBJECTS) . . .)
+TOTAL := $(words $(OBJECTS) . .)
 progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info $(WHITE)[$(YELLOW)$(words $(PROCESSED))$(WHITE)/$(YELLOW)$(TOTAL)$(WHITE)] $1$(CLEAR)))
 
 vpath %.cpp $(SRC)
@@ -43,7 +43,7 @@ $(TARGET): $(OBJECTS) resources.o
 resources.o: $(RSRCS)
 	@$(call progress,$(BLUE)Compiling resources)
 	@mkdir -p $(BUILD)/resource
-	@python3 ./genrsrc.py -n resource_ -o $(BUILD)/resource/resources.asm $(^:$(RESOURCE)/%=%)
+	@python3 ./genrsrc.py -p resource_ -I resource -o $(BUILD)/resource/resources.asm $(BUILD)/resource/resources.h $(^:$(RESOURCE)/%=%)
 	@$(CXX) -c -I$(RESOURCE) -o $(BUILD)/resource/$@ $(BUILD)/resource/resources.asm
 
 clean:
