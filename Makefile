@@ -43,8 +43,8 @@ $(TARGET): $(OBJECTS) resources.o
 resources.o: $(RSRCS)
 	@$(call progress,$(BLUE)Compiling resources)
 	@mkdir -p $(BUILD)/resource
-	@python3 ./genrsrc.py -p resource_ -I resource -o $(BUILD)/resource/resources.asm $(BUILD)/resource/resources.h $(^:$(RESOURCE)/%=%)
-	@$(CXX) -c -I$(RESOURCE) -o $(BUILD)/resource/$@ $(BUILD)/resource/resources.asm
+	@python3 ./genrsrc.py -p _res_ -I resource -o $(BUILD)/resource/resources.asm $(BUILD)/resource/resources.h $(^:$(RESOURCE)/%=%)
+	@$(CXX) -x assembler -c -I$(RESOURCE) -o $(BUILD)/resource/$@ $(BUILD)/resource/resources.asm
 
 clean:
 	@echo Cleaning build files
