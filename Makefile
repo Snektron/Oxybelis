@@ -5,7 +5,7 @@ SRC := src
 BUILD := build
 ASSETS := assets
 CXXFLAGS := -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O2
-LDFLAGS := -lGL -lglfw3
+LDFLAGS := -lGL -lglfw
 
 find = $(shell find $1 -type f -name $2 -print)
 
@@ -24,7 +24,7 @@ TOTAL := $(words $(OBJECTS) . .)
 progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info $(WHITE)[$(YELLOW)$(words $(PROCESSED))$(WHITE)/$(YELLOW)$(TOTAL)$(WHITE)] $1$(CLEAR)))
 
 vpath %.cpp $(SRC)
-vpath resources.o $(BUILD)/$(ASSETS)
+vpath $(ASSETS).o $(BUILD)/$(ASSETS)
 vpath %.o $(BUILD)/objects
 vpath $(TARGET) $(BUILD)/target
 
