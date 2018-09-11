@@ -9,40 +9,40 @@ class Matrix: public MatrixBase<T, R, 1, S> {
 public:
     using Base::Base;
 
-    T& x() {
+    auto x() {
         return this->elements[0];
     }
 
-    const T& x() const {
+    auto x() const {
         return this->elements[0];
     }
 
-    T& y() {
+    auto y() {
         static_assert(this->rows() >= 2);
         return this->elements[1];
     }
 
-    const T& y() const {
+    auto y() const {
         static_assert(this->rows() >= 2);
         return this->elements[1];
     }
 
-    T& z() {
+    auto z() {
         static_assert(this->rows() >= 3);
         return this->elements[2];
     }
 
-    const T& z() const {
+    auto z() const {
         static_assert(this->rows() >= 3);
         return this->elements[2];
     }
 
-    T& w() {
+    auto w() {
         static_assert(this->rows() >= 4);
         return this->elements[3];
     }
 
-    const T& w() const {
+    auto w() const {
         static_assert(this->rows() >= 4);
         return this->elements[3];
     }

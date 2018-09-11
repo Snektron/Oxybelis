@@ -5,6 +5,7 @@
 #include <utility>
 #include <array>
 #include "Storage.h"
+#include "MatrixExpr.h"
 
 template <typename T, size_t R, size_t C, typename S>
 class Matrix;
@@ -34,6 +35,18 @@ public:
         elements(std::forward<S>(data))
     {}
 
+    template <typename U, typename SU>
+    MatrixBase(const Matrix<U, Rows, Cols, SU>& other) {
+        for (size_t i = 0; i < Rows * Cols; ++i)
+            this->elements[i] = other[i];
+    }
+
+    template <typename U, typename SU>
+    MatrixBase(Matrix<U, Rows, Cols, SU>&& other) {
+        for (size_t i = 0; i < Rows * Cols; ++i)
+            this->elements[i] = std::move(other[i]);
+    }
+
     constexpr size_t rows() const {
         return Rows;
     }
@@ -42,19 +55,19 @@ public:
         return Cols;
     }
 
-    T& operator()(size_t m, size_t n) {
+    auto operator()(size_t m, size_t n) {
         return this->elements(m, n);
     }
 
-    const T& operator()(size_t m, size_t n) const {
+    auto operator()(size_t m, size_t n) const {
         return this->elements(m, n);
     }
 
-    T& operator[](size_t i) {
+    auto operator[](size_t i) {
         return this->elements[i];
     }
 
-    const T& operator[](size_t i) const {
+    auto operator[](size_t i) const {
         return this->elements[i];
     }
 
@@ -74,5 +87,14 @@ class Matrix: public MatrixBase<T, R, C, S> {
 public:
     using Base::Base;
 };
+
+template <typename T, typename ST, typename U, typename SU, size_t Rows, size_t Cols>
+auto operator+(const Matrix<T, Rows, Cols, ST>& t, const Matrix<U, Rows, Cols, SU>& u) {
+    using Lhs = Matrix<T, Rows, Cols, ST>;
+    using Rhs = Matrix<U, Rows, Cols, SU>;
+    using SumType = Sum<Lhs, Rhs>;
+    using Result = typename SumType::Result;
+    return Matrix<Result, Rows, Cols, SumType>(SumType(t, u));
+}
 
 #endif
