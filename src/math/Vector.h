@@ -9,42 +9,50 @@ class Matrix: public MatrixBase<T, R, 1, S> {
 public:
     using Base::Base;
 
+    auto operator[](size_t i) {
+        return (*this)(i, 0);
+    }
+
+    auto operator[](size_t i) const {
+        return (*this)(i, 0);
+    }
+
     auto x() {
-        return this->elements[0];
+        return (*this)[0];
     }
 
     auto x() const {
-        return this->elements[0];
+        return (*this)[0];
     }
 
     auto y() {
         static_assert(this->rows() >= 2);
-        return this->elements[1];
+        return (*this)[1];
     }
 
     auto y() const {
         static_assert(this->rows() >= 2);
-        return this->elements[1];
+        return (*this)[1];
     }
 
     auto z() {
         static_assert(this->rows() >= 3);
-        return this->elements[2];
+        return (*this)[2];
     }
 
     auto z() const {
         static_assert(this->rows() >= 3);
-        return this->elements[2];
+        return (*this)[2];
     }
 
     auto w() {
         static_assert(this->rows() >= 4);
-        return this->elements[3];
+        return (*this)[3];
     }
 
     auto w() const {
         static_assert(this->rows() >= 4);
-        return this->elements[3];
+        return (*this)[3];
     }
 };
 

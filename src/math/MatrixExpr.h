@@ -22,10 +22,6 @@ public:
         right(right)
     {}
 
-    Result operator[](size_t i) const {
-        return this->left[i] + this->right[i];
-    }
-
     Result operator()(size_t m, size_t n) const {
         return this->left(m, n) + this->right(m, n);
     }
