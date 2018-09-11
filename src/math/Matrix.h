@@ -2,98 +2,65 @@
 #define _OXYBELIS_MATH_MATRIX_H
 
 #include <cstddef>
-#include <utility>
 #include <array>
-#include "Storage.h"
-#include "MatrixExpr.h"
 
-template <typename T, size_t R, size_t C, typename S>
+template <typename T, size_t R, size_t C>
 class Matrix;
 
-template <typename T, size_t R, size_t C, typename S>
+template <typename T, size_t R, size_t C>
 class MatrixBase {
-    using Derived = Matrix<T, R, C, S>;
-
+    static_assert(R >= 1 && C >= 1, "Matrix must at least be 1x1");
+    using Derived = Matrix<T, R, C>;
 public:
     using Type = T;
-    using Storage = S;
-
+    constexpr const static size_t Size = R * C;
     constexpr const static size_t Rows = R;
     constexpr const static size_t Cols = C;
 
 protected:
-    Storage elements;
+    std::array<T, Size> elements;
 
-public:
     MatrixBase() = default;
 
-    MatrixBase(const S& data):
-        elements(data)
-    {}
-
-    MatrixBase(S&& data):
-        elements(std::forward<S>(data))
-    {}
-
-    template <typename U, typename SU>
-    MatrixBase(const Matrix<U, Rows, Cols, SU>& other):
+    MatrixBase(const Derived& other):
         elements(other.elements) {
     }
 
-    template <typename U, typename SU>
-    MatrixBase(Matrix<U, Rows, Cols, SU>&& other):
+    MatrixBase(Derived&& other):
         elements(std::move(other.elements)) {
     }
 
-    constexpr size_t rows() const {
-        return Rows;
+    MatrixBase(const std::array<T, Size>& elements):
+        elements(elements) {
     }
 
-    constexpr size_t cols() const {
-        return Cols;
+    MatrixBase(std::array<T, Size>&& elements):
+        elements(std::move(elements)) {
     }
 
-    auto operator()(size_t m, size_t n) {
-        return this->elements(m, n);
-    }
-
-    auto operator()(size_t m, size_t n) const {
-        return this->elements(m, n);
-    }
 private:
-    Derived& derived() {
-        return *static_cast<Derived*>(this);
+    T& operator()(size_t row, size_t col) {
+        return this->elements[col * Rows + row];
     }
 
-    const Derived& derived() const {
-        return *static_cast<const Derived*>(this);
+    const T& operator()(size_t row, size_t col) const {
+        return this->elements[col * Rows + row];
+    }
+
+    T& operator[](size_t i) {
+        return this->elements[i];
+    }
+
+    const T& operator[](size_t i) const {
+        return this->elements[i];
     }
 };
 
-template <typename T, size_t R, size_t C, typename S = ColumnMajor<T, R, C>> 
-class Matrix: public MatrixBase<T, R, C, S> {
-    using Base = MatrixBase<T, R, C, S>;
+template <typename T, size_t R, size_t C>
+class Matrix: public MatrixBase<T, R, C> {
+    using Base = MatrixBase<T, R, C>;
 public:
     using Base::Base;
 };
-
-template <typename T, size_t R, size_t C>
-Matrix<T, R, C> make_matrix(const std::array<T, R * C>& elements) {
-    return Matrix<T, R, C>(ColumnMajor<T, R, C>(elements));
-}
-
-template <typename T, size_t R, size_t C>
-Matrix<T, R, C> make_matrix(std::array<T, R * C>&& elements) {
-    return Matrix<T, R, C>(ColumnMajor<T, R, C>(std::move(elements)));
-}
-
-template <typename T, typename ST, typename U, typename SU, size_t Rows, size_t Cols>
-auto operator+(const Matrix<T, Rows, Cols, ST>& t, const Matrix<U, Rows, Cols, SU>& u) {
-    using Lhs = Matrix<T, Rows, Cols, ST>;
-    using Rhs = Matrix<U, Rows, Cols, SU>;
-    using SumType = Sum<Lhs, Rhs>;
-    using Result = typename SumType::Result;
-    return Matrix<Result, Rows, Cols, SumType>(SumType(t, u));
-}
 
 #endif
