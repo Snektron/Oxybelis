@@ -4,9 +4,9 @@
 //#include "math/Vector.h"
 
 int main() {
-    Matrix<float, 4, 4> test;
+    Matrix<float, 2, 2> test({1.f, 2.f, 3.f, 4.5f});
 
-    std::cout << test.rows() << ' ' << test.Rows << std::endl;
+    std::cout << test.rows() << ' ' << test(1, 1) << std::endl;
 
     return 0;
 }
