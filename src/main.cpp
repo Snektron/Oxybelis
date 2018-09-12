@@ -4,12 +4,14 @@
 #include "math/Vector.h"
 
 int main() {
-    Matrix<float, 2, 2> a({1, 2, 3, 4});
-    Matrix<float, 2, 2> b({5, 6, 7, 8});
+    Vector<double, 3> c({3, -3, 1});
+    Vector<double, 3> d({4, 9, 2});
 
-    a.negate();
+    c.cross(d);
 
-    std::cout << a << b << (a * b) << std::endl;
+    auto e = -(c * 10);
+
+    std::cout << e << std::endl;
 
     return 0;
 }
