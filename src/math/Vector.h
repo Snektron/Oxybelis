@@ -3,6 +3,7 @@
 
 #include <numeric>
 #include <cmath>
+#include <type_traits>
 #include "math/Matrix.h"
 
 template <typename T, size_t R>
@@ -25,19 +26,21 @@ namespace op {
         using Lhs = Vector<T, 3>;
         using Rhs = Vector<U, 3>;
 
-        void operator()(Result& dst, const Lhs& lhs, const Rhs& rhs) {
-            Result result;
-            result.x() = lhs.y() * rhs.z() - rhs.y() * lhs.z();
-            result.y() = lhs.z() * rhs.x() - rhs.z() * lhs.x();
-            result.z() = lhs.x() * rhs.y() - rhs.x() * lhs.y();
+        constexpr void operator()(Result& dst, const Lhs& lhs, const Rhs& rhs) {
+            Result result({
+                lhs.y() * rhs.z() - rhs.y() * lhs.z(),
+                lhs.z() * rhs.x() - rhs.z() * lhs.x(),
+                lhs.x() * rhs.y() - rhs.x() * lhs.y()
+            });
+
             dst = std::move(result);
         }
     };
 }
 
-template <typename T, size_t R>
-class Matrix<T, R, 1>: public MatrixBase<T, R, 1> {
-    using Base = MatrixBase<T, R, 1>;
+template <typename T, size_t M>
+class Matrix<T, M, 1>: public MatrixBase<T, M, 1> {
+    using Base = MatrixBase<T, M, 1>;
 public:
     constexpr const static size_t INDEX_X = 0;
     constexpr const static size_t INDEX_Y = 1;
@@ -55,37 +58,37 @@ public:
     }
 
     constexpr T& y() {
-        static_assert(R + 1 >= INDEX_Y, "Vector does not have y component.");
+        static_assert(M + 1 >= INDEX_Y, "Vector does not have y component.");
         return (*this)[INDEX_Y];
     }
 
     constexpr const T& y() const {
-        static_assert(R + 1 >= INDEX_Y, "Vector does not have y component.");
+        static_assert(M + 1 >= INDEX_Y, "Vector does not have y component.");
         return (*this)[INDEX_Y];
     }
 
     constexpr T& z() {
-        static_assert(R + 1 >= INDEX_Z, "Vector does not have z component.");
+        static_assert(M + 1 >= INDEX_Z, "Vector does not have z component.");
         return (*this)[INDEX_Z];
     }
 
     constexpr const T& z() const {
-        static_assert(R + 1 >= INDEX_Z, "Vector does not have z component.");
+        static_assert(M + 1 >= INDEX_Z, "Vector does not have z component.");
         return (*this)[INDEX_Z];
     }
 
     constexpr T& w() {
-        static_assert(R + 1 >= INDEX_W, "Vector does not have w component.");
+        static_assert(M + 1 >= INDEX_W, "Vector does not have w component.");
         return (*this)[INDEX_W];
     }
 
     constexpr const T& w() const {
-        static_assert(R + 1 >= INDEX_W, "Vector does not have w component.");
+        static_assert(M + 1 >= INDEX_W, "Vector does not have w component.");
         return (*this)[INDEX_W];
     }
 
     template <typename U>
-    constexpr auto dot(const Vector<U, R>& other) const {
+    constexpr auto dot(const Vector<U, M>& other) const {
         return std::inner_product(this->begin(), this->end(), other.begin(), 0);
     }
 
@@ -98,7 +101,7 @@ public:
     }
 
     template <typename U>
-    constexpr Vector<T, R>& cross(const Vector<U, R>& other) {
+    constexpr Vector<T, M>& cross(const Vector<U, M>& other) {
         using Cross = op::Cross<T, U>;
         static_assert(op::result_same<Cross, T>(), "Incompatible types in in-place vector cross product");
         Cross{}(*this, *this, other);
@@ -107,11 +110,42 @@ public:
 };
 
 template <typename T, typename U>
-auto cross(const Vector<T, 3>& l, const Vector<U, 3>& r) {
+constexpr auto cross(const Vector<T, 3>& l, const Vector<U, 3>& r) {
     using Cross = op::Cross<T, U>;
     typename Cross::Result result;
     Cross{}(result, l, r);
     return result;
 }
+
+template <typename T, typename... Args>
+constexpr auto make_vector(Args&&... args) {
+    return Vector<T, sizeof...(Args)>({args...});
+}
+
+template <typename... Args>
+constexpr auto make_vector(Args&&... args) {
+    using Type = std::common_type_t<Args...>;
+    return Vector<Type, sizeof...(Args)>({args...});
+}
+
+template <typename T>
+constexpr auto make_translation(const Vector3<T>& translation) {
+    auto result = Matrix<T, 4, 4>::make_identity();
+    result(0, 3) = translation.x();
+    result(1, 3) = translation.y();
+    result(2, 3) = translation.z();
+    return result;
+}
+
+template <typename T>
+constexpr auto make_scaling(const Vector3<T>& scaling) {
+    auto result = Matrix<T, 4, 4>::make_zeroes();
+    result(0, 0) = scaling.x();
+    result(1, 1) = scaling.y();
+    result(2, 2) = scaling.z();
+    result(3, 3) = 1;
+    return result;
+}
+
 
 #endif

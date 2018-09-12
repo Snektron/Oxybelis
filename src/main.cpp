@@ -4,14 +4,11 @@
 #include "math/Vector.h"
 
 int main() {
-    Vector<double, 3> c({3, -3, 1});
-    Vector<double, 3> d({4, 9, 2});
+    Vector<double, 4> v({1, 2, 3, 1});
+    Vector<double, 3> t({10, 20, 30});
 
-    c.cross(d);
+    v = make_scaling(t) * v;
 
-    auto e = -(c * 10);
-
-    std::cout << e << std::endl;
-
+    std::cout << t << std::endl << v << std::endl;
     return 0;
 }

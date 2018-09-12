@@ -4,7 +4,7 @@ TARGET := oxybelis
 SRC := src
 BUILD := build
 ASSETS := assets
-CXXFLAGS := -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O2
+CXXFLAGS := -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O2 -march=native
 LDFLAGS := -lGL -lglfw
 
 find = $(shell find $1 -type f -name $2 -print)
