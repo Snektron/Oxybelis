@@ -153,13 +153,13 @@ public:
     }
 
     template <typename U>
-    Derived& operator=(const Matrix<U, Rows, Cols>& other) {
+    constexpr Derived& operator=(const Matrix<U, Rows, Cols>& other) {
         this->elements = other.elements;
         return this->derived();
     }
 
     template <typename U>
-    Derived& operator=(Matrix<U, Rows, Cols>&& other) {
+    constexpr Derived& operator=(Matrix<U, Rows, Cols>&& other) {
         this->elements = std::move(other.elements);
         return this->derived();
     }

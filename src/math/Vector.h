@@ -39,44 +39,49 @@ template <typename T, size_t R>
 class Matrix<T, R, 1>: public MatrixBase<T, R, 1> {
     using Base = MatrixBase<T, R, 1>;
 public:
+    constexpr const static size_t INDEX_X = 0;
+    constexpr const static size_t INDEX_Y = 1;
+    constexpr const static size_t INDEX_Z = 2;
+    constexpr const static size_t INDEX_W = 3;
+
     using Base::Base;
 
     constexpr T& x() {
-        return (*this)[0];
+        return (*this)[INDEX_X];
     }
 
     constexpr const T& x() const {
-        return (*this)[0];
+        return (*this)[INDEX_X];
     }
 
     constexpr T& y() {
-        static_assert(R >= 2, "Vector does not have y component.");
-        return (*this)[1];
+        static_assert(R + 1 >= INDEX_Y, "Vector does not have y component.");
+        return (*this)[INDEX_Y];
     }
 
     constexpr const T& y() const {
-        static_assert(R >= 2, "Vector does not have y component.");
-        return (*this)[1];
+        static_assert(R + 1 >= INDEX_Y, "Vector does not have y component.");
+        return (*this)[INDEX_Y];
     }
 
     constexpr T& z() {
-        static_assert(R >= 2, "Vector does not have z component.");
-        return (*this)[2];
+        static_assert(R + 1 >= INDEX_Z, "Vector does not have z component.");
+        return (*this)[INDEX_Z];
     }
 
     constexpr const T& z() const {
-        static_assert(R >= 2, "Vector does not have z component.");
-        return (*this)[2];
+        static_assert(R + 1 >= INDEX_Z, "Vector does not have z component.");
+        return (*this)[INDEX_Z];
     }
 
     constexpr T& w() {
-        static_assert(R >= 4, "Vector does not have w component.");
-        return (*this)[3];
+        static_assert(R + 1 >= INDEX_W, "Vector does not have w component.");
+        return (*this)[INDEX_W];
     }
 
     constexpr const T& w() const {
-        static_assert(R >= 4, "Vector does not have w component.");
-        return (*this)[3];
+        static_assert(R + 1 >= INDEX_W, "Vector does not have w component.");
+        return (*this)[INDEX_W];
     }
 
     template <typename U>
