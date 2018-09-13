@@ -1,12 +1,21 @@
 #ifndef _OXYBELIS_CORE_RESOURCE_H
 #define _OXYBELIS_CORE_RESOURCE_H
 
-struct Resource {
-    const char* const data;
-    const size_t size;
+class Resource {
+    const char* const ptr;
+    const size_t sz;
 
-    Resource(const char* data, size_t size):
-        data(data), size(size) {
+public:
+    constexpr Resource(const char* data, size_t size):
+        ptr(data), sz(size) {
+    }
+
+    constexpr const char* data() const {
+        return this->ptr;
+    }
+
+    constexpr size_t size() const {
+        return this->sz;
     }
 };
 

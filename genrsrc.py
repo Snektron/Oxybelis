@@ -141,7 +141,7 @@ parser.add_argument('-S', '--search', metavar = '<path>', action = 'append', req
 parser.add_argument('-n', '--namespace', metavar = '<namespace>', default = 'resource', help = 'Namespace to place externals in, defaults to "resource"')
 parser.add_argument('-g', '--guard', metavar = '<guard>', default = '_GENERATED_RESOURCES_H', help = 'Header guard, defaults to _GENERATED_RESOURCES_H')
 parser.add_argument('-I', '--include', metavar = '<file>', action = 'append', help = 'Add header to generated file')
-parser.add_argument('-c', '--resource-class', metavar = '<class>', required = True, help = 'Set resource class. This class MUST provide a constructor taking const char* and size_t, and should be included via -I')
+parser.add_argument('-c', '--resource-class', metavar = '<class>', required = True, help = 'Set resource class. This class MUST provide a constexpr constructor taking const char* and size_t, and should be included via -I')
 args = parser.parse_args()
 
 resource_tree = Directory()

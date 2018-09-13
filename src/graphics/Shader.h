@@ -1,93 +1,72 @@
 #ifndef _OXYBELIS_GRAPHICS_SHADER_H
 #define _OXYBELIS_GRAPHICS_SHADER_H
 
-#include <vector>
+#include <array>
 #include <string>
-#include <algorithm>
 #include <cstddef>
+#include <stdexcept>
 #include "core/Resource.h"
+#include "graphics/GlObject.h"
 
-class Shader {
-    GLuint shader;
-    std::vector<const char*> sources;
-    std::vector<GLint> lengths;
+enum class ShaderType: GLenum {
+    Vertex = GL_VERTEX_SHADER,
+    Fragment = GL_FRAGMENT_SHADER,
+    Geometry = GL_GEOMETRY_SHADER,
+    TessEvaluation = GL_TESS_EVALUATION_SHADER,
+    TessControl = GL_TESS_CONTROL_SHADER,
+    Compute = GL_COMPUTE_SHADER
+};
 
+class ShaderCompilationException: public std::runtime_error {
 public:
-    Shader(GLenum type):
-        shader(glCreateShader(type)) {
-    }
-
-    Shader(GLenum type, const Resource& source):
-        shader(glCreateShader(type)) {
-        this->add_source(source);
-    }
-
-    Shader(GLenum type, const std::string& source):
-        shader(glCreateShader(type)) {
-        this->add_source(source);
-    }
-
-    Shader(const Shader&) = delete;
-    Shader& operator=(const Shader&) = delete;
-    
-    Shader(Shader&& other):
-        shader(other.shader) {
-        other.shader = 0;
-    }
-
-    Shader& operator=(Shader&& other) {
-        glDeleteShader(this->shader);
-        this->shader = other.shader;
-        other.shader = 0;
-        return *this;
-    }
-
-    Shader& add_source(const Resource& source) {
-        this->sources.push_back(source.data);
-        this->lengths.push_back(static_cast<GLint>(source.size));
-        return *this;
-    }
-
-    Shader& add_source(const std::string& source) {
-        this->sources.push_back(source.data());
-        this->lengths.push_back(static_cast<GLint>(source.size()));
-        return *this;
-    }
-
-    GLuint compile() && {
-        glShaderSource(this->shader, this->sources.size(), sources.data(), lengths.data());
-        glCompileShader(this->shader);
-
-        GLuint shader = this->shader;
-        this->shader = 0;
-        return shader;
-    }
-
-    ~Shader() {
-        glDeleteShader(this->shader);
+    ShaderCompilationException(const std::string message):
+        std::runtime_error(message) {
     }
 };
 
-class Program {
-    GLuint program;
+class Shader {
+    globject::Shader shader;
 
 public:
-    Program(const Program&) = delete;
-    Program(Program&&) = delete;
-    Program& operator=(const Program&) = delete;
-    Program& operator=(Program&&) = delete;
+    template <typename... Sources>
+    Shader(ShaderType type, const Sources&... sources):
+        shader(glCreateShader(static_cast<GLenum>(type))) {
 
-    Program():
-        program(glCreateProgram()) {
+        constexpr const size_t num_sources = sizeof...(Sources);
 
+        auto get_source = make_overload(
+            [](const Resource& src) -> const GLchar* { return src.data(); },
+            [](const std::string& src) -> const GLchar* { return src.data(); },
+            [](const char* src) -> const GLchar* { return src; }
+        );
+
+        auto get_size = make_overload(
+            [](const Resource& src) -> GLint { return src.size(); },
+            [](const std::string& src) -> GLint { return src.size(); },
+            [](const char*) -> GLint { return -1; }
+        );
+
+        const GLchar* source_ptrs[] = {get_source(sources)...};
+        GLint source_sizes[] = {get_size(sources)...};
+
+        glShaderSource(this->shader, static_cast<GLsizei>(num_sources), source_ptrs, source_sizes);
+        glCompileShader(this->shader);
+
+        if (this->parameter(GL_COMPILE_STATUS) != GL_TRUE)
+            throw ShaderCompilationException(this->info_log());
     }
 
-    ~Program() {
-        glDeleteProgram(this->program);
+    std::string info_log() const {
+        GLint length = this->parameter(GL_INFO_LOG_LENGTH);
+        GLchar log[length];
+        glGetShaderInfoLog(this->shader, length, nullptr, log);
+        return std::string(log, log + length);
     }
 
-    inline void use() {
-        glUseProgram(this->program);
+    inline GLint parameter(GLenum parameter) const {
+        GLint result;
+        glGetShaderiv(this->shader, parameter, &result);
+        return result;
     }
 };
 

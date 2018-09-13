@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <utility>
+#include <tuple>
 #include "glad/glad.h"
 
 template <typename T>
@@ -27,9 +28,28 @@ struct Defer {
     }
 };
 
-template <typename F>
-auto defer(F&& f) {
-    return Defer<F>{std::forward<F>(f)};
+template <typename Fn>
+auto defer(Fn&& f) {
+    return Defer<Fn>{std::forward<Fn>(f)};
+}
+
+template <typename Fn>
+struct Overload: Fn {
+    Overload(Fn f):
+        Fn(f) {
+    }
+};
+
+template <typename... Fns>
+struct Overloaded: Overload<Fns>... {
+    Overloaded(Fns... f):
+        Overload<Fns>(f)... {
+    }
+};
+
+template <typename... Fns>
+constexpr auto make_overload(Fns&&... overloads) {
+    return Overloaded<Fns...>{overloads...};
 }
 
 #endif

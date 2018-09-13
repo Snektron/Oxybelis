@@ -4,6 +4,8 @@
 #include "core/Window.h"
 #include "graphics/Error.h"
 #include "graphics/Shader.h"
+#include "graphics/GlObject.h"
+#include "assets.h"
 
 int main() {
     if (glfwInit() != GLFW_TRUE) {
@@ -15,6 +17,10 @@ int main() {
         glfwTerminate();
     });
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     Window window(640, 480, "Test Window");
     window.make_context_current();
 
@@ -22,19 +28,21 @@ int main() {
     
     glClearColor(.97f, .97f, .97f, .97f);
 
+    Shader shader(ShaderType::Fragment, assets::test_fs);
+
     while (!window.should_close())
     {
         auto dim = window.dimensions();
         glViewport(0, 0, dim.x(), dim.y());
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glColor3f(.8f, 0.f, 0.f);
+        // glColor3f(.8f, 0.f, 0.f);
 
-        glBegin(GL_TRIANGLES);
-            glVertex2f(-.5f, -.5f);
-            glVertex2f(0, .5f);
-            glVertex2f(.5f, -.5f);
-        glEnd();
+        // glBegin(GL_TRIANGLES);
+        //     glVertex2f(-.5f, -.5f);
+        //     glVertex2f(0, .5f);
+        //     glVertex2f(.5f, -.5f);
+        // glEnd();
 
         window.swap_buffers();
         glfwPollEvents();
