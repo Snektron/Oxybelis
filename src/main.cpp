@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
 #include "core/Window.h"
+#include "graphics/Error.h"
+#include "graphics/Shader.h"
 
 int main() {
     if (glfwInit() != GLFW_TRUE) {
@@ -36,6 +38,7 @@ int main() {
 
         window.swap_buffers();
         glfwPollEvents();
+        assert_gl();
     }
 
     return 0;

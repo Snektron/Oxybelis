@@ -19,7 +19,7 @@ using Matrix4 = Matrix<T, 4, 4>;
 namespace op {
     template <typename Op, typename T>
     constexpr bool result_same() {
-        return std::is_same<typename Op::ScalarResult, T>::value;
+        return std::is_convertible<typename Op::ScalarResult, T>::value;
     }
 
     template <typename T, typename U, size_t M, size_t N>

@@ -1,4 +1,3 @@
-# Made by Robin Voetter (s1835130)
 import os
 import argparse
 from collections import defaultdict
@@ -16,16 +15,12 @@ header_template = """\
 #define {guard}
 
 #include <cstddef>
+{includes}
 
 namespace {namespace} {{
     namespace externals {{
 {externals}
     }}
-
-    struct Resource {{
-        const char* const data;
-        const size_t size;
-    }};
 
 {resources}
 }}
@@ -35,12 +30,14 @@ namespace {namespace} {{
 
 extern_template = '\t\textern "C" const char {mangled_name}[];'
 
-resource_template = '{indent}constexpr const Resource {name} = {{externals::{extern}, {size}}};'
+resource_template = '{indent}constexpr const {resource_class} {name}(externals::{extern}, {size});'
 
 resource_namespace_template = """\
 {indent}namespace {namespace} {{
 {nested}
 {indent}}}"""
+
+include_template = "#include \"{file}\""
 
 def mangle(prefix, name):
     return prefix + name.replace('/', '_').replace('.', '_')
@@ -65,7 +62,7 @@ class Directory:
         else:
             self.append_subdir(path[0]).insert_resource(path[1:], resource)
 
-    def serialize_resources(self, depth = 1):
+    def serialize_resources(self, resource_class, depth = 1):
         indent = ' ' * depth * 4
 
         items = []
@@ -73,12 +70,12 @@ class Directory:
             code = resource_namespace_template.format(
                 indent = indent,
                 namespace = name,
-                nested = subdir.serialize_resources(depth + 1)
+                nested = subdir.serialize_resources(resource_class, depth + 1)
             )
             items.append(code)
 
         for res in self.resources:
-            items.append(res.resource(depth))
+            items.append(res.resource(resource_class, depth))
 
         return '\n'.join(items)
 
@@ -99,9 +96,15 @@ class Resource:
     def extern(self):
         return extern_template.format(mangled_name = self.mangled_name)
 
-    def resource(self, depth):
+    def resource(self, resource_class, depth):
         basename = os.path.basename(self.path).replace('.', '_')
-        return resource_template.format(indent = ' ' * depth * 4, name = basename, size = self.size, extern = self.mangled_name)
+        return resource_template.format(
+            resource_class = resource_class,
+            indent = ' ' * depth * 4,
+            name = basename,
+            size = self.size,
+            extern = self.mangled_name
+        )
 
 def write_asm(output, resources):
     with open(output, 'wb') as f:
@@ -109,13 +112,15 @@ def write_asm(output, resources):
         for resource in resources:
             resource.write_asm(f)
 
-def write_header(output, namespace, guard, resources, resource_tree):
+def write_header(output, namespace, guard, resources, resource_tree, includes, resource_class):
     externals = '\n'.join([resource.extern() for resource in resources])
+    includes = '\n'.join([include_template.format(file = include) for include in includes])
     header = header_template.format(
+        includes = includes,
         guard = guard,
         namespace = namespace,
         externals = externals,
-        resources = resource_tree.serialize_resources()
+        resources = resource_tree.serialize_resources(resource_class)
     )
 
     with open(output, 'wb') as f:
@@ -132,19 +137,21 @@ parser = argparse.ArgumentParser(description = 'Generate asm file and header fro
 parser.add_argument('resources', metavar = '<resources>', nargs = '*', help = 'List of resources to compile')
 parser.add_argument('-o', '--output', metavar = ('<asm output>', '<header output>'), nargs = 2, required = True, help = 'Output of generated assembly and header files')
 parser.add_argument('-p', '--prefix', metavar = '<prefix>', default = '', help = 'Prefix of assembly labels/extern variable names')
-parser.add_argument('-I', '--include', metavar = '<path>', action = 'append', required = True, help = 'Search directories for resources')
+parser.add_argument('-S', '--search', metavar = '<path>', action = 'append', required = True, help = 'Search directories for resources')
 parser.add_argument('-n', '--namespace', metavar = '<namespace>', default = 'resource', help = 'Namespace to place externals in, defaults to "resource"')
-parser.add_argument('-g', '--guard', metavar = '<guard>', default = '_RESOURCES_H', help = 'Header guard, defaults to _RESOURCES_H')
+parser.add_argument('-g', '--guard', metavar = '<guard>', default = '_GENERATED_RESOURCES_H', help = 'Header guard, defaults to _GENERATED_RESOURCES_H')
+parser.add_argument('-I', '--include', metavar = '<file>', action = 'append', help = 'Add header to generated file')
+parser.add_argument('-c', '--resource-class', metavar = '<class>', required = True, help = 'Set resource class. This class MUST provide a constructor taking const char* and size_t, and should be included via -I')
 args = parser.parse_args()
 
 resource_tree = Directory()
 resources = []
 
 for name in args.resources:
-    path = find_file(name, args.include)
+    path = find_file(name, args.search)
     res = Resource(args.prefix, name, path)
     resource_tree.insert_resource(splitdirpath(name), res)
     resources.append(res)
 
 write_asm(args.output[0], resources)
-write_header(args.output[1], args.namespace, args.guard, resources, resource_tree)
+write_header(args.output[1], args.namespace, args.guard, resources, resource_tree, args.include, args.resource_class)

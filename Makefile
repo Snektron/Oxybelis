@@ -6,6 +6,7 @@ BUILD := build
 ASSETS := assets
 CXXFLAGS := -g -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O2 -march=native -DGLFW_INCLUDE_NONE
 LDFLAGS := -g -lGL -lglfw -ldl
+RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Resource
 
 find = $(shell find $1 -type f -name $2 -print)
 
@@ -41,9 +42,12 @@ $(TARGET): $(OBJECTS) $(ASSETS).o
 	@$(CXX) -c $(CXXFLAGS) -o $(BUILD)/objects/$@ $<
 
 $(ASSETS).o: $(RSRCS)
-	@$(call progress,$(BLUE)Compiling assets)
+	@$(call progress,$(BLUE)Compiling $(ASSETS))
 	@mkdir -p $(BUILD)/$(ASSETS)
-	@python3 ./genrsrc.py -p _$(ASSETS)_ -I $(ASSETS) -n $(ASSETS) -o $(BUILD)/$(ASSETS)/$(ASSETS).asm $(BUILD)/$(ASSETS)/$(ASSETS).h $(^:$(ASSETS)/%=%)
+	@python3 ./genrsrc.py \
+		$(RSRCFLAGS) \
+		-o $(BUILD)/$(ASSETS)/$(ASSETS).asm $(BUILD)/$(ASSETS)/$(ASSETS).h \
+		$(^:$(ASSETS)/%=%)
 	@$(CXX) -x assembler -c -I$(ASSETS) -o $(BUILD)/$(ASSETS)/$@ $(BUILD)/$(ASSETS)/$(ASSETS).asm
 
 clean:
