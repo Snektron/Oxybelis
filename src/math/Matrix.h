@@ -403,9 +403,10 @@ constexpr auto make_perspective(const T& aspect, const T& fov, const T& near, co
     auto result = Matrix<T, 4, 4>::make_zeroes();
 
     auto nf = near - far;
+    auto tan_fov_2 = tan(fov / 2);
 
-    result(0, 0) = 1 / (aspect * tan(fov / 2));
-    result(1, 1) = 1 / tan(fov / 2);
+    result(0, 0) = 1 / (aspect * tan_fov_2);
+    result(1, 1) = 1 / tan_fov_2;
     result(2, 2) = -(near + far) / nf;
     result(2, 3) = -2 * far * near / nf;
     result(3, 2) = -1;

@@ -3,8 +3,8 @@
 #include "glad/glad.h"
 #include "core/Window.h"
 #include "graphics/Error.h"
-#include "graphics/Shader.h"
 #include "graphics/GlObject.h"
+#include "graphics/shader/ProgramBuilder.h"
 #include "assets.h"
 
 int main() {
@@ -28,22 +28,11 @@ int main() {
     
     glClearColor(.97f, .97f, .97f, .97f);
 
-    float vertices[] = {
-        -.5f, -.5f,
-        0.f, .5f,
-        .5f, -.5f
-    };
-
-    GLuint buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6, &vertices, GL_STATIC_DRAW);
-
     while (!window.should_close())
     {
         auto dim = window.dimensions();
         glViewport(0, 0, dim.x(), dim.y());
-
+        glClear(GL_COLOR_BUFFER_BIT);
 
         window.swap_buffers();
         glfwPollEvents();

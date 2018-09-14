@@ -1,5 +1,5 @@
-#ifndef _OXYBELIS_UTILITY_H
-#define _OXYBELIS_UTILITY_H
+#ifndef _OXYBELIS_UTILITY_UTILITY_H
+#define _OXYBELIS_UTILITY_UTILITY_H
 
 #include <memory>
 #include <utility>

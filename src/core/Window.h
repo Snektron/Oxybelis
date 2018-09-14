@@ -3,7 +3,7 @@
 
 #include <GLFW/glfw3.h>
 #include "math/Vector.h"
-#include "utility.h"
+#include "utility/utility.h"
 
 class Window {
     CPtr<GLFWwindow, glfwDestroyWindow> handle;

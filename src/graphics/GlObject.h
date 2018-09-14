@@ -1,8 +1,8 @@
 #ifndef _OXYBELIS_GRAPHICS_GLOBJECT_H
 #define _OXYBELIS_GRAPHICS_GLOBJECT_H
 
-#include "glad/glad.h"
 #include <utility>
+#include "glad/glad.h"
 
 namespace globject {
     using DeleteFn = void(GLuint);
