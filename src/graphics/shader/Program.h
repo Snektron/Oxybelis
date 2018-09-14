@@ -2,8 +2,6 @@
 #define _OXYBELIS_GRAPHICS_SHADER_PROGRAM_H
 
 #include "graphics/GlObject.h"
-#include "graphics/shader/Uniform.h"
-#include "graphics/shader/Attribute.h"
 
 using Uniform = GLint;
 using Attribute = GLint;
@@ -27,11 +25,11 @@ public:
         return glGetUniformLocation(*this, name.c_str());
     }
 
-    Attribute atribute(const GLchar* name) const {
+    Attribute attribute(const GLchar* name) const {
         return glGetAttribLocation(*this, name);
     }
 
-    Attribute atribute(const std::string& name) const {
+    Attribute attribute(const std::string& name) const {
         return glGetAttribLocation(*this, name.c_str());
     }
 

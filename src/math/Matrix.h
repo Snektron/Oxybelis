@@ -361,7 +361,7 @@ constexpr auto make_scaling(const T& x, const T& y, const T& z) {
 }
 
 template <typename T>
-constexpr auto make_orthographic(const T& top, const T& bottom, const T& left, const T& right, const T& near, const T& far) {
+constexpr auto make_orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far) {
     auto result = Matrix<T, 4, 4>::make_zeroes();
 
     auto rl = right - left;
