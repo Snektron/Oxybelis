@@ -28,21 +28,22 @@ int main() {
     
     glClearColor(.97f, .97f, .97f, .97f);
 
-    Shader shader(ShaderType::Fragment, assets::test_fs);
+    float vertices[] = {
+        -.5f, -.5f,
+        0.f, .5f,
+        .5f, -.5f
+    };
+
+    GLuint buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, 6, &vertices, GL_STATIC_DRAW);
 
     while (!window.should_close())
     {
         auto dim = window.dimensions();
         glViewport(0, 0, dim.x(), dim.y());
-        glClear(GL_COLOR_BUFFER_BIT);
 
-        // glColor3f(.8f, 0.f, 0.f);
-
-        // glBegin(GL_TRIANGLES);
-        //     glVertex2f(-.5f, -.5f);
-        //     glVertex2f(0, .5f);
-        //     glVertex2f(.5f, -.5f);
-        // glEnd();
 
         window.swap_buffers();
         glfwPollEvents();

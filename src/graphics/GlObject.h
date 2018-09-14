@@ -32,7 +32,7 @@ namespace globject {
             Delete(this->handle);
         }
 
-        operator GLuint() const {
+        inline operator GLuint() const {
             return this->handle;
         }
     };
@@ -42,6 +42,12 @@ namespace globject {
     }
 
     using Shader = GlObject<delete_shader>;
+
+    void delete_program(GLuint program) {
+        glDeleteProgram(program);
+    }
+
+    using Program = GlObject<delete_program>;
 
     void delete_texture(GLuint texture) {
         glDeleteTextures(1, &texture);

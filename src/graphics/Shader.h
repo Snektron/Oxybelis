@@ -2,6 +2,7 @@
 #define _OXYBELIS_GRAPHICS_SHADER_H
 
 #include <array>
+#include <vector>
 #include <string>
 #include <cstddef>
 #include <stdexcept>
@@ -20,6 +21,13 @@ enum class ShaderType: GLenum {
 class ShaderCompilationException: public std::runtime_error {
 public:
     ShaderCompilationException(const std::string message):
+        std::runtime_error(message) {
+    }
+};
+
+class ProgramLinkException: public std::runtime_error {
+public:
+    ProgramLinkException(const std::string message):
         std::runtime_error(message) {
     }
 };
@@ -67,6 +75,90 @@ public:
         GLint result;
         glGetShaderiv(this->shader, parameter, &result);
         return result;
+    }
+
+    inline operator GLuint() const {
+        return this->shader;
+    }
+};
+
+class Program {
+    globject::Program program;
+
+    Program(globject::Program&& program):
+        program(std::move(program)) {
+    }
+public:
+
+    friend class ProgramBuilder;
+};
+
+class ProgramBuilder {
+    globject::Program program;
+    std::vector<GLuint> attached_shaders;
+
+public:
+    ProgramBuilder():
+        program(glCreateProgram()) {
+    }
+
+    auto with(const Shader& shader) {
+        glAttachShader(this->program, shader);
+        attached_shaders.push_back(shader);
+        return std::forward<ProgramBuilder>(*this);
+    }
+
+    template <typename... Sources>
+    auto with(ShaderType type, const Sources&... sources) {
+        return std::forward<ProgramBuilder>(this->with(Shader(type, sources...)));
+    }
+
+    auto bind_attrib_location(const GLuint index, const GLchar* name) {
+        glBindAttribLocation(this->program, index, name);
+        return std::forward<ProgramBuilder>(*this);
+    }
+
+    auto bind_attrib_location(const GLuint index, const std::string& name) {
+        glBindAttribLocation(this->program, index, static_cast<const GLchar*>(name.c_str()));
+        return std::forward<ProgramBuilder>(*this);
+    }
+
+    auto bind_frag_data_location(GLuint color_number, const char* name) {
+        glBindFragDataLocation(this->program, color_number, name);
+        return std::forward<ProgramBuilder>(*this);
+    }
+
+    auto bind_frag_data_location(GLuint color_number, const std::string& name) {
+        glBindFragDataLocation(this->program, color_number, static_cast<const GLchar*>(name.c_str()));
+        return std::forward<ProgramBuilder>(*this);
+    }
+
+    Program link() && {
+        glLinkProgram(this->program);
+        if (this->parameter(GL_LINK_STATUS) != GL_TRUE)
+            throw ProgramLinkException(this->info_log());
+        
+        for (auto shader : this->attached_shaders)
+            glDetachShader(this->program, shader);
+        
+        return std::move(this->program);
+    }
+
+    std::string info_log() const {
+        GLint length = this->parameter(GL_INFO_LOG_LENGTH);
+        GLchar log[length];
+        glGetProgramInfoLog(this->program, length, nullptr, log);
+        return std::string(log, log + length);
+    }
+
+    inline GLint parameter(GLenum parameter) const {
+        GLint result;
+        glGetProgramiv(this->program, parameter, &result);
+        return result;
+    }
+
+    inline operator GLuint() const {
+        return this->program;
     }
 };
 
