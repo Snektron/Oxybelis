@@ -1,13 +1,54 @@
 #include <iostream>
+#include <cmath>
+#include <cstdint>
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
 #include "core/Window.h"
 #include "math/Matrix.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
+#include "graphics/VertexArray.h"
+#include "graphics/Buffer.h"
 #include "graphics/shader/ProgramBuilder.h"
 #include "assets.h"
 
+float VERTICES[] = {
+    -1, -1, -1,
+     1, -1, -1,
+    -1,  1, -1,
+     1,  1, -1,
+
+    -1, -1,  1,
+     1, -1,  1,
+    -1,  1,  1,
+     1,  1,  1,
+};
+
+uint8_t INDICES[] = {
+    // back
+    0, 3, 1,
+    0, 2, 3,
+
+    // front
+    4, 5, 7,
+    4, 7, 6,
+
+    // bottom
+    0, 1, 4,
+    4, 1, 5,
+
+    // top
+    2, 6, 3,
+    3, 6, 7,
+
+    // left
+    0, 4, 2,
+    4, 6, 2,
+
+    // right
+    1, 3, 5,
+    5, 3, 7
+};
 
 int main() {
     if (glfwInit() != GLFW_TRUE) {
@@ -35,34 +76,24 @@ int main() {
         .with(ShaderType::Fragment, assets::passthrough_fs)
         .link();
 
-    float vertices[] = {
-        -.5f, -.5f,
-        0.f, .5f,
-        .5f, -.5f
-    };
-
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    //const auto cam = make_orthographic(-1.f, 1.f, 1.f, -1.f, 0.1f, 1.f);
-    auto cam = make_perspective(1.f, 1.17f, 0.1f, 10.f);
-
-    cam *= make_translation(0.f, 0.f, 0.f);
-
-    program.use();
     Attribute aVertex = program.attribute("aVertex");
+
     Uniform uMvp = program.uniform("uMvp");
+    program.use();
 
-    glUniformMatrix4fv(uMvp, 1, GL_FALSE, cam.data());
+    VertexArray vao;
+    vao.bind();
 
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    auto vertices = Buffer::make_static(VERTICES, sizeof(VERTICES) / sizeof(float));
+    glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    vao.enable_attrib(aVertex);
 
-    glVertexAttribPointer(aVertex, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(aVertex);
+    auto indices = Buffer::make_static(INDICES, sizeof(INDICES) / sizeof(uint8_t), GL_ELEMENT_ARRAY_BUFFER);
+
+    auto model = make_translation(0.f, 0.f, -5.f);
+    auto rot = make_rotation(0.57f, 0.57f, 0.57f, 1.f / 40.f);
+
+    glEnable(GL_CULL_FACE);
 
     while (!window.should_close())
     {
@@ -70,7 +101,12 @@ int main() {
         glViewport(0, 0, dim.x(), dim.y());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        model *= rot;
+        auto mvp = make_perspective(static_cast<float>(dim.x()) / dim.y(), 1.17f, 0.1f, 50.f) * model;
+
+        glUniformMatrix4fv(uMvp, 1, GL_FALSE, mvp.data());
+
+        glDrawElements(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0);
 
         window.swap_buffers();
         glfwPollEvents();

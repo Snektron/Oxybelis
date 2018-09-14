@@ -2,29 +2,28 @@
 #define _OXYBELIS_GRAPHICS_TEXTURE_H
 
 #include "glad/glad.h"
+#include "graphics/GlObject.h"
 
 class Texture {
-    GLuint handle;
+    globject::Texture id;
+
+    GLuint gen() {
+        GLuint id;
+        glGenTextures(1, &id);
+        return id;
+    }
+
 public:
-    Texture(const Texture&) = delete;
-    Texture(Texture&&) = delete;
-    Texture& operator=(const Texture&) = delete;
-    Texture& operator=(Texture&&) = delete;
-
-    Texture() {
-        glGenTextures(1, &this->handle);
+    Texture():
+        id(gen()) {
     }
 
-    ~Texture() {
-        glDeleteTextures(1, &this->handle);
+    void bind(GLuint target) {
+        glBindBuffer(target, this->id);
     }
 
-    inline bind(GLenum target = GL_TEXTURE_2D) {
-        glBindTexture(target, this->handle);
-    }
-
-    inline operator GLuint() {
-        return this->handle;
+    inline operator GLuint() const {
+        return this->id;
     }
 };
 

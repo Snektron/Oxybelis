@@ -37,31 +37,31 @@ namespace globject {
         }
     };
 
-    void delete_shader(GLuint shader) {
+    inline void delete_shader(GLuint shader) {
         glDeleteShader(shader);
     }
 
     using Shader = GlObject<delete_shader>;
 
-    void delete_program(GLuint program) {
+    inline void delete_program(GLuint program) {
         glDeleteProgram(program);
     }
 
     using Program = GlObject<delete_program>;
 
-    void delete_texture(GLuint texture) {
+    inline void delete_texture(GLuint texture) {
         glDeleteTextures(1, &texture);
     }
 
     using Texture = GlObject<delete_texture>;
 
-    void delete_buffer(GLuint buffer) {
+    inline void delete_buffer(GLuint buffer) {
         glDeleteBuffers(1, &buffer);
     }
 
     using Buffer = GlObject<delete_buffer>;
 
-    void delete_vertex_array(GLuint array) {
+    inline void delete_vertex_array(GLuint array) {
         glDeleteVertexArrays(1, &array);
     }
 

@@ -130,22 +130,17 @@ constexpr auto make_vector(Args&&... args) {
 
 template <typename T>
 constexpr auto make_translation(const Vector3<T>& translation) {
-    auto result = Matrix<T, 4, 4>::make_identity();
-    result(0, 3) = translation.x();
-    result(1, 3) = translation.y();
-    result(2, 3) = translation.z();
-    return result;
+    return make_translation(translation.x(), translation.y(), translation.z());
 }
 
 template <typename T>
 constexpr auto make_scaling(const Vector3<T>& scaling) {
-    auto result = Matrix<T, 4, 4>::make_zeroes();
-    result(0, 0) = scaling.x();
-    result(1, 1) = scaling.y();
-    result(2, 2) = scaling.z();
-    result(3, 3) = 1;
-    return result;
+    return make_scaling(scaling.x(), scaling.y(), scaling.z());
 }
 
+template <typename T>
+constexpr auto make_rotation(const Vector3<T>& axis, const T& a) {
+    return make_rotation(axis.x(), axis.y(), axis.z(), a);
+}
 
 #endif

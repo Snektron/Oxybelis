@@ -361,6 +361,26 @@ constexpr auto make_scaling(const T& x, const T& y, const T& z) {
 }
 
 template <typename T>
+constexpr auto make_rotation(const T& x, const T& y, const T& z, const T& a) {
+    auto result = Matrix<T, 4, 4>::make_zeroes();
+    auto c = std::cos(a);
+    auto ci = 1 - c;
+    auto s = std::sin(a);
+
+    result(0, 0) = x * x * ci + c;
+    result(1, 0) = x * y * ci + z * s;
+    result(2, 0) = x * z * ci - y * s;
+    result(0, 1) = x * y * ci - z * s;
+    result(1, 1) = y * y * ci + c;
+    result(2, 1) = y * z * ci + x * s;
+    result(0, 2) = x * z * ci + y * s;
+    result(1, 2) = y * z * ci - x * s;
+    result(2, 2) = z * z * ci + c;
+    result(3, 3) = 1;
+    return result;
+}
+
+template <typename T>
 constexpr auto make_orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far) {
     auto result = Matrix<T, 4, 4>::make_zeroes();
 

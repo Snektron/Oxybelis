@@ -4,13 +4,15 @@ TARGET := oxybelis
 SRC := src
 BUILD := build
 ASSETS := assets
-CXXFLAGS := -g -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O2 -march=native -DGLFW_INCLUDE_NONE
+3RDPARTY := 3rdparty
+CXXFLAGS := -g -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O2 -march=native -DGLFW_INCLUDE_NONE
 LDFLAGS := -g -lGL -lglfw -ldl
 RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Resource
 
 find = $(shell find $1 -type f -name $2 -print)
 
-SRCS := $(patsubst $(SRC)/%, %, $(call find, $(SRC)/, "*.cpp"))
+SRCS := $(patsubst $(SRC)/%, %, $(call find, $(SRC)/, "*.cpp")) \
+	$(patsubst $(3RDPARTY)/%, %, $(call find, $(3RDPARTY)/, "*.cpp"))
 OBJECTS := $(SRCS:%.cpp=%.o)
 RSRCS := $(call find, $(ASSETS)/, "*")
 
@@ -25,6 +27,7 @@ TOTAL := $(words $(OBJECTS) . .)
 progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info $(WHITE)[$(YELLOW)$(words $(PROCESSED))$(WHITE)/$(YELLOW)$(TOTAL)$(WHITE)] $1$(CLEAR)))
 
 vpath %.cpp $(SRC)
+vpath %.cpp $(3RDPARTY)
 vpath $(ASSETS).o $(BUILD)/$(ASSETS)
 vpath %.o $(BUILD)/objects
 vpath $(TARGET) $(BUILD)/target
