@@ -60,6 +60,7 @@ int main() {
         glfwTerminate();
     });
 
+    glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -78,7 +79,9 @@ int main() {
 
     Attribute aVertex = program.attribute("aVertex");
 
-    Uniform uMvp = program.uniform("uMvp");
+    Uniform uPerspective = program.uniform("uPerspective");
+    Uniform uModel = program.uniform("uModel");
+    Uniform uNumInstances = program.uniform("uNumInstances");
     program.use();
 
     VertexArray vao;
@@ -91,9 +94,13 @@ int main() {
     auto indices = Buffer::make_static(INDICES, sizeof(INDICES) / sizeof(uint8_t), GL_ELEMENT_ARRAY_BUFFER);
 
     auto model = make_translation(0.f, 0.f, -5.f);
-    auto rot = make_rotation(0.57f, 0.57f, 0.57f, 1.f / 40.f);
+    auto rot = make_rotation(0.57f, 0.57f, 0.57f, 1.f / 40.f) * make_rotation(0.f, 1.f, 0.f, 1.5f / 40.f);
 
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+
+    const GLuint instances = 1000;
+    glUniform1f(uNumInstances, float(instances));
 
     while (!window.should_close())
     {
@@ -101,12 +108,14 @@ int main() {
         glViewport(0, 0, dim.x(), dim.y());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        auto perspective = make_perspective(static_cast<float>(dim.x()) / dim.y(), 1.17f, 0.1f, 50.f);
+
         model *= rot;
-        auto mvp = make_perspective(static_cast<float>(dim.x()) / dim.y(), 1.17f, 0.1f, 50.f) * model;
 
-        glUniformMatrix4fv(uMvp, 1, GL_FALSE, mvp.data());
+        glUniformMatrix4fv(uPerspective, 1, GL_FALSE, perspective.data());
+        glUniformMatrix4fv(uModel, 1, GL_FALSE, model.data());
 
-        glDrawElements(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0);
+        glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
 
         window.swap_buffers();
         glfwPollEvents();
