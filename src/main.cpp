@@ -10,6 +10,8 @@
 #include "graphics/VertexArray.h"
 #include "graphics/Buffer.h"
 #include "graphics/shader/ProgramBuilder.h"
+#include "input/InputContext.h"
+#include "input/InputManager.h"
 #include "assets.h"
 
 float VERTICES[] = {
@@ -94,12 +96,12 @@ int main() {
     auto indices = Buffer::make_static(INDICES, sizeof(INDICES) / sizeof(uint8_t), GL_ELEMENT_ARRAY_BUFFER);
 
     auto model = make_translation(0.f, 0.f, -5.f);
-    auto rot = make_rotation(0.57f, 0.57f, 0.57f, 1.f / 40.f) * make_rotation(0.f, 1.f, 0.f, 1.5f / 40.f);
+    auto rot = make_rotation(0.57f, 0.57f, 0.57f, 1.f / 40.f) * make_rotation(0.f, 1.f, 0.f, 1.f / 30.f);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    const GLuint instances = 1000;
+    const GLuint instances = 100;
     glUniform1f(uNumInstances, float(instances));
 
     while (!window.should_close())

@@ -1,21 +1,26 @@
 #ifndef _OXYBELIS_CORE_RESOURCE_H
 #define _OXYBELIS_CORE_RESOURCE_H
 
+#include <experimental/string_view>
+
 class Resource {
-    const char* const ptr;
-    const size_t sz;
+    std::experimental::string_view resource;
 
 public:
     constexpr Resource(const char* data, size_t size):
-        ptr(data), sz(size) {
+        resource(data, size) {
     }
 
-    constexpr const char* data() const {
-        return this->ptr;
+    const char* data() const {
+        return resource.data();
     }
 
-    constexpr size_t size() const {
-        return this->sz;
+    size_t size() const {
+        return this->resource.size();
+    }
+
+    const std::experimental::string_view& view() const {
+        return this->resource;
     }
 };
 
