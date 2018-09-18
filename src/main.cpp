@@ -127,8 +127,8 @@ int main() {
 
     manager.switch_context(ctx);
     
-    mouse.dispatch_action(MouseButton::Left, Action::Press);
-    kb.dispatch_action(GLFW_KEY_B, Action::Release);
+    mouse.dispatch_button(MouseButton::Left, Action::Press);
+    kb.dispatch(GLFW_KEY_B, Action::Release);
 
     while (!window.should_close())
     {

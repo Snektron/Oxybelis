@@ -22,16 +22,12 @@ public:
         manager(manager) {
     }
 
-    void dispatch_action(Key key, Action action) {
+    void dispatch(Key key, Action action) {
         auto range = this->actions.equal_range(key);
 
         for (auto& it = range.first; it != range.second; ++it) {
-            bool& pressed = it->second.is_pressed;
-            if ((action == Action::Press && !pressed) ||
-                (action == Action::Release && pressed)) {
-                pressed = action == Action::Press;
+            if (it->second.update(action))
                 this->manager.dispatch_action(it->second.input, action);
-            }
         }
     }
 
