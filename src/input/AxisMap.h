@@ -2,7 +2,6 @@
 #define _OXYBELIS_INPUT_AXIS_MAP_H
 
 #include <unordered_map>
-#include "input/Action.h"
 #include "input/Input.h"
 
 template <typename I>
@@ -39,12 +38,11 @@ public:
         this->bind(this->manager.axis(input), key, scale);
     }
 
-    void dispatch(T key, Action action) {
-        double action_value = action == Action::Press ? 1.0 : 0.0;
+    void dispatch(T key, double value) {
         auto range = this->axes.equal_range(key);
 
         for (auto& it = range.first; it != range.second; ++it)
-            it->second.mapping.value = action_value;
+            it->second.mapping.value = value;
     }
 };
 

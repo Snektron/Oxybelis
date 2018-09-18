@@ -6,6 +6,9 @@
 #include "input/ActionMap.h"
 #include "input/AxisMap.h"
 
+constexpr const double KEY_PRESS_VALUE = 1.0;
+constexpr const double KEY_RELEASE_VALUE = 0.0;
+
 template <typename I>
 class InputManager;
 
@@ -23,7 +26,7 @@ public:
 
     inline void dispatch(Key key, Action action) {
         this->action_map.dispatch(key, action);
-        this->axis_map.dispatch(key, action);
+        this->axis_map.dispatch(key, action == Action::Press ? KEY_PRESS_VALUE : KEY_RELEASE_VALUE);
     }
 
     void bind_action(ActionInput<I>& action_input, Key key) {

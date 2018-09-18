@@ -6,6 +6,9 @@
 #include "input/ActionMap.h"
 #include "input/AxisMap.h"
 
+constexpr const double MB_PRESS_VALUE = 1.0;
+constexpr const double MB_RELEASE_VALUE = 0.0;
+
 template <typename I>
 class InputManager;
 
@@ -40,7 +43,7 @@ public:
 
     inline void dispatch_button(MouseButton mb, Action action) {
         this->action_map.dispatch(mb, action);
-        this->axis_map.dispatch(mb, action);
+        this->axis_map.dispatch(mb, action == Action::Press ? MB_PRESS_VALUE : MB_RELEASE_VALUE);
     }
 
     void bind_action(ActionInput<I>& action_input, MouseButton mb) {
