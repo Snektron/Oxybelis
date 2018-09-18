@@ -2,15 +2,22 @@
 #define _OXYBELIS_INPUT_INPUTMANAGER_H
 
 #include <unordered_map>
-#include <functional>
-#include <experimental/optional>
+#include <unordered_set>
+#include <cstddef>
+#include <algorithm>
 #include <GLFW/glfw3.h>
+#include "core/Window.h"
 #include "input/InputContext.h"
 #include "utility/Option.h"
 
 enum class MouseAxis {
     Horizontal,
     Vertical
+};
+
+enum class MouseButton {
+    Left = GLFW_MOUSE_BUTTON_LEFT,
+    Right = GLFW_MOUSE_BUTTON_RIGHT
 };
 
 using GlfwKey = int;
@@ -22,18 +29,46 @@ public:
     using ContextRef = std::reference_wrapper<InputContext<T>>;
 
 private:
-    struct Action {
-        T action;
-        double scale;
-        double previous;
+    struct AxisInfo {
+        std::unordered_map<GlfwKey, double> keys;
+        std::unordered_map<MouseAxis, double> mice;
+        std::unordered_map<MouseButton, double> mouse_buttons;
+
+        double calculate_value(Window& win) {
+            return std::accumulate(this->keys.begin(), this->keys.end(), 0, [&](double x, auto& key){
+                    if (glfwGetKey(win.get(), key.first) == GLFW_PRESS)
+                        x += key.second;
+                    return x;
+                })
+                + std::accumulate(this->mouse_buttons.begin(), this->mouse_buttons.end(), 0, [&](double x, auto& button){
+                    auto glfw_button = static_cast<int>(button.first);
+                    if (glfwGetMouseButton(win.get(), glfw_button) == GLFW_PRESS)
+                        x += button.second;
+                    return x;
+                });
+        }
     };
 
-    std::unordered_multimap<GlfwKey, T> key_map;
-    std::unordered_multimap<MouseAxis, T> mouse_map;
+    struct ActionInfo {
+        std::unordered_set<GlfwKey> keys;
+        std::unordered_set<MouseButton> mouse_buttons;
+    };
+
+    struct MappingInfo {
+        ActionInfo action;
+        AxisInfo axis;
+    };
 
     Option<ContextRef> current_context;
 
+    std::unordered_map<T, MappingInfo> mapping;
+    Window& win;
+
 public:
+    InputManager(Window& win):
+        win(win) {
+    }
+
     Option<ContextRef> switch_context(Context& new_context) {
         Option<ContextRef> ctx = this->current_context;
         this->current_context = new_context;
@@ -46,35 +81,36 @@ public:
         return ctx;
     }
 
-    void bind(GlfwKey key, const T& action, double scale) {
-        this->key_map.emplace(key, {action, scale, 0});
+    void bind_action(GlfwKey key, const T& action) {
+        this->mapping[action].action.keys.insert(key);
     }
 
-    void bind(MouseAxis axis, const T& action, double scale) {
-        this->mouse_map.emplace(axis, {action, scale, 0});
+    void bind_action(MouseButton mb, const T& action) {
+        this->mapping[action].action.mouse_buttons.insert(mb);
     }
 
-    void dispatch(GlfwKey key, double value) {
+    void bind_axis(GlfwKey key, const T& axis, double scale) {
+        this->mapping[axis].axis.keys[key] = scale;
+    }
+
+    void bind_axis(MouseAxis mouse_axis, const T& axis, double scale) {
+        this->mapping[axis].axis.mice[mouse_axis] = scale;
+    }
+
+    void bind_axis(MouseButton mb, const T& axis, double scale) {
+        this->mapping[axis].axis.mouse_buttons[mb] = scale;
+    }
+
+    void update() {
         if (!this->current_context)
             return;
 
-        auto it = this->key_map.find(key);
-        auto end = this->key_map.end();
-        for (; it != end; ++it) {
-            double prev = it->second.previous;
-            it->second.previous = value * it->second.scale;
-            this->current_context->dispatch(it->second.action, it->second.previous, 0);
-        }
-    }
+        for (auto i : this->mapping) {
+            const auto& name = i.first;
+            auto& mapping = i.second;
 
-    void dispatch(MouseAxis axis, double value) {
-        if (!this->current_context)
-            return;
-
-        auto it = this->mouse_map.find(axis);
-        auto end = this->mouse_map.end();
-        for (; it != end; ++it) {
-            this->current_context->dispatch(it->second.action, value * it->second.scale, 0);
+            double value = mapping.axis.calculate_value(this->win);
+            this->current_context->get().dispatch_axis(name, value);
         }
     }
 };

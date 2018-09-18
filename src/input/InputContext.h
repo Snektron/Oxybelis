@@ -7,27 +7,38 @@
 #include <cstddef>
 #include <GLFW/glfw3.h>
 
-using InputCallback = std::function<void(double, double)>;
+using Action = int;
+using ActionCallback = std::function<void(Action)>;
+
+using AxisCallback = std::function<void(double)>;
 
 template <typename T = size_t>
 class InputContext {
-    std::unordered_multimap<T, InputCallback> callbacks;
+    std::unordered_map<T, AxisCallback> axes;
+    std::unordered_map<T, ActionCallback> actions;
 
 public:
-    void connect(const T& action, InputCallback cbk) {
-        this->callbacks.emplace(action, cbk);
+    void connect_action(const T& action, ActionCallback cbk) {
+        this->actions.emplace(action, cbk);
     }
 
-    void dispatch(const T& action, double value, double previous) {
-        auto it = this->callbacks.find(action);
-        auto end = this->callbacks.end();
-        for (; it != end; ++it)
-            it->second(value, previous);
+    void connect_axis(const T& axis, AxisCallback cbk) {
+        this->axes.emplace(axis, cbk);
     }
 
-private:
-    template <typename U>
-    friend class InputManager;
+    void dispatch_action(const T& action, Action value) {
+        auto it = this->actions.find(action);
+        auto end = this->actions.end();
+        if (it != end)
+            it->second(value);
+    }
+
+    void dispatch_axis(const T& axis, double value) {
+        auto it = this->axes.find(axis);
+        auto end = this->axes.end();
+        if (it != end)
+            it->second(value);
+    }
 };
 
 #endif

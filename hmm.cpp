@@ -17,22 +17,24 @@ void setup_input(InputManager<Input>& input_manager) {
     });
 }
 
-void map_input(InputManager<Input>& input_manager) {
-    input_manager.bind_axis(GLFW_W, Input::Forward, 1);
-    input_manager.bind_axis(GLFW_S, Input::Forward, -1);
-    input_manager.bind_axis(GLFW_D, Input::Strafe, 1);
-    input_manager.bind_axis(GLFW_A, Input::Strafe, -1);
-    input_manager.bind_axis(GLFW_SPACE, Input::Fly, 1);
-    input_manager.bind_axis(GLFW_SHIFT, Input::Fly, -1);
-    input_manager.bind_action(GLFW_MOUSE_BUTTON_LEFT, Input::Fire);
+void map_input(Window& win, InputManager<Input>& input_manager) {
+    input_manager.register(win);
+    input_manager.bind_axis(win, GLFW_W, Input::Forward, 1);
+    input_manager.bind_axis(win, GLFW_S, Input::Forward, -1);
+    input_manager.bind_axis(win, GLFW_D, Input::Strafe, 1);
+    input_manager.bind_axis(win, GLFW_A, Input::Strafe, -1);
+    input_manager.bind_axis(win, GLFW_SPACE, Input::Fly, 1);
+    input_manager.bind_axis(win, GLFW_SHIFT, Input::Fly, -1);
+    input_manager.bind_action(win, GLFW_MOUSE_BUTTON_LEFT, Input::Fire);
 
-    input_manager.bind_axis(Mouse::Horizontal, Input::LookHoriz, 1.0);
-    input_manager.bind_axis(Mouse::Vertical, Input::LookVert, 1.0);
+    input_manager.bind_axis(win, Mouse::Horizontal, Input::LookHoriz, 1.0);
+    input_manager.bind_axis(win, Mouse::Vertical, Input::LookVert, 1.0);
 
-    input_manager.bind_action(GLFW_MOUSE_BUTTON_LEFT, Input::Focus);
-    input_manager.bind_action(GLFW_ECS, Input::Escape);
+    input_manager.bind_action(win, GLFW_MOUSE_BUTTON_LEFT, Input::Focus);
+    input_manager.bind_action(win, GLFW_ECS, Input::Escape);
 }
 
+input_manager.update();
 
 // -----
 

@@ -124,5 +124,9 @@ int main() {
         assert_gl();
     }
 
+    InputManager<size_t> test(window);
+    test.bind_axis(GLFW_KEY_A, 0, 1.0);
+    test.update();
+
     return 0;
 }
