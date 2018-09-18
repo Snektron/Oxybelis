@@ -22,7 +22,7 @@ namespace detail {
             return *it;
         } else {
             v.emplace_back(std::forward<Args>(args)...);
-            return v[v.size() - 1];
+            return v.back();
         }
     }
 }
@@ -61,6 +61,16 @@ public:
     void dispatch_action(const I& input, Action action) {
         if (this->context)
             this->context->get().dispatch_action(input, action);
+    }
+
+    void update() {
+        if (!this->context)
+            return;
+
+        for (auto& axis_input : this->axes) {
+            double value = axis_input.value();
+            this->context->get().dispatch_axis(axis_input.input, value);
+        }
     }
 };
 

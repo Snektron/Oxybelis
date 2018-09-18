@@ -1,6 +1,8 @@
 #ifndef _OXYBELIS_INPUT_INPUT_H
 #define _OXYBELIS_INPUT_INPUT_H
 
+#include <vector>
+#include <algorithm>
 #include "input/Action.h"
 
 template <typename I>
@@ -26,10 +28,34 @@ struct ActionInput {
 
 template <typename I>
 struct AxisInput {
+    struct Mapping {
+        double value;
+        double scale;
+
+        Mapping(double scale):
+            value(0), scale(scale) {
+        }
+    };
+
     I input;
+    std::vector<Mapping> mappings;
 
     AxisInput(const I& input):
         input(input) {
+    }
+
+    Mapping& add_mapping(double scale) {
+        this->mappings.emplace_back(scale);
+        return this->mappings.back();
+    }
+
+    double value() {
+        return std::accumulate(
+            this->mappings.begin(),
+            this->mappings.end(),
+            0, [](double total, auto& mapping){
+                return total + mapping.value * mapping.scale;
+            });
     }
 };
 

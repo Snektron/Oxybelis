@@ -105,7 +105,8 @@ int main() {
     glUniform1f(uNumInstances, float(instances));
 
     enum class Input {
-        Test
+        Test,
+        Oof
     };
 
     InputManager<Input> manager;
@@ -113,6 +114,7 @@ int main() {
     Keyboard<Input> kb(manager);
     kb.bind_action(Input::Test, GLFW_KEY_A);
     kb.bind_action(Input::Test, GLFW_KEY_B);
+    kb.bind_axis(Input::Oof, GLFW_KEY_C, -1.0);
 
     Mouse<Input> mouse(manager);
     mouse.bind_action(Input::Test, MouseButton::Left);
@@ -120,15 +122,26 @@ int main() {
     InputContext<Input> ctx;
     ctx.connect_action(Input::Test, [](Action a) {
         if (a == Action::Press)
-            std::cout << "Press test" << std::endl;
+            std::cout << "Action Press" << std::endl;
         else
-            std::cout << "Release test" << std::endl;
+            std::cout << "Action Release" << std::endl;
+    });
+
+    ctx.connect_axis(Input::Oof, [](double x) {
+        std::cout << "Axis " << x << std::endl;
     });
 
     manager.switch_context(ctx);
     
     mouse.dispatch_button(MouseButton::Left, Action::Press);
     kb.dispatch(GLFW_KEY_B, Action::Release);
+
+    kb.dispatch(GLFW_KEY_C, Action::Press);
+    manager.update();
+    manager.update();
+    kb.dispatch(GLFW_KEY_C, Action::Release);
+    manager.update();
+    manager.update();
 
     while (!window.should_close())
     {

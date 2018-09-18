@@ -56,7 +56,7 @@ public:
             this->actions.emplace(mb, action_input);
     }
 
-    void bind_action(const I& input, MouseButton mb) {
+    inline void bind_action(const I& input, MouseButton mb) {
         this->bind_action(this->manager.action(input), mb);
     }
 };
