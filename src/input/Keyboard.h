@@ -5,51 +5,49 @@
 #include <algorithm>
 #include <GLFW/glfw3.h>
 #include "input/Action.h"
+#include "input/Input.h"
 
-template <typename A>
+template <typename I>
 class InputManager;
 
 using Key = int;
-using KeyAction = int;
 
-template <typename A>
+template <typename I>
 class Keyboard {
-    InputManager<A>& manager;
-    std::unordered_multimap<Key, ActionInfo<A>&> actions;
+    InputManager<I>& manager;
+    std::unordered_multimap<Key, ActionInput<I>&> actions;
 
 public:
-    Keyboard(InputManager<A>& manager):
+    Keyboard(InputManager<I>& manager):
         manager(manager) {
     }
 
-    void dispatch(Key key, KeyAction action) {
+    void dispatch_action(Key key, Action action) {
         auto range = this->actions.equal_range(key);
 
         for (auto& it = range.first; it != range.second; ++it) {
             bool& pressed = it->second.is_pressed;
-            if ((action == GLFW_PRESS && !pressed) ||
-                (action == GLFW_RELEASE && pressed)) {
-                pressed = action == GLFW_PRESS;
-                this->manager.dispatch_action(it->second.action, action);
+            if ((action == Action::Press && !pressed) ||
+                (action == Action::Release && pressed)) {
+                pressed = action == Action::Press;
+                this->manager.dispatch_action(it->second.input, action);
             }
         }
     }
 
-    void bind(ActionInfo<A>& action_info, Key key) {
+    void bind_action(ActionInput<I>& action_input, Key key) {
         auto range = this->actions.equal_range(key);
         auto it = std::find_if(range.first, range.second, [=](auto& entry) {
-            return &entry.second == &action_info;
+            return &entry.second == &action_input;
         });
 
         if (it == range.second)
-            this->actions.emplace(key, action_info);
+            this->actions.emplace(key, action_input);
     }
 
-    void bind(const A& action, Key key) {
-        this->bind(this->manager.action(action), key);
+    void bind_action(const I& input, Key key) {
+        this->bind_action(this->manager.action(input), key);
     }
-
-    friend class InputManager<A>;
 };
 
 #endif

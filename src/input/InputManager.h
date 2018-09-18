@@ -9,14 +9,15 @@
 #include "input/Mouse.h"
 #include "input/Keyboard.h"
 #include "input/Action.h"
+#include "input/Input.h"
 #include "utility/Option.h"
 
-template <typename A = size_t>
+template <typename I>
 class InputManager {
-    using Context = InputContext<A>;
+    using Context = InputContext<I>;
     using ContextRef = std::reference_wrapper<Context>;
 
-    std::vector<ActionInfo<A>> actions;
+    std::vector<ActionInput<I>> actions;
     Option<ContextRef> context;
 
 public:
@@ -28,23 +29,23 @@ public:
         this->context.reset();
     }
 
-    ActionInfo<A>& action(const A& action) {
+    ActionInput<I>& action(const I& input) {
         auto end = this->actions.end();
-        auto it = std::find_if(this->actions.begin(), this->actions.end(), [=](auto& i){
-           return i.action == action;
+        auto it = std::find_if(this->actions.begin(), this->actions.end(), [=](auto& entry){
+           return entry.input == input;
         });
 
         if (it != end) {
             return *it;
         } else {
-            this->actions.push_back(action);
+            this->actions.emplace_back(input);
             return this->actions[this->actions.size() - 1];
         }
     }
 
-    void dispatch_action(const A& action, KeyAction value) {
+    void dispatch_action(const I& input, Action action) {
         if (this->context)
-            this->context->get().dispatch_action(action, value);
+            this->context->get().dispatch_action(input, action);
     }
 };
 

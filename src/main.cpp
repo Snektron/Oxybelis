@@ -104,15 +104,22 @@ int main() {
     const GLuint instances = 100;
     glUniform1f(uNumInstances, float(instances));
 
-    InputManager<size_t> manager;
+    enum class Input {
+        Test
+    };
 
-    Keyboard<size_t> kb(manager);
-    kb.bind(0, GLFW_KEY_A);
-    kb.bind(0, GLFW_KEY_B);
+    InputManager<Input> manager;
+
+    Keyboard<Input> kb(manager);
+    kb.bind_action(Input::Test, GLFW_KEY_A);
+    kb.bind_action(Input::Test, GLFW_KEY_B);
+
+    Mouse<Input> mouse(manager);
+    mouse.bind_action(Input::Test, MouseButton::Left);
     
-    InputContext<size_t> ctx;
-    ctx.connect_action(0, [](KeyAction a) {
-        if (a == GLFW_PRESS)
+    InputContext<Input> ctx;
+    ctx.connect_action(Input::Test, [](Action a) {
+        if (a == Action::Press)
             std::cout << "Press test" << std::endl;
         else
             std::cout << "Release test" << std::endl;
@@ -120,8 +127,8 @@ int main() {
 
     manager.switch_context(ctx);
     
-    kb.dispatch(GLFW_KEY_A, GLFW_PRESS);
-    kb.dispatch(GLFW_KEY_B, GLFW_RELEASE);
+    mouse.dispatch_action(MouseButton::Left, Action::Press);
+    kb.dispatch_action(GLFW_KEY_B, Action::Release);
 
     while (!window.should_close())
     {

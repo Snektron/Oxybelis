@@ -1,7 +1,12 @@
 #ifndef _OXYBELIS_INPUT_MOUSE_H
 #define _OXYBELIS_INPUT_MOUSE_H
 
-#include "math/Vector.h"
+#include <unordered_map>
+#include "input/Action.h"
+#include "input/Input.h"
+
+template <typename I>
+class InputManager;
 
 enum class MouseAxis {
     Vertical,
@@ -22,12 +27,41 @@ enum class MouseButton {
     Middle = GLFW_MOUSE_BUTTON_MIDDLE
 };
 
+template <typename I>
 class Mouse {
-    InputManager<A>& manager;
+    InputManager<I>& manager;
+    std::unordered_multimap<MouseButton, ActionInput<I>&> actions;
 
 public:
-    Mouse(InputManager<A>& manager):
+    Mouse(InputManager<I>& manager):
         manager(manager) {
+    }
+
+    void dispatch_action(MouseButton mb, Action action) {
+        auto range = this->actions.equal_range(mb);
+
+        for (auto& it = range.first; it != range.second; ++it) {
+            bool& pressed = it->second.is_pressed;
+            if ((action == Action::Press && !pressed) ||
+                (action == Action::Release && pressed)) {
+                pressed = action == Action::Press;
+                this->manager.dispatch_action(it->second.input, action);
+            }
+        }
+    }
+
+    void bind_action(ActionInput<I>& action_input, MouseButton mb) {
+        auto range = this->actions.equal_range(mb);
+        auto it = std::find_if(range.first, range.second, [=](auto& entry) {
+            return &entry.second == &action_input;
+        });
+
+        if (it == range.second)
+            this->actions.emplace(mb, action_input);
+    }
+
+    void bind_action(const I& input, MouseButton mb) {
+        this->bind_action(this->manager.action(input), mb);
     }
 };
 
