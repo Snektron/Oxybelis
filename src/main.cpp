@@ -12,6 +12,8 @@
 #include "graphics/shader/ProgramBuilder.h"
 #include "input/InputContext.h"
 #include "input/InputManager.h"
+#include "input/device/Mouse.h"
+#include "input/device/Keyboard.h"
 #include "assets.h"
 
 float VERTICES[] = {

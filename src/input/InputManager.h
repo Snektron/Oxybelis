@@ -3,11 +3,7 @@
 
 #include <vector>
 #include <algorithm>
-#include <functional>
-#include <GLFW/glfw3.h>
 #include "input/InputContext.h"
-#include "input/Mouse.h"
-#include "input/Keyboard.h"
 #include "input/Action.h"
 #include "input/Input.h"
 #include "utility/Option.h"

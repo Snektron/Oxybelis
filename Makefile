@@ -5,7 +5,7 @@ SRC := src
 BUILD := build
 ASSETS := assets
 3RDPARTY := 3rdparty
-CXXFLAGS := -g -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O0 -march=native -DGLFW_INCLUDE_NONE
+CXXFLAGS := -g -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O3 -march=native -DGLFW_INCLUDE_NONE
 LDFLAGS := -g -lGL -lglfw -ldl
 RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Resource
 
@@ -56,6 +56,10 @@ $(ASSETS).o: $(RSRCS)
 clean:
 	@echo Cleaning build files
 	@rm -rf $(BUILD)
+
+clean-cpp:
+	@echo Cleaning c++ object files
+	@rm -rf $(BUILD)/objects
 	
 run: all
 	@$(BUILD)/target/$(TARGET)
