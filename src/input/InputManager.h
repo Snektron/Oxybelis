@@ -1,117 +1,50 @@
 #ifndef _OXYBELIS_INPUT_INPUTMANAGER_H
 #define _OXYBELIS_INPUT_INPUTMANAGER_H
 
-#include <unordered_map>
-#include <unordered_set>
-#include <cstddef>
+#include <vector>
 #include <algorithm>
+#include <functional>
 #include <GLFW/glfw3.h>
-#include "core/Window.h"
 #include "input/InputContext.h"
+#include "input/Mouse.h"
+#include "input/Keyboard.h"
+#include "input/Action.h"
 #include "utility/Option.h"
 
-enum class MouseAxis {
-    Horizontal,
-    Vertical
-};
-
-enum class MouseButton {
-    Left = GLFW_MOUSE_BUTTON_LEFT,
-    Right = GLFW_MOUSE_BUTTON_RIGHT
-};
-
-using GlfwKey = int;
-
-template <typename T = size_t>
+template <typename A = size_t>
 class InputManager {
-public:
-    using Context = InputContext<T>;
-    using ContextRef = std::reference_wrapper<InputContext<T>>;
+    using Context = InputContext<A>;
+    using ContextRef = std::reference_wrapper<Context>;
 
-private:
-    struct AxisInfo {
-        std::unordered_map<GlfwKey, double> keys;
-        std::unordered_map<MouseAxis, double> mice;
-        std::unordered_map<MouseButton, double> mouse_buttons;
-
-        double calculate_value(Window& win) {
-            return std::accumulate(this->keys.begin(), this->keys.end(), 0, [&](double x, auto& key){
-                    if (glfwGetKey(win.get(), key.first) == GLFW_PRESS)
-                        x += key.second;
-                    return x;
-                })
-                + std::accumulate(this->mouse_buttons.begin(), this->mouse_buttons.end(), 0, [&](double x, auto& button){
-                    auto glfw_button = static_cast<int>(button.first);
-                    if (glfwGetMouseButton(win.get(), glfw_button) == GLFW_PRESS)
-                        x += button.second;
-                    return x;
-                });
-        }
-    };
-
-    struct ActionInfo {
-        std::unordered_set<GlfwKey> keys;
-        std::unordered_set<MouseButton> mouse_buttons;
-    };
-
-    struct MappingInfo {
-        ActionInfo action;
-        AxisInfo axis;
-    };
-
-    Option<ContextRef> current_context;
-
-    std::unordered_map<T, MappingInfo> mapping;
-    Window& win;
+    std::vector<ActionInfo<A>> actions;
+    Option<ContextRef> context;
 
 public:
-    InputManager(Window& win):
-        win(win) {
+    void switch_context(Context& ctx) {
+        this->context.emplace(ctx);
     }
 
-    Option<ContextRef> switch_context(Context& new_context) {
-        Option<ContextRef> ctx = this->current_context;
-        this->current_context = new_context;
-        return ctx;
+    void clear_context() {
+        this->context.reset();
     }
 
-    Option<ContextRef> remove_context() {
-        Option<ContextRef> ctx = this->current_context;
-        this->current_context = NONE;
-        return ctx;
-    }
+    ActionInfo<A>& action(const A& action) {
+        auto end = this->actions.end();
+        auto it = std::find_if(this->actions.begin(), this->actions.end(), [=](auto& i){
+           return i.action == action;
+        });
 
-    void bind_action(GlfwKey key, const T& action) {
-        this->mapping[action].action.keys.insert(key);
-    }
-
-    void bind_action(MouseButton mb, const T& action) {
-        this->mapping[action].action.mouse_buttons.insert(mb);
-    }
-
-    void bind_axis(GlfwKey key, const T& axis, double scale) {
-        this->mapping[axis].axis.keys[key] = scale;
-    }
-
-    void bind_axis(MouseAxis mouse_axis, const T& axis, double scale) {
-        this->mapping[axis].axis.mice[mouse_axis] = scale;
-    }
-
-    void bind_axis(MouseButton mb, const T& axis, double scale) {
-        this->mapping[axis].axis.mouse_buttons[mb] = scale;
-    }
-
-    void update() {
-        if (!this->current_context)
-            return;
-
-        for (auto i : this->mapping) {
-            const auto& name = i.first;
-            auto& mapping = i.second;
-
-            double value = mapping.axis.calculate_value(this->win);
-            this->current_context->get().dispatch_axis(name, value);
+        if (it != end) {
+            return *it;
+        } else {
+            this->actions.push_back(action);
+            return this->actions[this->actions.size() - 1];
         }
+    }
+
+    void dispatch_action(const A& action, KeyAction value) {
+        if (this->context)
+            this->context->get().dispatch_action(action, value);
     }
 };
 

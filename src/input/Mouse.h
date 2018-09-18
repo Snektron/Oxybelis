@@ -3,28 +3,31 @@
 
 #include "math/Vector.h"
 
+enum class MouseAxis {
+    Vertical,
+    Horizontal
+};
+
+enum class MouseButton {
+    Button1 = GLFW_MOUSE_BUTTON_1,
+    Button2 = GLFW_MOUSE_BUTTON_2,
+    Button3 = GLFW_MOUSE_BUTTON_3,
+    Button4 = GLFW_MOUSE_BUTTON_4,
+    Button5 = GLFW_MOUSE_BUTTON_5,
+    Button6 = GLFW_MOUSE_BUTTON_6,
+    Button7 = GLFW_MOUSE_BUTTON_7,
+    Button8 = GLFW_MOUSE_BUTTON_8,
+    Left = GLFW_MOUSE_BUTTON_LEFT,
+    Right = GLFW_MOUSE_BUTTON_RIGHT,
+    Middle = GLFW_MOUSE_BUTTON_MIDDLE
+};
+
 class Mouse {
-    Vector<double, 2> mouse_pos;
-    Vector<double, 2> mouse_delta;
+    InputManager<A>& manager;
 
 public:
-    Mouse():
-        mouse_pos(0, 0),
-        mouse_delta(0, 0) {
-    }
-
-    void update(double x, double y) {
-        Vector<double, 2> new_pos(x, y);
-        this->delta = new_pos - this->pos;
-        this->mouse_pos = new_pos;
-    }
-
-    Vector<double, 2>& pos() const {
-        return this->mouse_pos;
-    }
-
-    Vector<double, 2> delta() const {
-        return this->mouse_delta;
+    Mouse(InputManager<A>& manager):
+        manager(manager) {
     }
 };
 

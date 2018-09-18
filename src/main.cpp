@@ -104,6 +104,25 @@ int main() {
     const GLuint instances = 100;
     glUniform1f(uNumInstances, float(instances));
 
+    InputManager<size_t> manager;
+
+    Keyboard<size_t> kb(manager);
+    kb.bind(0, GLFW_KEY_A);
+    kb.bind(0, GLFW_KEY_B);
+    
+    InputContext<size_t> ctx;
+    ctx.connect_action(0, [](KeyAction a) {
+        if (a == GLFW_PRESS)
+            std::cout << "Press test" << std::endl;
+        else
+            std::cout << "Release test" << std::endl;
+    });
+
+    manager.switch_context(ctx);
+    
+    kb.dispatch(GLFW_KEY_A, GLFW_PRESS);
+    kb.dispatch(GLFW_KEY_B, GLFW_RELEASE);
+
     while (!window.should_close())
     {
         auto dim = window.dimensions();
@@ -123,10 +142,6 @@ int main() {
         glfwPollEvents();
         assert_gl();
     }
-
-    InputManager<size_t> test(window);
-    test.bind_axis(GLFW_KEY_A, 0, 1.0);
-    test.update();
 
     return 0;
 }
