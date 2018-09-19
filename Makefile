@@ -5,9 +5,19 @@ SRC := src
 BUILD := build
 ASSETS := assets
 3RDPARTY := 3rdparty
-CXXFLAGS := -g -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -std=c++14 -Wall -Wextra -O3 -march=native -DGLFW_INCLUDE_NONE
-LDFLAGS := -g -lGL -lglfw -ldl
+PKGS := glfw3
+CXXFLAGS := -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) \
+	-g  -std=c++14 -Wall -Wextra -O3 -march=native \
+	-DGLFW_INCLUDE_NONE \
+	`pkg-config --cflags $(PKGS)`
+LDFLAGS := -g -ldl `pkg-config --libs $(PKGS)`
 RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Resource
+
+ifeq ($(OS),Windows_NT)
+    LDFLAGS += -lopengl32 -lgdi32
+else
+    LDFLAGS += -lGL
+endif
 
 find = $(shell find $1 -type f -name $2 -print)
 
@@ -39,7 +49,7 @@ $(TARGET): $(OBJECTS) $(ASSETS).o
 	@mkdir -p $(BUILD)/target
 	@$(CXX) -o $(BUILD)/target/$@ $(OBJECTS:%=$(BUILD)/objects/%) $(BUILD)/$(ASSETS)/$(ASSETS).o $(LDFLAGS)
 
-%.o: %.cpp
+%.o: %.cpp $(ASSETS).o
 	@$(call progress,$(BLUE)Compiling $<)
 	@mkdir -p $(BUILD)/objects/$(dir $@)
 	@$(CXX) -c $(CXXFLAGS) -o $(BUILD)/objects/$@ $<
