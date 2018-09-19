@@ -1,8 +1,8 @@
 #ifndef _OXYBELIS_INPUT_INPUTMANAGER_H
 #define _OXYBELIS_INPUT_INPUTMANAGER_H
 
-#include <vector>
 #include <algorithm>
+#include <deque>
 #include "input/InputContext.h"
 #include "input/Action.h"
 #include "input/Input.h"
@@ -28,8 +28,8 @@ class InputManager {
     using Context = InputContext<I>;
     using ContextRef = std::reference_wrapper<Context>;
 
-    std::vector<ActionInput<I>> actions;
-    std::vector<AxisInput<I>> axes;
+    std::deque<ActionInput<I>> actions;
+    std::deque<AxisInput<I>> axes;
 
     Option<ContextRef> context;
 

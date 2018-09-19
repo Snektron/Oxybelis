@@ -5,6 +5,7 @@
 #include "input/Input.h"
 #include "input/ActionMap.h"
 #include "input/AxisMap.h"
+#include "math/Vector.h"
 
 constexpr const double MB_PRESS_VALUE = 1.0;
 constexpr const double MB_RELEASE_VALUE = 0.0;
@@ -34,16 +35,33 @@ enum class MouseButton {
 template <typename I>
 class Mouse {
     ActionMap<I, MouseButton> action_map;
-    AxisMap<I, MouseButton> axis_map;
+    AxisMap<I, MouseButton> mb_axis_map;
+    AxisMap<I, MouseAxis> axis_map;
+    Vector2<double> cursor;
+    Vector2<double> delta;
 
 public:
     Mouse(InputManager<I>& manager):
-        action_map(manager), axis_map(manager) {
+        action_map(manager), mb_axis_map(manager),
+        axis_map(manager),
+        cursor({0, 0}) {
     }
 
     inline void dispatch_button(MouseButton mb, Action action) {
         this->action_map.dispatch(mb, action);
-        this->axis_map.dispatch(mb, action == Action::Press ? MB_PRESS_VALUE : MB_RELEASE_VALUE);
+        this->mb_axis_map.dispatch(mb, action == Action::Press ? MB_PRESS_VALUE : MB_RELEASE_VALUE);
+    }
+
+    void update_cursor(double x, double y) {
+        Vector2<double> new_pos({x, y});
+        delta = new_pos - this->cursor;
+        this->cursor = new_pos;
+        this->dispatch_cursor(MouseAxis::Horizontal, this->delta.x());
+        this->dispatch_cursor(MouseAxis::Vertical, this->delta.y());
+    }
+
+    void dispatch_cursor(MouseAxis axis, double value) {
+        this->axis_map.dispatch(axis, value);
     }
 
     void bind_action(ActionInput<I>& action_input, MouseButton mb) {
@@ -55,11 +73,19 @@ public:
     }
 
     void bind_axis(AxisInput<I>& axis_input, MouseButton mb, double scale) {
-        this->axis_map.bind(axis_input, mb, scale);
+        this->mb_axis_map.bind(axis_input, mb, scale);
     }
 
     inline void bind_axis(const I& input, MouseButton mb, double scale) {
-        this->axis_map.bind(input, mb, scale);
+        this->mb_axis_map.bind(input, mb, scale);
+    }
+
+    void bind_axis(AxisInput<I>& axis_input, MouseAxis axis, double scale) {
+        this->axis_map.bind(axis_input, axis, scale);
+    }
+
+    inline void bind_axis(const I& input, MouseAxis axis, double scale) {
+        this->axis_map.bind(input, axis, scale);
     }
 };
 

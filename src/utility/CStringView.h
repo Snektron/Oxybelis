@@ -7,7 +7,7 @@ class CStringView {
     const char* str;
 
 public:
-    constexpr CStringView(const std::string& str):
+    CStringView(const std::string& str):
         str(str.c_str()) {
     }
 

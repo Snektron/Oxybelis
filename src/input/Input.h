@@ -37,6 +37,8 @@ struct AxisInput {
         }
     };
 
+    using MappingId = size_t;
+
     I input;
     std::vector<Mapping> mappings;
 
@@ -44,16 +46,20 @@ struct AxisInput {
         input(input) {
     }
 
-    Mapping& add_mapping(double scale) {
+    MappingId add_mapping(double scale) {
         this->mappings.emplace_back(scale);
-        return this->mappings.back();
+        return this->mappings.size() - 1;
     }
 
-    double value() {
+    void update(MappingId id, double value) {
+        this->mappings[id].value = value;
+    }
+
+    double value() const {
         return std::accumulate(
             this->mappings.begin(),
             this->mappings.end(),
-            0, [](double total, auto& mapping){
+            0.0, [](double total, auto& mapping){
                 return total + mapping.value * mapping.scale;
             });
     }

@@ -116,11 +116,13 @@ int main() {
     Keyboard<Input> kb(manager);
     kb.bind_action(Input::Test, GLFW_KEY_A);
     kb.bind_action(Input::Test, GLFW_KEY_B);
-    kb.bind_axis(Input::Oof, GLFW_KEY_C, -1.0);
+    kb.bind_axis(Input::Oof, GLFW_KEY_C, 1.0);
+    kb.bind_axis(Input::Oof, GLFW_KEY_D, 1.0);
 
     Mouse<Input> mouse(manager);
     mouse.bind_action(Input::Test, MouseButton::Left);
-    
+    mouse.bind_axis(Input::Oof, MouseAxis::Vertical, 1.0);
+
     InputContext<Input> ctx;
     ctx.connect_action(Input::Test, [](Action a) {
         if (a == Action::Press)
@@ -140,9 +142,12 @@ int main() {
 
     kb.dispatch(GLFW_KEY_C, Action::Press);
     manager.update();
-    manager.update();
     kb.dispatch(GLFW_KEY_C, Action::Release);
+    kb.dispatch(GLFW_KEY_D, Action::Press);
     manager.update();
+    mouse.update_cursor(0.1, 0.1);
+    manager.update();
+    mouse.update_cursor(0.1, 0.1);
     manager.update();
 
     while (!window.should_close())

@@ -11,7 +11,7 @@ template <typename I, typename T>
 class AxisMap {
     struct AxisBinding {
         AxisInput<I>& axis_input;
-        typename AxisInput<I>::Mapping& mapping;
+        typename AxisInput<I>::MappingId mapping;
     };
 
     InputManager<I>& manager;
@@ -29,7 +29,7 @@ public:
         });
 
         if (it == range.second) {
-            auto& mapping = axis_input.add_mapping(scale);
+            auto mapping = axis_input.add_mapping(scale);
             this->axes.emplace(key, AxisBinding{axis_input, mapping});
         }
     }
@@ -42,7 +42,7 @@ public:
         auto range = this->axes.equal_range(key);
 
         for (auto& it = range.first; it != range.second; ++it)
-            it->second.mapping.value = value;
+            it->second.axis_input.update(it->second.mapping, value);
     }
 };
 
