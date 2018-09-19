@@ -37,12 +37,12 @@ public:
         this->action_map.bind(input, key);
     }
 
-    void bind_axis(AxisInput<I>& axis_input, Key key, double scale) {
-        this->axis_map.bind(axis_input, key, scale);
+    void bind_axis(AxisInput<I>& axis_input, Key key, double scale, bool reset_after_update = false) {
+        this->axis_map.bind(axis_input, key, scale, reset_after_update);
     }
 
-    inline void bind_axis(const I& input, Key key, double scale) {
-        this->axis_map.bind(input, key, scale);
+    inline void bind_axis(const I& input, Key key, double scale, bool reset_after_update = false) {
+        this->axis_map.bind(input, key, scale, reset_after_update);
     }
 };
 

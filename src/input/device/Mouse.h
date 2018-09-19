@@ -72,20 +72,20 @@ public:
         this->action_map.bind(input, mb);
     }
 
-    void bind_axis(AxisInput<I>& axis_input, MouseButton mb, double scale) {
-        this->mb_axis_map.bind(axis_input, mb, scale);
+    void bind_axis(AxisInput<I>& axis_input, MouseButton mb, double scale, bool reset_after_update = false) {
+        this->mb_axis_map.bind(axis_input, mb, scale, reset_after_update);
     }
 
-    inline void bind_axis(const I& input, MouseButton mb, double scale) {
-        this->mb_axis_map.bind(input, mb, scale);
+    inline void bind_axis(const I& input, MouseButton mb, double scale, bool reset_after_update = false) {
+        this->mb_axis_map.bind(input, mb, scale, reset_after_update);
     }
 
-    void bind_axis(AxisInput<I>& axis_input, MouseAxis axis, double scale) {
-        this->axis_map.bind(axis_input, axis, scale);
+    void bind_axis(AxisInput<I>& axis_input, MouseAxis axis, double scale, bool reset_after_update = true) {
+        this->axis_map.bind(axis_input, axis, scale, reset_after_update);
     }
 
-    inline void bind_axis(const I& input, MouseAxis axis, double scale) {
-        this->axis_map.bind(input, axis, scale);
+    inline void bind_axis(const I& input, MouseAxis axis, double scale, bool reset_after_update = true) {
+        this->axis_map.bind(input, axis, scale, reset_after_update);
     }
 };
 

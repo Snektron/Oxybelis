@@ -142,12 +142,9 @@ int main() {
 
     kb.dispatch(GLFW_KEY_C, Action::Press);
     manager.update();
-    kb.dispatch(GLFW_KEY_C, Action::Release);
-    kb.dispatch(GLFW_KEY_D, Action::Press);
     manager.update();
     mouse.update_cursor(0.1, 0.1);
     manager.update();
-    mouse.update_cursor(0.1, 0.1);
     manager.update();
 
     while (!window.should_close())

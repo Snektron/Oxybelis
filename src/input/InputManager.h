@@ -64,7 +64,7 @@ public:
             return;
 
         for (auto& axis_input : this->axes) {
-            double value = axis_input.value();
+            double value = axis_input.update();
             this->context->get().dispatch_axis(axis_input.input, value);
         }
     }
