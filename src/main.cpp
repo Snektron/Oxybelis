@@ -107,46 +107,36 @@ int main() {
     glUniform1f(uNumInstances, float(instances));
 
     enum class Input {
-        Test,
-        Oof
+        Button,
+        Mouse
     };
 
     InputManager<Input> manager;
 
-    Keyboard<Input> kb(manager);
-    kb.bind_action(Input::Test, GLFW_KEY_A);
-    kb.bind_action(Input::Test, GLFW_KEY_B);
-    kb.bind_axis(Input::Oof, GLFW_KEY_C, 1.0);
-    kb.bind_axis(Input::Oof, GLFW_KEY_D, 1.0);
+    Keyboard<Input> kb(manager, window);
+    kb.bind_action(Input::Button, GLFW_KEY_A);
+    kb.bind_action(Input::Button, GLFW_KEY_B);
+    kb.bind_axis(Input::Mouse, GLFW_KEY_C, 1.0);
+    kb.bind_axis(Input::Mouse, GLFW_KEY_D, -1.0);
 
-    Mouse<Input> mouse(manager);
-    mouse.bind_action(Input::Test, MouseButton::Left);
-    mouse.bind_axis(Input::Oof, MouseAxis::Vertical, 1.0);
+    Mouse<Input> mouse(manager, window);
+    mouse.bind_action(Input::Button, MouseButton::Left);
+    mouse.bind_axis(Input::Mouse, MouseAxis::Vertical, 1.0);
 
     InputContext<Input> ctx;
-    ctx.connect_action(Input::Test, [](Action a) {
+    ctx.connect_action(Input::Button, [](Action a) {
         if (a == Action::Press)
             std::cout << "Action Press" << std::endl;
         else
             std::cout << "Action Release" << std::endl;
     });
 
-    ctx.connect_axis(Input::Oof, [](double x) {
-        std::cout << "Axis " << x << std::endl;
+    ctx.connect_axis(Input::Mouse, [](double x) {
+    //    std::cout << "Axis " << x << std::endl;
     });
 
     manager.switch_context(ctx);
     
-    mouse.dispatch_button(MouseButton::Left, Action::Press);
-    kb.dispatch(GLFW_KEY_B, Action::Release);
-
-    kb.dispatch(GLFW_KEY_C, Action::Press);
-    manager.update();
-    manager.update();
-    mouse.update_cursor(0.1, 0.1);
-    manager.update();
-    manager.update();
-
     while (!window.should_close())
     {
         auto dim = window.dimensions();
@@ -163,8 +153,9 @@ int main() {
         glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
 
         window.swap_buffers();
-        glfwPollEvents();
         assert_gl();
+        glfwPollEvents();
+        manager.update();
     }
 
     return 0;

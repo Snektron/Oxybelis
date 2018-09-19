@@ -1,10 +1,12 @@
 #ifndef _OXYBELIS_INPUT_DEVICE_MOUSE_H
 #define _OXYBELIS_INPUT_DEVICE_MOUSE_H
 
+#include <GLFW/glfw3.h>
 #include "input/Action.h"
 #include "input/Input.h"
 #include "input/ActionMap.h"
 #include "input/AxisMap.h"
+#include "core/Window.h"
 #include "math/Vector.h"
 
 constexpr const double MB_PRESS_VALUE = 1.0;
@@ -18,7 +20,7 @@ enum class MouseAxis {
     Horizontal
 };
 
-enum class MouseButton {
+enum class MouseButton: int {
     Button1 = GLFW_MOUSE_BUTTON_1,
     Button2 = GLFW_MOUSE_BUTTON_2,
     Button3 = GLFW_MOUSE_BUTTON_3,
@@ -37,14 +39,29 @@ class Mouse {
     ActionMap<I, MouseButton> action_map;
     AxisMap<I, MouseButton> mb_axis_map;
     AxisMap<I, MouseAxis> axis_map;
+    Window& win;
     Vector2<double> cursor;
     Vector2<double> delta;
 
 public:
-    Mouse(InputManager<I>& manager):
+    Mouse(InputManager<I>& manager, Window& win):
         action_map(manager), mb_axis_map(manager),
         axis_map(manager),
-        cursor({0, 0}) {
+        win(win),
+        cursor({0, 0}), delta({0, 0}) {
+        
+        win.connect_mouse([this](double x, double y) {
+            this->update_cursor(x, y);
+        });
+
+        win.connect_mouse_button([this](int button, int action, int) {
+            this->dispatch_button(static_cast<MouseButton>(button), static_cast<Action>(action));
+        });
+    }
+
+    ~Mouse() {
+        win.connect_mouse(nullptr);
+        win.connect_mouse_button(nullptr);
     }
 
     inline void dispatch_button(MouseButton mb, Action action) {
@@ -86,6 +103,10 @@ public:
 
     inline void bind_axis(const I& input, MouseAxis axis, double scale, bool reset_after_update = true) {
         this->axis_map.bind(input, axis, scale, reset_after_update);
+    }
+
+    void disable_cursor(bool disabled = true) {
+        glfwSetInputMode(this->win.get(), GLFW_CURSOR, disabled ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
     }
 };
 

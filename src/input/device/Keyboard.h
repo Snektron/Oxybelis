@@ -1,10 +1,12 @@
 #ifndef _OXYBELIS_INPUT_DEVICE_KEYBOARD_H
 #define _OXYBELIS_INPUT_DEVICE_KEYBOARD_H
 
+#include <GLFW/glfw3.h>
 #include "input/Action.h"
 #include "input/Input.h"
 #include "input/ActionMap.h"
 #include "input/AxisMap.h"
+#include "core/Window.h"
 
 constexpr const double KEY_PRESS_VALUE = 1.0;
 constexpr const double KEY_RELEASE_VALUE = 0.0;
@@ -18,10 +20,21 @@ template <typename I>
 class Keyboard {
     ActionMap<I, Key> action_map;
     AxisMap<I, Key> axis_map;
+    Window& win;
 
 public:
-    Keyboard(InputManager<I>& manager):
-        action_map(manager), axis_map(manager) {
+    Keyboard(InputManager<I>& manager, Window& win):
+        action_map(manager), axis_map(manager),
+        win(win) {
+
+        win.connect_key([this](int key, int, int action, int) {
+            if (action != GLFW_REPEAT)
+                this->dispatch(key, static_cast<Action>(action));
+        });
+    }
+
+    ~Keyboard() {
+        win.connect_key(nullptr);
     }
 
     inline void dispatch(Key key, Action action) {
