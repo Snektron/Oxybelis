@@ -122,7 +122,10 @@ int main() {
 
     Mouse<Input> mouse(manager, window);
     //mouse.bind_action(Input::Button, MouseButton::Left);
-    //mouse.bind_axis(Input::Mouse, MouseAxis::Vertical, 1.0);
+    mouse.bind_axis(Input::Horizontal, MouseAxis::Horizontal, 0.5);
+    mouse.bind_axis(Input::Vertical, MouseAxis::Vertical, 0.5);
+
+    mouse.disable_cursor();
 
     InputContext<Input> ctx;
     ctx.connect_action(Input::Button, [](Action) {
