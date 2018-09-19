@@ -33,11 +33,23 @@ auto defer(Fn&& f) {
     return Defer<Fn>{std::forward<Fn>(f)};
 }
 
-template <typename... Fns>
-struct Overload: Fns... {
-    Overload(Fns... f):
-        Fns(f)... {
+template <typename Fn, typename... Fns>
+struct Overload: Fn, Overload<Fns...> {
+    Overload(Fn h, Fns... t):
+        Fn(h), Overload<Fns...>(t...) {
     }
+
+    using Fn::operator();
+    using Overload<Fns...>::operator();
+};
+
+template <typename Fn>
+struct Overload<Fn>: Fn {
+    Overload(Fn h):
+        Fn(h) {
+    }
+
+    using Fn::operator();
 };
 
 template <typename... Fns>
