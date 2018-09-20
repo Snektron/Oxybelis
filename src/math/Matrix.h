@@ -322,11 +322,12 @@ constexpr auto operator-(const Matrix<T, M, N>& lhs) {
 
 template <typename Os, typename T, size_t M, size_t N>
 Os& operator<<(Os& os, const Matrix<T, M, N>& mat) {
+    os.precision(3);
     for (size_t i = 0; i < M; ++i) {
         for (size_t j = 0; j < N; ++j) {
             os << mat(i, j);
             if (j != N - 1)
-                os << ' ';
+                os << '\t';
         }
         if (i != M - 1)
             os << std::endl;
@@ -383,12 +384,15 @@ constexpr auto make_rotation(const T& x, const T& y, const T& z, const T& a) {
     result(0, 0) = x * x * ci + c;
     result(1, 0) = x * y * ci + z * s;
     result(2, 0) = x * z * ci - y * s;
+
     result(0, 1) = x * y * ci - z * s;
     result(1, 1) = y * y * ci + c;
     result(2, 1) = y * z * ci + x * s;
+
     result(0, 2) = x * z * ci + y * s;
     result(1, 2) = y * z * ci - x * s;
     result(2, 2) = z * z * ci + c;
+
     result(3, 3) = 1;
     return result;
 }

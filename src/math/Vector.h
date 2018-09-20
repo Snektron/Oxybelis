@@ -108,7 +108,7 @@ public:
         return std::inner_product(this->begin(), this->end(), this->begin(), 0);
     }
 
-    constexpr double magnitude() const {
+    constexpr auto magnitude() const {
         return std::sqrt(this->magnitude_sq());
     }
 
@@ -127,6 +127,11 @@ constexpr auto cross(const Vector3<T>& l, const Vector3<U>& r) {
     typename Cross::Result result;
     Cross{}(result, l, r);
     return result;
+}
+
+template <typename T, typename U, size_t N>
+constexpr auto distance(const Vector<T, N>& lhs, const Vector<U, N>& rhs) {
+    return (lhs - rhs).magnitude();
 }
 
 template <typename T, typename... Args>

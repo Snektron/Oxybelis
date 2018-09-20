@@ -70,7 +70,7 @@ public:
     }
 
     void update_cursor(double x, double y) {
-        Vector2<double> new_pos({x, y});
+        Vector2<double> new_pos(x, y);
         delta = new_pos - this->cursor;
         this->cursor = new_pos;
         this->dispatch_cursor(MouseAxis::Horizontal, this->delta.x());
