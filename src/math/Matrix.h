@@ -10,11 +10,17 @@
 template <typename T, size_t R, size_t C>
 class Matrix;
 
-template <typename T = double>
+template <typename T>
 using Matrix3 = Matrix<T, 3, 3>;
 
-template <typename T = double>
+template <typename T>
 using Matrix4 = Matrix<T, 4, 4>;
+
+using Matrix3d = Matrix3<double>;
+using Matrix4d = Matrix4<double>;
+
+using Matrix3f = Matrix3<float>;
+using Matrix4f = Matrix4<float>;
 
 namespace op {
     template <typename Op, typename T>
@@ -56,7 +62,7 @@ namespace op {
         using Rhs = Matrix<U, N, O>;
 
         constexpr void operator()(Result& dst, const Lhs& lhs, const Rhs& rhs) {
-            auto result = Result::make_zeroes();
+            Result result({0});
             for (size_t k = 0; k < N; ++k) {
                 for (size_t i = 0; i < M; ++i) {
                     for (size_t j = 0; j < O; ++j) {
@@ -127,21 +133,9 @@ public:
         elements(std::move(elements)) {
     }
 
-    constexpr static Derived make_identity() {
-        static_assert(Rows == Cols, "Can only create a square identity matrix");
-        Derived result;
-        result.identity();
-        return result;
-    }
-
-    constexpr static Derived make_zeroes() {
-        return Derived({0});
-    }
-
-    constexpr static Derived make_filled(const T& initial) {
-        Derived result;
-        result.fill(initial);
-        return result;
+    template <typename... Ts, typename = std::enable_if<sizeof...(Ts) == M * N>>
+    constexpr MatrixBase(Ts&&... elements):
+        elements({static_cast<T>(std::forward<Ts>(elements))...}) {
     }
 
     constexpr size_t rows() const {
@@ -342,8 +336,27 @@ Os& operator<<(Os& os, const Matrix<T, M, N>& mat) {
 }
 
 template <typename T>
+constexpr auto make_identity() {
+    T result;
+    result.identity();
+    return result;
+}
+
+template <typename T>
+constexpr auto make_zeroes() {
+    return T({0});
+}
+
+template <typename T>
+constexpr auto make_filled(const T& initial) {
+    T result;
+    result.fill(initial);
+    return result;
+}
+
+template <typename T>
 constexpr auto make_translation(const T& x, const T& y, const T& z) {
-    auto result = Matrix<T, 4, 4>::make_identity();
+    auto result = make_identity<Matrix4<T>>();
     result(0, 3) = x;
     result(1, 3) = y;
     result(2, 3) = z;
@@ -352,7 +365,7 @@ constexpr auto make_translation(const T& x, const T& y, const T& z) {
 
 template <typename T>
 constexpr auto make_scaling(const T& x, const T& y, const T& z) {
-    auto result = Matrix<T, 4, 4>::make_zeroes();
+    auto result = make_zeroes<Matrix4<T>>();
     result(0, 0) = x;
     result(1, 1) = y;
     result(2, 2) = z;
@@ -362,7 +375,7 @@ constexpr auto make_scaling(const T& x, const T& y, const T& z) {
 
 template <typename T>
 constexpr auto make_rotation(const T& x, const T& y, const T& z, const T& a) {
-    auto result = Matrix<T, 4, 4>::make_zeroes();
+    auto result = make_zeroes<Matrix4<T>>();
     auto c = std::cos(a);
     auto ci = 1 - c;
     auto s = std::sin(a);
@@ -382,7 +395,7 @@ constexpr auto make_rotation(const T& x, const T& y, const T& z, const T& a) {
 
 template <typename T>
 constexpr auto make_orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far) {
-    auto result = Matrix<T, 4, 4>::make_zeroes();
+    auto result = make_zeroes<Matrix4<T>>();
 
     auto rl = right - left;
     auto tb = top - bottom;
@@ -401,7 +414,7 @@ constexpr auto make_orthographic(const T& left, const T& right, const T& top, co
 
 template <typename T>
 constexpr auto make_frustrum(const T& top, const T& bottom, const T& left, const T& right, const T& near, const T& far) {
-    auto result = Matrix<T, 4, 4>::make_zeroes();
+    auto result = make_zeroes<Matrix4<T>>();
 
     auto rl = right - left;
     auto tb = top - bottom;
@@ -420,7 +433,7 @@ constexpr auto make_frustrum(const T& top, const T& bottom, const T& left, const
 
 template <typename T>
 constexpr auto make_perspective(const T& aspect, const T& fov, const T& near, const T& far) {
-    auto result = Matrix<T, 4, 4>::make_zeroes();
+    auto result = make_zeroes<Matrix4<T>>();
 
     auto nf = near - far;
     auto tan_fov_2 = tan(fov / 2);

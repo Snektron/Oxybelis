@@ -9,14 +9,26 @@
 template <typename T, size_t R>
 using Vector = Matrix<T, R, 1>;
 
-template <typename T = double>
+template <typename T>
 using Vector2 = Vector<T, 2>;
 
-template <typename T = double>
+template <typename T>
 using Vector3 = Vector<T, 3>;
 
-template <typename T = double>
+template <typename T>
 using Vector4 = Vector<T, 4>;
+
+using Vector2f = Vector2<float>;
+using Vector3f = Vector3<float>;
+using Vector4f = Vector4<float>;
+
+using Vector2d = Vector2<double>;
+using Vector3d = Vector3<double>;
+using Vector4d = Vector4<double>;
+
+using Vector2i = Vector2<int>;
+using Vector3i = Vector3<int>;
+using Vector4i = Vector4<int>;
 
 namespace op {
     template <typename T, typename U>
@@ -110,7 +122,7 @@ public:
 };
 
 template <typename T, typename U>
-constexpr auto cross(const Vector<T, 3>& l, const Vector<U, 3>& r) {
+constexpr auto cross(const Vector3<T>& l, const Vector3<U>& r) {
     using Cross = op::Cross<T, U>;
     typename Cross::Result result;
     Cross{}(result, l, r);

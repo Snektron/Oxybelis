@@ -13,15 +13,6 @@ const float PI = 3.14159264;
 const float TAU = 2 * PI;
 
 void main() {
-    float a = float(gl_InstanceID) / uNumInstances * TAU * 5.;
-    float r = float(gl_InstanceID) / uNumInstances * 3;
-
-    vec3 v = aVertex;
-
-    if (gl_InstanceID == 1) {
-        v.z += 10.;
-    }
-
-    gl_Position = uPerspective * uModel * vec4(v, 1); //(vec4(cos(a) * r, sin(a) * r, 0, 0) + uModel * vec4(aVertex * vec3(.1), 1));
+    gl_Position = uPerspective * uModel * vec4(aVertex, 1);
     vNormal = vec3(lessThan(aVertex, vec3(0)));
 }

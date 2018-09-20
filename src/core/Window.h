@@ -37,8 +37,8 @@ public:
         glfwSwapBuffers(this->handle.get());
     }
 
-    inline Vector2<int> dimensions() {
-        Vector2<int> dim;
+    inline Vector2i dimensions() {
+        Vector2i dim;
         glfwGetWindowSize(this->handle.get(), &dim.x(), &dim.y());
         return dim;
     }

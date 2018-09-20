@@ -40,15 +40,15 @@ class Mouse {
     AxisMap<I, MouseButton> mb_axis_map;
     AxisMap<I, MouseAxis> axis_map;
     Window& win;
-    Vector2<double> cursor;
-    Vector2<double> delta;
+    Vector2d cursor;
+    Vector2d delta;
 
 public:
     Mouse(InputManager<I>& manager, Window& win):
         action_map(manager), mb_axis_map(manager),
         axis_map(manager),
         win(win),
-        cursor({0, 0}), delta({0, 0}) {
+        cursor(0, 0), delta(0, 0) {
         
         win.connect_mouse([this](double x, double y) {
             this->update_cursor(x, y);

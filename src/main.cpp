@@ -97,13 +97,10 @@ int main() {
 
     auto indices = Buffer::make_static(INDICES, sizeof(INDICES) / sizeof(uint8_t), GL_ELEMENT_ARRAY_BUFFER);
 
-    auto model = make_translation(0.f, 0.f, -4.f);
-    auto rot = make_rotation(0.57f, 0.57f, 0.57f, 1.f / 40.f) * make_rotation(0.f, 1.f, 0.f, 1.f / 30.f);
-
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
-    const GLuint instances = 2;
+    const GLuint instances = 1;
     glUniform1f(uNumInstances, float(instances));
 
     enum class Input {
@@ -119,31 +116,24 @@ int main() {
     kb.bind_axis(Input::Vertical, GLFW_KEY_S, 1.0);
     kb.bind_axis(Input::Horizontal, GLFW_KEY_A, -1.0);
     kb.bind_axis(Input::Horizontal, GLFW_KEY_D, 1.0);
+    kb.bind_action(Input::Button, GLFW_KEY_ESCAPE);
 
     Mouse<Input> mouse(manager, window);
-    //mouse.bind_action(Input::Button, MouseButton::Left);
-    mouse.bind_axis(Input::Horizontal, MouseAxis::Horizontal, 0.5);
-    mouse.bind_axis(Input::Vertical, MouseAxis::Vertical, 0.5);
-
-    mouse.disable_cursor();
 
     InputContext<Input> ctx;
-    ctx.connect_action(Input::Button, [](Action) {
-    });
 
-    auto pos = make_translation(0.f, 0.f, 0.f);
+    bool esc = false;
 
-    ctx.connect_axis(Input::Vertical, [&](double x) {
-        pos *= make_rotation(1.f, 0.f, 0.f, 0.01f * float(x));
-    });
-
-    ctx.connect_axis(Input::Horizontal, [&](double y) {
-        pos *= make_rotation(0.f, 1.f, 0.f, 0.01f * float(y));
+    ctx.connect_action(Input::Button, [&](Action) {
+        esc = true;
     });
 
     manager.switch_context(ctx);
-    
-    while (!window.should_close())
+
+    auto scale = make_scaling(0.5f, 1.f, 1.f);
+    auto trans = make_translation(0.f, 0.f, -10.f);
+
+    while (!window.should_close() && !esc)
     {
         auto dim = window.dimensions();
         glViewport(0, 0, dim.x(), dim.y());
@@ -151,11 +141,10 @@ int main() {
 
         auto perspective = make_perspective(static_cast<float>(dim.x()) / dim.y(), 1.17f, 0.1f, 50.f);
 
-        //model *= rot;
-
+        auto rot = make_rotation(0.f, 0.f, 1.f, float(glfwGetTime()));
+        glUniformMatrix4fv(uModel, 1, GL_FALSE, (trans * rot * scale).data());
+    
         glUniformMatrix4fv(uPerspective, 1, GL_FALSE, perspective.data());
-        glUniformMatrix4fv(uModel, 1, GL_FALSE, (pos * model).data());
-
         glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
 
         window.swap_buffers();
