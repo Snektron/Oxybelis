@@ -156,9 +156,10 @@ int main() {
         manager.update();
     }
 
-    Vec3F v1(10, 21, 32);
+    Vec3F vx(1, 0, 0);
+    Vec3F vy(0, 1, 0);
 
-    std::cout << v1 << shuffle(v1, Vec3I(1, 1, 0)) << std::endl;
+    std::cout << cross(vx, vy) << std::endl;
 
     return 0;
 }

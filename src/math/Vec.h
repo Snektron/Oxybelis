@@ -208,17 +208,6 @@ auto normalize(const Vec<T, N>& v) {
     return v / v.length();
 }
 
-template <typename T, typename U>
-auto cross(const Vec<T, 3>& lhs, const Vec<U, 3>& rhs) {
-    using Result = decltype(std::declval<T>() * std::declval<U>() + std::declval<U>() * std::declval<T>());
-    
-    return Vec<Result, 3>(
-        lhs[1] * rhs[2] - lhs[2] * rhs[1],
-        lhs[2] * rhs[0] - lhs[0] * rhs[2],
-        lhs[0] * rhs[1] - lhs[1] * rhs[0]
-    );
-}
-
 template <typename T, typename U, size_t N>
 auto shuffle(const Vec<T, N>& v, const Vec<U, N>& mask) {
     static_assert(std::is_integral<U>::value, "Shuffle mask must be integral vector");
@@ -231,6 +220,21 @@ auto shuffle(const Vec<T, N>& v, const Vec<T, N>& w, const Vec<U, N>& mask) {
     static_assert(std::is_integral<U>::value, "Shuffle mask must be integral vector");
     constexpr auto simd_size = Vec<T, N>::InternalSize;
     return Vec<T, N>(detail::shuffle<T, U, simd_size>(v.elements, w.elements, mask.elements));
+}
+
+template <typename T, typename U>
+auto cross(const Vec<T, 3>& lhs, const Vec<U, 3>& rhs) {
+    using Result = decltype(std::declval<T>() * std::declval<U>() + std::declval<U>() * std::declval<T>());
+    
+    Vec3I mask1(1, 2, 0);
+    Vec3I mask2(2, 0, 1);
+
+    auto a = shuffle(lhs, mask1);
+    auto b = shuffle(rhs, mask2);
+    auto c = shuffle(lhs, mask2);
+    auto d = shuffle(rhs, mask1);
+
+    return Vec<Result, 3>(a * b - c * d);
 }
 
 template <typename Os, typename T, size_t N>
