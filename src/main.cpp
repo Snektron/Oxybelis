@@ -156,15 +156,9 @@ int main() {
         manager.update();
     }
 
-    Vec3F v1(1, 2, 3);
-    v1 *= v1 + v1;
-    v1 *= 10.f;
+    Vec4F v1(1, 2, 3, 4);
 
-    auto v2 = 1.f / v1;
-
-    v2 = normalize(v2);
-
-    std::cout << dot(v1, v2) << " " << v2.length() << " " << cross(v1, v2) << std::endl;
+    std::cout << v1 << shuffle(v1, Vec4I(0, 0, 0)) << std::endl;
 
     return 0;
 }

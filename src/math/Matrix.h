@@ -134,8 +134,8 @@ public:
     }
 
     template <typename... Ts, typename = std::enable_if<sizeof...(Ts) == M * N>>
-    constexpr MatrixBase(Ts&&... elements):
-        elements({static_cast<T>(std::forward<Ts>(elements))...}) {
+    constexpr MatrixBase(const T& a, const T& b, Ts&&... elements):
+        elements({a, b, static_cast<T>(std::forward<Ts>(elements))...}) {
     }
 
     constexpr size_t rows() const {

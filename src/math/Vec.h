@@ -19,7 +19,6 @@ namespace detail {
 
     #define DEFINE_SIMD_VEC_COMMON_SIZES(type) \
         DEFINE_SIMD_VEC(type, 2); \
-        DEFINE_SIMD_VEC(type, 3); \
         DEFINE_SIMD_VEC(type, 4)
 
     DEFINE_SIMD_VEC_COMMON_SIZES(float);
@@ -28,10 +27,42 @@ namespace detail {
 
     template <typename T, size_t N>
     using SimdVec = typename SimdVecHelper<T, N>::Type;
+
+    
+    #if defined(__clang__)
+        template <typename T, typename U, size_t N>
+        SimdVec<T, N> shuffle(const SimdVec<T, N>& v, const SimdVec<U, N>& mask) {
+            static_assert(std::is_integral<U>::value, "Shuffle mask should be intergral vector");
+            return __builtin_shufflevector(v, mask);
+        }
+
+        template <typename T, typename U, size_t N>
+        SimdVec<T, N> shuffle(const SimdVec<T, N>& v, const SimdVec<T, N>& w, const SimdVec<U, N>& mask) {
+            static_assert(std::is_integral<U>::value, "Shuffle mask should be intergral vector");
+            return __builtin_shufflevector(v, w, mask);
+        }
+    #elif defined(__GNUG__)
+        template <typename T, typename U, size_t N>
+        SimdVec<T, N> shuffle(const SimdVec<T, N>& v, const SimdVec<U, N>& mask) {
+            static_assert(std::is_integral<U>::value, "Shuffle mask should be intergral vector");
+            return __builtin_shuffle(v, mask);
+        }
+
+        template <typename T, typename U, size_t N>
+        SimdVec<T, N> shuffle(const SimdVec<T, N>& v, const SimdVec<T, N>& w, const SimdVec<U, N>& mask) {
+            static_assert(std::is_integral<U>::value, "Shuffle mask should be intergral vector");
+            return __builtin_shuffle(v, w, mask);
+        }
+    #else
+        #error "Unsupported compiler"
+    #endif
 }
 
 template <typename T, size_t N>
 struct Vec {
+    static_assert(detail::SimdVecHelper<T, N>::valid, "Invalid vector type/size");
+    static_assert(N > 1, "Vector size needs to be larger than one");
+
     detail::SimdVec<T, N> elements;
 
     constexpr const static size_t Rows = N;
@@ -69,6 +100,12 @@ struct Vec {
 
     template <typename U>
     Vec<T, 3>& cross(const Vec<U, 3>& other);
+
+    template <typename U>
+    Vec<T, N>& shuffle(const Vec<U, N>& mask);
+
+    template <typename U>
+    Vec<T, N>& shuffle(const Vec<T, N>& other, const Vec<U, N>& mask);
 };
 
 using Vec2F = Vec<float, 2>;
@@ -169,6 +206,18 @@ auto cross(const Vec<T, 3>& lhs, const Vec<U, 3>& rhs) {
     );
 }
 
+template <typename T, typename U, size_t N>
+auto shuffle(const Vec<T, N>& v, const Vec<U, N>& mask) {
+    static_assert(std::is_integral<U>::value, "Shuffle mask must be integral vector");
+    return Vec<T, N>(detail::shuffle<T, U, N>(v.elements, mask.elements));
+}
+
+template <typename T, typename U, size_t N>
+auto shuffle(const Vec<T, N>& v, const Vec<T, N>& w, const Vec<U, N>& mask) {
+    static_assert(std::is_integral<U>::value, "Shuffle mask must be integral vector");
+    return Vec<T, N>(detail::shuffle(v.elements, w.elements, mask.elements));
+}
+
 template <typename Os, typename T, size_t N>
 Os& operator<<(Os& os, const Vec<T, N>& v) {
     os << '(';
@@ -225,6 +274,18 @@ template <typename U>
 Vec<T, 3>& Vec<T, N>::cross(const Vec<U, 3>& other) {
     static_assert(N == 3, "Can only perform cross on vectors of size 3");
     return *this = cross(*this, other);
+}
+
+template <typename T, size_t N>
+template <typename U>
+Vec<T, N>& Vec<T, N>::shuffle(const Vec<U, N>& mask) {
+    return *this = shuffle(*this, mask);
+}
+
+template <typename T, size_t N>
+template <typename U>
+Vec<T, N>& Vec<T, N>::shuffle(const Vec<T, N>& other, const Vec<U, N>& mask) {
+    return *this = shuffle(*this, other, mask);
 }
 
 #endif
