@@ -6,6 +6,7 @@
 #include "core/Window.h"
 #include "math/Matrix.h"
 #include "math/Quaternion.h"
+#include "math/Vec.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
 #include "graphics/VertexArray.h"
@@ -131,15 +132,7 @@ int main() {
     manager.switch_context(ctx);
 
     auto scale = make_scaling(0.5f, 1.f, 1.f);
-    auto trans = make_translation(0.f, 0.f, -10.f);
-
-    auto rotq = make_rotation_quat(0.f, 1.f, 0.f, 1.f);
-    auto rotqm = rotq.rotation_matrix();
-
-    auto rot = make_rotation(0.f, 1.f, 0.f, 1.f);
-
-    std::cout << "Rot M: " << std::endl << rot << std::endl;
-    std::cout << "Rot QM: " << std::endl << rotqm << std::endl; 
+    auto trans = make_translation(0.f, 0.f, -10.f); 
 
     while (!window.should_close() && !esc)
     {
@@ -162,6 +155,16 @@ int main() {
         glfwPollEvents();
         manager.update();
     }
+
+    Vec3F v1(1, 2, 3);
+    v1 *= v1 + v1;
+    v1 *= 10.f;
+
+    auto v2 = 1.f / v1;
+
+    v2 = normalize(v2);
+
+    std::cout << dot(v1, v2) << " " << v2.length() << " " << cross(v1, v2) << std::endl;
 
     return 0;
 }

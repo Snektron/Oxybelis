@@ -46,17 +46,8 @@ struct Vec {
         elements(elements) {
     }
 
-    T& operator[](size_t row) {
+    T operator[](size_t row) const {
         return this->elements[row];
-    }
-
-    const T& operator[](size_t row) const {
-        return this->elements[row];
-    }
-
-    const T* data() const {
-        // This *might* be non standard
-        return reinterpret_cast<const T*>(&this->elements);
     }
 
     template <typename U>
@@ -66,10 +57,18 @@ struct Vec {
     Vec<T, N>& operator-=(const Vec<U, N>& other);
 
     template <typename U>
-    Vec<T, N>& operator*=(const Vec<U, N>& other);
+    Vec<T, N>& operator*=(const U& other);
 
     template <typename U>
-    Vec<T, N>& operator/=(const Vec<U, N>& other);
+    Vec<T, N>& operator/=(const U& other);
+
+    auto length_sq() const;
+    auto length() const;
+
+    Vec<T, N>& normalize();
+
+    template <typename U>
+    Vec<T, 3>& cross(const Vec<U, 3>& other);
 };
 
 using Vec2F = Vec<float, 2>;
@@ -103,37 +102,129 @@ auto operator*(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
 }
 
 template <typename T, typename U, size_t N>
+auto operator*(const Vec<T, N>& lhs, const U& rhs) {
+    using Result = decltype(std::declval<T>() * std::declval<U>());
+    return Vec<Result, N>(lhs.elements * rhs);
+}
+
+template <typename T, typename U, size_t N>
+auto operator*(const T& lhs, const Vec<U, N>& rhs) {
+    using Result = decltype(std::declval<T>() * std::declval<U>());
+    return Vec<Result, N>(lhs * rhs.elements);
+}
+
+template <typename T, typename U, size_t N>
 auto operator/(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
     using Result = decltype(std::declval<T>() / std::declval<U>());
     return Vec<Result, N>(lhs.elements / rhs.elements);
 }
 
+template <typename T, typename U, size_t N>
+auto operator/(const Vec<T, N>& lhs, const U& rhs) {
+    using Result = decltype(std::declval<T>() / std::declval<U>());
+    return Vec<Result, N>(lhs.elements / rhs);
+}
+
+template <typename T, typename U, size_t N>
+auto operator/(const T& lhs, const Vec<U, N>& rhs) {
+    using Result = decltype(std::declval<T>() / std::declval<U>());
+    return Vec<Result, N>(lhs / rhs.elements);
+}
+
+template <typename T, typename U, size_t N>
+auto dot(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
+    using Result = decltype(std::declval<T>() * std::declval<U>() + std::declval<T>() * std::declval<U>());
+    auto r = lhs.elements * rhs.elements;
+    Result total = r[0];
+
+    for (size_t i = 1; i < N; ++i)
+        total += r[i];
+
+    return total;
+}
+
+template <typename T, typename U, size_t N>
+auto distance_sq(const Vec<T, N>& lhs, const Vec<T, N>& rhs) {
+    return (lhs - rhs).length_sq();
+}
+
+template <typename T, typename U, size_t N>
+auto distance(const Vec<T, N>& lhs, const Vec<T, N>& rhs) {
+    return (lhs - rhs).length();
+}
+
+template <typename T, size_t N>
+auto normalize(const Vec<T, N>& v) {
+    return v / v.length();
+}
+
+template <typename T, typename U>
+auto cross(const Vec<T, 3>& lhs, const Vec<U, 3>& rhs) {
+    using Result = decltype(std::declval<T>() * std::declval<U>() + std::declval<U>() * std::declval<T>());
+    
+    return Vec<Result, 3>(
+        lhs[1] * rhs[2] - lhs[2] * rhs[1],
+        lhs[2] * rhs[0] - lhs[0] * rhs[2],
+        lhs[0] * rhs[1] - lhs[1] * rhs[0]
+    );
+}
+
+template <typename Os, typename T, size_t N>
+Os& operator<<(Os& os, const Vec<T, N>& v) {
+    os << '(';
+    for (size_t i = 0; i < N; ++i) {
+        if (i != 0)
+            os << ", ";
+        os << v[i];
+    }
+    os << ')';
+    return os;
+}
+
 template <typename T, size_t N>
 template <typename U>
 Vec<T, N>& Vec<T, N>::operator+=(const Vec<U, N>& other) {
-    *this = *this + other;
-    return *this;
+    return *this = *this + other;
 }
 
 template <typename T, size_t N>
 template <typename U>
 Vec<T, N>& Vec<T, N>::operator-=(const Vec<U, N>& other) {
-    *this = *this - other;
-    return *this;
+    return *this = *this - other;
 }
 
 template <typename T, size_t N>
 template <typename U>
-Vec<T, N>& Vec<T, N>::operator*=(const Vec<U, N>& other) {
-    *this = *this * other;
-    return *this;
+Vec<T, N>& Vec<T, N>::operator*=(const U& other) {
+    return *this = *this * other;
 }
 
 template <typename T, size_t N>
 template <typename U>
-Vec<T, N>& Vec<T, N>::operator/=(const Vec<U, N>& other) {
-    *this = *this / other;
-    return *this;
+Vec<T, N>& Vec<T, N>::operator/=(const U& other) {
+    return *this = *this / other;
+}
+
+template <typename T, size_t N>
+auto Vec<T, N>::length_sq() const {
+    return dot(*this, *this);
+}
+
+template <typename T, size_t N>
+auto Vec<T, N>::length() const {
+    return std::sqrt(this->length_sq());
+}
+
+template <typename T, size_t N>
+Vec<T, N>& Vec<T, N>::normalize() {
+    return *this = ::normalize(*this);
+}
+
+template <typename T, size_t N>
+template <typename U>
+Vec<T, 3>& Vec<T, N>::cross(const Vec<U, 3>& other) {
+    static_assert(N == 3, "Can only perform cross on vectors of size 3");
+    return *this = cross(*this, other);
 }
 
 #endif
