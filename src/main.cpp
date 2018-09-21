@@ -7,6 +7,8 @@
 #include "math/Matrix.h"
 #include "math/Quaternion.h"
 #include "math/Vec.h"
+#include "math/Mat.h"
+#include "math/Simd.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
 #include "graphics/VertexArray.h"
@@ -131,12 +133,15 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto scale = make_scaling(0.5f, 1.f, 1.f);
+    auto scale = make_scaling(2.f, 1.f, 1.f);
     auto trans = make_translation(0.f, 0.f, -10.f); 
 
-    Vec3F test(0, 1, 0);
+    Vec3F test{0, 1, 0};
     Vec3F test2(0, 1, 0);
     std::cout << dot(test, test2) << std::endl;
+
+    auto identity = Mat4F::identity();
+    std::cout << identity << std::endl;
 
     while (!window.should_close() && !esc)
     {

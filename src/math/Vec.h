@@ -5,13 +5,36 @@
 #include <array>
 #include <type_traits>
 #include <algorithm>
+#include "utility/utility.h"
 
 template <typename T, size_t N>
 struct Vec;
 
+template <typename T>
+using Vec2 = Vec<T, 2>;
+using Vec2F = Vec2<float>;
+using Vec2D = Vec2<double>;
+using Vec2I = Vec2<int>;
+
+template <typename T>
+using Vec3 = Vec<T, 3>;
+using Vec3F = Vec3<float>;
+using Vec3D = Vec3<double>;
+using Vec3I = Vec3<int>;
+
+template <typename T>
+using Vec4 = Vec<T, 4>;
+using Vec4F = Vec4<float>;
+using Vec4D = Vec4<double>;
+using Vec4I = Vec4<int>;
+
 template <typename T, size_t N>
 struct BaseVec {
     std::array<T, N> elements;
+
+    constexpr explicit BaseVec(const T& x):
+        elements{x} {
+    }
 };
 
 template <typename T>
@@ -33,7 +56,7 @@ struct BaseVec<T, 2> {
     }
 
     constexpr explicit BaseVec(const T& x):
-        elements{x, x} {
+        elements{x} {
     }
 };
 
@@ -61,8 +84,12 @@ struct BaseVec<T, 3> {
         elements{x, y, z} {
     }
 
+    constexpr BaseVec(const Vec<T, 2>& xy, const T& z):
+        elements{xy.x, xy.y, z} {
+    }
+
     constexpr explicit BaseVec(const T& x):
-        elements{x, x, x} {
+        elements{x} {
     }
 };
 
@@ -92,13 +119,23 @@ struct BaseVec<T, 4> {
         elements{x, y, z, w} {
     }
 
+    constexpr BaseVec(const Vec<T, 2>& xy, const T& z, const T& w):
+        elements{xy.x, xy.y, z, w} {
+    }
+
+    constexpr BaseVec(const Vec<T, 3>& xyz, const T& w):
+        elements{xyz.x, xyz.y, xyz.z, w} {
+    }
+
     constexpr explicit BaseVec(const T& x):
-        elements{x, x, x, x} {
+        elements{x} {
     }
 };
 
 template <typename T, size_t N>
 struct Vec: BaseVec<T, N> {
+    static_assert(N > 1, "Cannot create a vector of size 1");
+
     constexpr const static size_t Rows = N;
     constexpr const static size_t Cols = 1;
 
@@ -166,24 +203,6 @@ struct Vec: BaseVec<T, N> {
 
     constexpr Vec<T, N>& normalize();
 };
-
-template <typename T>
-using Vec2 = Vec<T, 2>;
-using Vec2F = Vec2<float>;
-using Vec2D = Vec2<double>;
-using Vec2I = Vec2<int>;
-
-template <typename T>
-using Vec3 = Vec<T, 3>;
-using Vec3F = Vec3<float>;
-using Vec3D = Vec3<double>;
-using Vec3I = Vec3<int>;
-
-template <typename T>
-using Vec4 = Vec<T, 4>;
-using Vec4F = Vec4<float>;
-using Vec4D = Vec4<double>;
-using Vec4I = Vec4<int>;
 
 template <size_t N, typename F>
 constexpr auto generate_vec(F f) {
