@@ -7,6 +7,7 @@
 #include "math/Matrix.h"
 #include "math/Quaternion.h"
 #include "math/Vec.h"
+#include "math/Mat.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
 #include "graphics/VertexArray.h"
@@ -134,6 +135,22 @@ int main() {
     auto scale = make_scaling(0.5f, 1.f, 1.f);
     auto trans = make_translation(0.f, 0.f, -10.f); 
 
+    Vec3F vx(1, 0, 0);
+    Vec3F vy(0, 1, 0);
+
+    std::cout << cross(vx, vy) << std::endl;
+
+    Mat4F a(
+        Vec4F(1, 0, 0, 0),
+        Vec4F(0, 1, 0, 0),
+        Vec4F(0, 0, 1, 0),
+        Vec4F(0, 0, 0, 1)
+    );
+
+    a = a + a;
+
+    std::cout << a << std::endl;
+
     while (!window.should_close() && !esc)
     {
         auto dim = window.dimensions();
@@ -155,11 +172,6 @@ int main() {
         glfwPollEvents();
         manager.update();
     }
-
-    Vec3F vx(1, 0, 0);
-    Vec3F vy(0, 1, 0);
-
-    std::cout << cross(vx, vy) << std::endl;
 
     return 0;
 }

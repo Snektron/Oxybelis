@@ -74,12 +74,14 @@ template <typename T, size_t N>
 struct Vec {
     constexpr const static size_t InternalSize = detail::next_2pow(N);
     static_assert(detail::SimdVecHelper<T, InternalSize>::valid, "Invalid vector type/size");
-    static_assert(N > 1, "Vector size needs to be larger than one");
-
-    detail::SimdVec<T, InternalSize> elements;
+    static_assert(N >= 2, "Vector size needs to be 2 or larger");
 
     constexpr const static size_t Rows = N;
     constexpr const static size_t Cols = 1;
+
+    detail::SimdVec<T, InternalSize> elements;
+
+    constexpr Vec() = default;
 
     template <typename U, typename V, typename... Ts>
     constexpr Vec(const U& x, const V& y, const Ts&... elems):
@@ -94,11 +96,15 @@ struct Vec {
         return this->elements[row];
     }
 
-    template <typename U>
-    Vec<T, N>& operator+=(const Vec<U, N>& other);
+    T operator()(size_t row) const {
+        return this->elements[row];
+    }
 
     template <typename U>
-    Vec<T, N>& operator-=(const Vec<U, N>& other);
+    Vec<T, N>& operator+=(const U& other);
+
+    template <typename U>
+    Vec<T, N>& operator-=(const U& other);
 
     template <typename U>
     Vec<T, N>& operator*=(const U& other);
@@ -140,9 +146,33 @@ auto operator+(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
 }
 
 template <typename T, typename U, size_t N>
+auto operator+(const Vec<T, N>& lhs, const U& rhs) {
+    using Result = decltype(std::declval<T>() + std::declval<U>());
+    return Vec<Result, N>(lhs.elements + rhs);
+}
+
+template <typename T, typename U, size_t N>
+auto operator+(const T& lhs, const Vec<U, N>& rhs) {
+    using Result = decltype(std::declval<T>() + std::declval<U>());
+    return Vec<Result, N>(lhs + rhs.elements);
+}
+
+template <typename T, typename U, size_t N>
 auto operator-(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
     using Result = decltype(std::declval<T>() - std::declval<U>());
     return Vec<Result, N>(lhs.elements - rhs.elements);
+}
+
+template <typename T, typename U, size_t N>
+auto operator-(const Vec<T, N>& lhs, const U& rhs) {
+    using Result = decltype(std::declval<T>() - std::declval<U>());
+    return Vec<Result, N>(lhs.elements - rhs);
+}
+
+template <typename T, typename U, size_t N>
+auto operator-(const T& lhs, const Vec<U, N>& rhs) {
+    using Result = decltype(std::declval<T>() - std::declval<U>());
+    return Vec<Result, N>(lhs - rhs.elements);
 }
 
 template <typename T, typename U, size_t N>
@@ -251,13 +281,13 @@ Os& operator<<(Os& os, const Vec<T, N>& v) {
 
 template <typename T, size_t N>
 template <typename U>
-Vec<T, N>& Vec<T, N>::operator+=(const Vec<U, N>& other) {
+Vec<T, N>& Vec<T, N>::operator+=(const U& other) {
     return *this = *this + other;
 }
 
 template <typename T, size_t N>
 template <typename U>
-Vec<T, N>& Vec<T, N>::operator-=(const Vec<U, N>& other) {
+Vec<T, N>& Vec<T, N>::operator-=(const U& other) {
     return *this = *this - other;
 }
 
