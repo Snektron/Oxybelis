@@ -156,9 +156,9 @@ int main() {
         manager.update();
     }
 
-    Vec4F v1(1, 2, 3, 4);
+    Vec3F v1(10, 21, 32);
 
-    std::cout << v1 << shuffle(v1, Vec4I(0, 0, 0)) << std::endl;
+    std::cout << v1 << shuffle(v1, Vec3I(1, 1, 0)) << std::endl;
 
     return 0;
 }

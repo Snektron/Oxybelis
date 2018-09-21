@@ -56,14 +56,27 @@ namespace detail {
     #else
         #error "Unsupported compiler"
     #endif
+
+    constexpr size_t next_2pow(size_t x) {
+        --x;
+        x |= x >> 1;
+        x |= x >> 2;
+        x |= x >> 4;
+        x |= x >> 8;
+        x |= x >> 16;
+        x |= x >> 32;
+        ++x;
+        return x;
+    }
 }
 
 template <typename T, size_t N>
 struct Vec {
-    static_assert(detail::SimdVecHelper<T, N>::valid, "Invalid vector type/size");
+    constexpr const static size_t InternalSize = detail::next_2pow(N);
+    static_assert(detail::SimdVecHelper<T, InternalSize>::valid, "Invalid vector type/size");
     static_assert(N > 1, "Vector size needs to be larger than one");
 
-    detail::SimdVec<T, N> elements;
+    detail::SimdVec<T, InternalSize> elements;
 
     constexpr const static size_t Rows = N;
     constexpr const static size_t Cols = 1;
@@ -73,7 +86,7 @@ struct Vec {
         elements{static_cast<T>(x), static_cast<T>(y), static_cast<T>(elems)...} {
     }
 
-    constexpr Vec(const detail::SimdVec<T, N>& elements):
+    constexpr Vec(const detail::SimdVec<T, InternalSize>& elements):
         elements(elements) {
     }
 
@@ -209,13 +222,15 @@ auto cross(const Vec<T, 3>& lhs, const Vec<U, 3>& rhs) {
 template <typename T, typename U, size_t N>
 auto shuffle(const Vec<T, N>& v, const Vec<U, N>& mask) {
     static_assert(std::is_integral<U>::value, "Shuffle mask must be integral vector");
-    return Vec<T, N>(detail::shuffle<T, U, N>(v.elements, mask.elements));
+    constexpr auto simd_size = Vec<T, N>::InternalSize;
+    return Vec<T, N>(detail::shuffle<T, U, simd_size>(v.elements, mask.elements));
 }
 
 template <typename T, typename U, size_t N>
 auto shuffle(const Vec<T, N>& v, const Vec<T, N>& w, const Vec<U, N>& mask) {
     static_assert(std::is_integral<U>::value, "Shuffle mask must be integral vector");
-    return Vec<T, N>(detail::shuffle(v.elements, w.elements, mask.elements));
+    constexpr auto simd_size = Vec<T, N>::InternalSize;
+    return Vec<T, N>(detail::shuffle<T, U, simd_size>(v.elements, w.elements, mask.elements));
 }
 
 template <typename Os, typename T, size_t N>
