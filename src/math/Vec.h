@@ -358,7 +358,7 @@ constexpr auto length_sq(const Vec<T, N>& v) {
 
 template <typename T, size_t N>
 constexpr auto length(const Vec<T, N>& v) {
-    return std::sqrt(length(v));
+    return std::sqrt(length_sq(v));
 }
 
 template <typename T, size_t N>

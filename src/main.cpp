@@ -134,6 +134,9 @@ int main() {
     auto scale = mat::scaling(2.f, 1.f, 1.f);
     auto trans = mat::translation(0.f, 0.f, -10.f); 
 
+    auto qa = quat::axis_angle(1.f, 0.f, 0.f, 3.14159265f / 2.f);
+    auto qb = quat::axis_angle(0.f, 0.f, 1.f, 3.14159265f);
+
     while (!window.should_close() && !esc)
     {
         auto dim = window.dimensions();
@@ -142,7 +145,7 @@ int main() {
 
         auto perspective = mat::perspective(static_cast<float>(dim.x) / dim.y, 1.17f, 0.1f, 50.f);
 
-        auto rotq = quat::axis_angle(0.f, 1.f, 0.f, float(glfwGetTime()));
+        auto rotq = smix(qa, qb, float(std::sin(glfwGetTime()) * 0.5 + 0.5));
         auto rot = rotq.rotation_matrix();
 
         glUniformMatrix4fv(uModel, 1, GL_FALSE, (trans * rot * scale).data());

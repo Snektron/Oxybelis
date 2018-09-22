@@ -134,7 +134,7 @@ constexpr auto operator-(const Quat<T>& lhs, const U& rhs) {
     return quat::make(lhs.elements - rhs);
 }
 
-template <typename T, typename U>
+template <typename T>
 constexpr auto operator-(const Quat<T>& q) {
     return quat::make(-q.elements);
 }
@@ -169,48 +169,9 @@ constexpr auto operator/(const Quat<T>& lhs, const U& rhs) {
     return quat::make(lhs.elements / rhs);
 }
 
-template <typename T, typename U>
+template <typename T>
 constexpr auto conjugate(const Quat<T>& q) {
     return quat::make(-q.vector, q.scalar);
-}
-
-template <typename T, typename U>
-constexpr auto reciprocal(const Quat<T>& q) {
-    return conjugate(q) / length_sq(q);
-}
-
-template <typename T, typename U>
-constexpr auto normalize(const Quat<T>& q) {
-    return q / length(q);
-}
-
-template <typename T, typename U, typename V>
-constexpr auto mix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
-    return lhs + t * (rhs - lhs);
-}
-
-template <typename T, typename U, typename V>
-constexpr auto smix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
-    auto dot = ::dot(lhs.vector, rhs.vector);
-    Quat<T> q = rhs;
-
-    if (dot < static_cast<T>(0)) {
-        dot = -dot;
-        q = -q;
-    }
-
-    if (dot > static_cast<T>(SLERP_THRESHOLD))
-        return normalize(lerp(lhs, q, t));
-
-    auto theta_0 = std::acos(dot);
-    auto theta = theta_0 * t;
-    auto sin_theta = std::sin(theta);
-    auto sin_theta_0 = std::sin(theta_0);
-
-    auto s0 = std::cos(theta) - dot * sin_theta / sin_theta_0;
-    auto s1 = sin_theta / sin_theta_0;
-
-    return s0 * lhs + s1 * q;
 }
 
 template <typename T>
@@ -221,6 +182,45 @@ constexpr auto norm_sq(const Quat<T>& q) {
 template <typename T>
 constexpr auto norm(const Quat<T>& q) {
     return length(q.elements);
+}
+
+template <typename T>
+constexpr auto reciprocal(const Quat<T>& q) {
+    return conjugate(q) / norm_sq(q);
+}
+
+template <typename T>
+constexpr auto normalize(const Quat<T>& q) {
+    return q / norm(q);
+}
+
+template <typename T, typename U, typename V>
+constexpr auto mix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
+    return lhs + t * (rhs - lhs);
+}
+
+template <typename T, typename U, typename V>
+constexpr auto smix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
+    auto dot = ::dot(lhs.vector, rhs.vector);
+    auto q = normalize(rhs);
+
+    if (dot < static_cast<T>(0)) {
+        dot = -dot;
+        q = -q;
+    }
+
+    if (dot > static_cast<T>(SLERP_THRESHOLD))
+        return normalize(mix(lhs, q, t));
+
+    auto theta_0 = std::acos(dot);
+    auto theta = theta_0 * t;
+    auto sin_theta = std::sin(theta);
+    auto sin_theta_0 = std::sin(theta_0);
+
+    auto s0 = std::cos(theta) - dot * sin_theta / sin_theta_0;
+    auto s1 = sin_theta / sin_theta_0;
+
+    return normalize(s0 * lhs + s1 * q);
 }
 
 template <typename T, typename U>
