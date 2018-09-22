@@ -26,6 +26,10 @@ struct Quat {
         Vec4<T> elements;
     };
 
+    constexpr static Quat<T> identity() {
+        return Quat<T>(1, 0, 0, 0);
+    }
+
     constexpr Quat():
         x(0), y(0), z(0), w(0) {
     }
@@ -60,7 +64,7 @@ struct Quat {
 
     constexpr Quat<T>& conjugate();
 
-    constexpr Quat<T>& reciprocal();
+    constexpr Quat<T>& inverse();
 
     constexpr Quat<T>& normalize();
 
@@ -102,6 +106,18 @@ namespace quat {
     constexpr auto axis_angle(const T& x, const T& y, const T& z, const T& a) {
         return axis_angle(Vec3<T>(x, y, z), a);
     }
+
+    template <typename T>
+    constexpr auto extract(const Mat4<T>& m) {
+        auto w = std::sqrt(1 + m(0, 0) + m(1, 1) + m(2, 2));
+        auto w2 = w + w;
+        return make(
+            (m(2, 1) - m(1, 2)) / w2,
+            (m(0, 2) - m(2, 1)) / w2,
+            (m(1, 0) - m(0, 1)) / w2,
+            w / 2
+        );
+    }
 };
 
 template <typename T, typename U>
@@ -142,10 +158,10 @@ constexpr auto operator-(const Quat<T>& q) {
 template <typename T, typename U>
 constexpr auto operator*(const Quat<T>& lhs, const Quat<U>& rhs) {
     return quat::make(
-        lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z,
         lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
         lhs.w * rhs.y - lhs.x * rhs.z + lhs.y * rhs.w + lhs.z * rhs.x,
-        lhs.w * rhs.z + lhs.x * rhs.y - lhs.y * rhs.x + lhs.z * rhs.w
+        lhs.w * rhs.z + lhs.x * rhs.y - lhs.y * rhs.x + lhs.z * rhs.w,
+        lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z
     );
 }
 
@@ -189,6 +205,19 @@ constexpr auto operator/(const Quat<T>& lhs, const U& rhs) {
     return quat::make(lhs.elements / rhs);
 }
 
+template <typename Os, typename T>
+Os& operator<<(Os& os, const Quat<T>& q) {
+    auto p = [&os](const T& x, char c) {
+        os << (x < 0 ? " - " : " + ") << std::abs(x) << c;
+    };
+
+    os << q.w;
+    p(q.x, 'i');
+    p(q.y, 'j');
+    p(q.z, 'k');
+    return os;
+}
+
 template <typename T>
 constexpr auto conjugate(const Quat<T>& q) {
     return quat::make(-q.vector, q.scalar);
@@ -205,7 +234,7 @@ constexpr auto norm(const Quat<T>& q) {
 }
 
 template <typename T>
-constexpr auto reciprocal(const Quat<T>& q) {
+constexpr auto inverse(const Quat<T>& q) {
     return conjugate(q) / norm_sq(q);
 }
 
@@ -279,17 +308,17 @@ constexpr Quat<T>& Quat<T>::operator/=(const U& u) {
 
 template <typename T>
 constexpr Quat<T>& Quat<T>::conjugate() {
-    return *this = conjugate(*this);
+    return *this = ::conjugate(*this);
 }
 
 template <typename T>
-constexpr Quat<T>& Quat<T>::reciprocal() {
-    return *this = reciprocal(*this);
+constexpr Quat<T>& Quat<T>::inverse() {
+    return *this = ::inverse(*this);
 }
 
 template <typename T>
 constexpr Quat<T>& Quat<T>::normalize() {
-    return *this = normalize(*this);
+    return *this = ::normalize(*this);
 }
 
 template <typename T>

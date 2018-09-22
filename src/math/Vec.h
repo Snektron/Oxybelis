@@ -404,18 +404,18 @@ template <typename T, size_t N>
 template <typename U>
 constexpr Vec<T, 3>& Vec<T, N>::cross(const Vec<U, 3>& other) {
     static_assert(N == 3, "Can only perform cross-product on vectors of size 3");
-    return *this = cross(*this, other);
+    return *this = ::cross(*this, other);
 }
 
 template <typename T, size_t N>
 constexpr Vec<T, N>& Vec<T, N>::normalize() {
-    return *this = normalize(*this);
+    return *this = ::normalize(*this);
 }
 
 template <typename T, size_t N>
 template <typename U>
 constexpr Vec<T, N>& Vec<T, N>::mix(const Vec<U, N>& other) {
-    return *this = mix(*this, other);
+    return *this = ::mix(*this, other);
 }
 
 #endif

@@ -138,15 +138,16 @@ int main() {
 
     manager.switch_context(ctx);
 
-    // auto qa = quat::make(0.f, 0.f, 0.f, 1.f);
-    // auto qb = quat::axis_angle(0.f, 0.f, 1.f, 3.14159265f);
+    auto qa = QuatF::identity();
+    auto qb = quat::axis_angle(0.f, 0.707f, 0.707f, 0.42f);
 
-    // TransformF t(
-    //     Vec3F(0.f, 0.f, 0.f),
-    //     Vec3F(2.f, 1.f, 1.f)
-    // );
+    std::cout << qb << std::endl << (inverse(qb) * qb) << std::endl;
 
-    //TransformF cam(Vec3F(0.f, 0.f, 0.f));
+    TransformF t(
+        Vec3F(0.f, 0.f, 0.f),
+        Vec3F(2.f, 1.f, 1.f),
+        qa
+    );
 
     auto cam = mat::look_at(
         Vec3F(5, 5, 5),
@@ -164,7 +165,10 @@ int main() {
 
         //t.rotation = smix(qa, qb, float(std::sin(glfwGetTime()) * 0.5 + 0.5));
 
-        glUniformMatrix4fv(uModel, 1, GL_FALSE, cam.data());
+        //t.rotation *= QuatF::identity();
+        //t.rotation.normalize();
+
+        glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam * t.to_matrix()).data());
     
         glUniformMatrix4fv(uPerspective, 1, GL_FALSE, perspective.data());
         glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
