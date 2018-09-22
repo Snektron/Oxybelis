@@ -70,7 +70,7 @@ struct Quat {
     template <typename U>
     constexpr Quat<T>& smix(const Quat<U>& other);
 
-    constexpr Mat4<T> rotation_matrix() const;
+    constexpr Mat4<T> to_matrix() const;
 };
 
 namespace quat {
@@ -147,6 +147,26 @@ constexpr auto operator*(const Quat<T>& lhs, const Quat<U>& rhs) {
         lhs.w * rhs.y - lhs.x * rhs.z + lhs.y * rhs.w + lhs.z * rhs.x,
         lhs.w * rhs.z + lhs.x * rhs.y - lhs.y * rhs.x + lhs.z * rhs.w
     );
+}
+
+template <typename T, typename U>
+constexpr auto operator*(const Vec4<T>& lhs, const Quat<U>& rhs) {
+    return quat::make(lhs) * rhs;
+}
+
+template <typename T, typename U>
+constexpr auto operator*(const Quat<T>& lhs, const Vec4<U>& rhs) {
+    return lhs * quat::make(rhs);
+}
+
+template <typename T, typename U>
+constexpr auto operator*(const Vec3<T>& lhs, const Quat<U>& rhs) {
+    return quat::make(lhs, 0) * rhs;
+}
+
+template <typename T, typename U>
+constexpr auto operator*(const Quat<T>& lhs, const Vec3<U>& rhs) {
+    return lhs * quat::make(rhs, 0);
 }
 
 template <typename T, typename U>
@@ -285,7 +305,7 @@ constexpr Quat<T>& Quat<T>::smix(const Quat<U>& other) {
 }
 
 template <typename T>
-constexpr Mat4<T> Quat<T>::rotation_matrix() const {
+constexpr Mat4<T> Quat<T>::to_matrix() const {
     Mat4<T> result;
 
     auto qr = this->w;
@@ -293,20 +313,23 @@ constexpr Mat4<T> Quat<T>::rotation_matrix() const {
     auto qj = this->y;
     auto qk = this->z;
 
-    result(0, 0) = 1. - 2. * (qj * qj + qk * qk);
-    result(1, 1) = 1. - 2. * (qi * qi + qk * qk);
-    result(2, 2) = 1. - 2. * (qi * qi + qj * qj);
+    auto one = static_cast<T>(1);
+    auto dbl = [](auto x){ return x + x; };
 
-    result(1, 0) = 2. * (qi * qj + qr * qk);
-    result(2, 0) = 2. * (qi * qk - qr * qj);
+    result(0, 0) = one - dbl(qj * qj + qk * qk);
+    result(1, 1) = one - dbl(qi * qi + qk * qk);
+    result(2, 2) = one - dbl(qi * qi + qj * qj);
 
-    result(0, 1) = 2. * (qi * qj - qr * qk);
-    result(2, 1) = 2. * (qr * qi + qj * qk);
+    result(1, 0) = dbl(qi * qj + qr * qk);
+    result(2, 0) = dbl(qi * qk - qr * qj);
 
-    result(0, 2) = 2. * (qr * qj + qi * qk);
-    result(1, 2) = 2. * (qj * qk - qr * qi);
+    result(0, 1) = dbl(qi * qj - qr * qk);
+    result(2, 1) = dbl(qr * qi + qj * qk);
 
-    result(3, 3) = 1.;
+    result(0, 2) = dbl(qr * qj + qi * qk);
+    result(1, 2) = dbl(qj * qk - qr * qi);
+
+    result(3, 3) = one;
     return result;
 }
 

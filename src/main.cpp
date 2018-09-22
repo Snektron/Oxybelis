@@ -7,6 +7,7 @@
 #include "math/Vec.h"
 #include "math/Mat.h"
 #include "math/Quat.h"
+#include "math/Transform.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
 #include "graphics/VertexArray.h"
@@ -70,7 +71,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    Window window(640, 480, "Test Window");
+    Window window(640, 480, "Oxybelis");
     window.make_context_current();
 
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
@@ -131,11 +132,14 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto scale = mat::scaling(2.f, 1.f, 1.f);
-    auto trans = mat::translation(0.f, 0.f, -10.f); 
-
     auto qa = quat::axis_angle(1.f, 0.f, 0.f, 3.14159265f / 2.f);
     auto qb = quat::axis_angle(0.f, 0.f, 1.f, 3.14159265f);
+
+    TransformF t(
+        Vec3F(0.f, 0.f, -10.f),
+        Vec3F(2.f, 1.f, 1.f),
+        qa
+    );
 
     while (!window.should_close() && !esc)
     {
@@ -145,10 +149,9 @@ int main() {
 
         auto perspective = mat::perspective(static_cast<float>(dim.x) / dim.y, 1.17f, 0.1f, 50.f);
 
-        auto rotq = smix(qa, qb, float(std::sin(glfwGetTime()) * 0.5 + 0.5));
-        auto rot = rotq.rotation_matrix();
+        t.rotation = smix(qa, qb, float(std::sin(glfwGetTime()) * 0.5 + 0.5));
 
-        glUniformMatrix4fv(uModel, 1, GL_FALSE, (trans * rot * scale).data());
+        glUniformMatrix4fv(uModel, 1, GL_FALSE, t.to_matrix().data());
     
         glUniformMatrix4fv(uPerspective, 1, GL_FALSE, perspective.data());
         glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
