@@ -130,8 +130,8 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto scale = make_scaling(2.f, 1.f, 1.f);
-    auto trans = make_translation(0.f, 0.f, -10.f); 
+    auto scale = mat::scaling(2.f, 1.f, 1.f);
+    auto trans = mat::translation(0.f, 0.f, -10.f); 
 
     while (!window.should_close() && !esc)
     {
@@ -139,9 +139,9 @@ int main() {
         glViewport(0, 0, dim.x, dim.y);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        auto perspective = make_perspective(static_cast<float>(dim.x) / dim.y, 1.17f, 0.1f, 50.f);
+        auto perspective = mat::perspective(static_cast<float>(dim.x) / dim.y, 1.17f, 0.1f, 50.f);
 
-        auto rot = make_rotation(0.f, 1.f, 0.f, float(glfwGetTime()));
+        auto rot = mat::rotation(0.f, 1.f, 0.f, float(glfwGetTime()));
 
         glUniformMatrix4fv(uModel, 1, GL_FALSE, (trans * rot * scale).data());
     

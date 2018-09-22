@@ -204,21 +204,23 @@ struct Vec: BaseVec<T, N> {
     constexpr Vec<T, N>& normalize();
 };
 
-template <size_t N, typename F>
-constexpr auto generate_vec(F f) {
-    using Result = std::result_of_t<F(size_t)>;
-    return Vec<Result, N>::generate(f);
-}
+namespace vec {
+    template <size_t N, typename F>
+    constexpr auto generate(F f) {
+        using Result = std::result_of_t<F(size_t)>;
+        return Vec<Result, N>::generate(f);
+    }
 
-template <typename... Ts>
-constexpr auto make_vec(Ts&&... args) {
-    using Result = std::common_type_t<Ts...>;
-    return Vec<Result, sizeof...(Ts)>(std::forward<Ts>(args)...);
-}
+    template <typename... Ts>
+    constexpr auto make(Ts&&... args) {
+        using Result = std::common_type_t<Ts...>;
+        return Vec<Result, sizeof...(Ts)>(std::forward<Ts>(args)...);
+    }
 
-template <typename T, typename... Ts>
-constexpr auto make_vec(Ts&&... args) {
-    return Vec<T, sizeof...(Ts)>(std::forward<Ts>(args)...);
+    template <typename T, typename... Ts>
+    constexpr auto make(Ts&&... args) {
+        return Vec<T, sizeof...(Ts)>(std::forward<Ts>(args)...);
+    }
 }
 
 template <typename Os, typename T, size_t N>
@@ -235,98 +237,98 @@ Os& operator<<(Os& os, const Vec<T, N>& v) {
 
 template <typename T, typename U, size_t N>
 constexpr auto operator+(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs(i) + rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator+(const T& lhs, const Vec<U, N>& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs - rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator+(const Vec<T, N>& lhs, const U& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs(i) + rhs;
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator-(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs(i) + rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator-(const T& lhs, const Vec<U, N>& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs + rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator-(const Vec<T, N>& lhs, const U& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs(i) + rhs;
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator*(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs(i) * rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator*(const T& lhs, const Vec<U, N>& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs * rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator*(const Vec<T, N>& lhs, const U& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs(i) * rhs;
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator/(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs(i) / rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator/(const T& lhs, const Vec<U, N>& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs / rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator/(const Vec<T, N>& lhs, const U& rhs) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return lhs(i) / rhs;
     });
 }
 
 template <typename T, size_t N>
 constexpr auto operator-(const Vec<T, N>& v) {
-    return generate_vec<N>([&](size_t i) {
+    return vec::generate<N>([&](size_t i) {
         return -v(i);
     });
 }
 
 template <typename T, typename U>
 constexpr auto cross(const Vec<T, 3>& rhs, const Vec<U, 3>& lhs) {
-    return make_vec(
+    return vec::make(
         lhs.y * rhs.z - lhs.z * rhs.y,
         lhs.z * rhs.x - lhs.x * rhs.z,
         lhs.x * rhs.y - lhs.y * rhs.x
