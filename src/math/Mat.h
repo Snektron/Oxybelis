@@ -259,6 +259,13 @@ constexpr auto operator-(const Mat<T, M, N>& m) {
 }
 
 template <typename T, size_t M, size_t N>
+constexpr auto transpose(const Mat<T, M, N>& m) {
+    return mat::generate<N, M>([&](size_t i, size_t j) {
+        return m(j, i);
+    });
+}
+
+template <typename T, size_t M, size_t N>
 template <typename U>
 constexpr Mat<T, M, N>& Mat<T, M, N>::operator+=(const U& other) {
     return *this = *this + other;
@@ -386,6 +393,43 @@ namespace mat {
         result(3, 2) = -1;
 
         return result;
+    }
+
+    // template <typename T>
+    // constexpr auto look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up) {
+    //     auto x = normalize(cross(up, dir));
+    //     auto y = cross(dir, x);
+
+    //     return Mat4<T>(
+    //         vec::make(x.x, y.x, dir.x, -dot(x, eye)),
+    //         vec::make(x.y, y.y, dir.y, -dot(y, eye)),
+    //         vec::make(x.z, y.z, dir.z, -dot(dir, eye)),
+    //         vec::make<T>(0, 0, 0, 1)
+    //     );
+    // }
+
+    template <typename T>
+    constexpr auto look_at(const Vec3<T>& eye, const Vec3<T>& target, const Vec3<T>& up) {
+        auto f = normalize(target - eye);
+        auto s = normalize(cross(f, up));
+        auto u = cross(s, f);
+
+        Mat4<T> result(1.0);
+
+        result(0, 0) = s.x;
+        result(1, 0) = s.y;
+        result(2, 0) = s.z;
+        result(0, 1) = u.x;
+        result(1, 1) = u.y;
+        result(2, 1) = u.z;
+        result(0, 2) = -f.x;
+        result(1, 2) = -f.y;
+        result(2, 2) = -f.z;
+        result(3, 0) = -dot(s, eye);
+        result(3, 1) = -dot(u, eye);
+        result(3, 2) = dot(f, eye);
+
+        return transpose(result);// * translation(-eye);
     }
 }
 

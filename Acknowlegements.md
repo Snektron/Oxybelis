@@ -14,8 +14,10 @@ src/math/Transform.h Transform::to_matrix():
 src/math/Quat.h:
     Most formulas taken from Quaternion wikipedia page
     https://en.wikipedia.org/wiki/Quaternion
+    Quaternion smix code taken from https://en.wikipedia.org/wiki/Slerp
 
 src/math/Vec.h, src/math/Mat.h:
+    mat::look_at(): code taken from glm lookAt
     Some code inspired (but not copied) by armadillo, glm, eigen3
 
 Other sources of info include

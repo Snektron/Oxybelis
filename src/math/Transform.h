@@ -11,20 +11,38 @@ struct Transform {
     Vec3<T> scale;
     Quat<T> rotation;
 
-    Transform():
-        scale(1) {
+    constexpr Transform():
+        scale(1),
+        rotation(0, 0, 0, 1) {
     }
 
-    Transform(const Vec3<T>& translation, const Vec3<T>& scale, const Quat<T>& rotation):
+    constexpr Transform(const Vec3<T>& translation, const Vec3<T>& scale, const Quat<T>& rotation):
         translation(translation),
         scale(scale),
         rotation(rotation) {
     }
 
-    Transform(const Vec3<T>& translation, const Quat<T>& rotation):
+    constexpr Transform(const Vec3<T>& translation, const Quat<T>& rotation):
         translation(translation),
         scale(1),
         rotation(rotation) {
+    }
+
+    constexpr Transform(const Vec3<T>& translation, const Vec3<T>& scale):
+        translation(translation),
+        scale(scale),
+        rotation(0, 0, 0, 1) {
+    }
+
+    constexpr Transform(const Quat<T>& rotation):
+        scale(1),
+        rotation(rotation) {
+    }
+
+    constexpr Transform(const Vec3<T>& translation):
+        translation(translation),
+        scale(1),
+        rotation(0, 0, 0, 1) {
     }
 
     Mat4<T> to_matrix() const;

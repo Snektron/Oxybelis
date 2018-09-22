@@ -32,8 +32,8 @@ template <typename T, size_t N>
 struct BaseVec {
     std::array<T, N> elements;
 
-    constexpr explicit BaseVec(const T& x):
-        elements{x} {
+    constexpr explicit BaseVec(const T& x) {
+        this->elements.fill(x);
     }
 };
 
@@ -56,7 +56,7 @@ struct BaseVec<T, 2> {
     }
 
     constexpr explicit BaseVec(const T& x):
-        elements{x} {
+        elements{x, x} {
     }
 };
 
@@ -89,7 +89,7 @@ struct BaseVec<T, 3> {
     }
 
     constexpr explicit BaseVec(const T& x):
-        elements{x} {
+        elements{x, x, x} {
     }
 };
 
@@ -128,7 +128,7 @@ struct BaseVec<T, 4> {
     }
 
     constexpr explicit BaseVec(const T& x):
-        elements{x} {
+        elements{x, x, x, x} {
     }
 };
 
@@ -262,21 +262,21 @@ constexpr auto operator+(const Vec<T, N>& lhs, const U& rhs) {
 template <typename T, typename U, size_t N>
 constexpr auto operator-(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
     return vec::generate<N>([&](size_t i) {
-        return lhs(i) + rhs(i);
+        return lhs(i) - rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator-(const T& lhs, const Vec<U, N>& rhs) {
     return vec::generate<N>([&](size_t i) {
-        return lhs + rhs(i);
+        return lhs - rhs(i);
     });
 }
 
 template <typename T, typename U, size_t N>
 constexpr auto operator-(const Vec<T, N>& lhs, const U& rhs) {
     return vec::generate<N>([&](size_t i) {
-        return lhs(i) + rhs;
+        return lhs(i) - rhs;
     });
 }
 
@@ -330,7 +330,7 @@ constexpr auto operator-(const Vec<T, N>& v) {
 }
 
 template <typename T, typename U>
-constexpr auto cross(const Vec<T, 3>& rhs, const Vec<U, 3>& lhs) {
+constexpr auto cross(const Vec<T, 3>& lhs, const Vec<U, 3>& rhs) {
     return vec::make(
         lhs.y * rhs.z - lhs.z * rhs.y,
         lhs.z * rhs.x - lhs.x * rhs.z,
@@ -347,7 +347,7 @@ template <typename T, typename U, size_t N>
 constexpr auto dot(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
     auto result = lhs[0] * rhs[0];
     for (size_t i = 1; i < N; ++i)
-        result += lhs[i] * lhs[i];
+        result += lhs[i] * rhs[i];
     return result;
 }
 

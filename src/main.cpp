@@ -1,7 +1,13 @@
+#define GLM_ENABLE_EXPERIMENTAL
 #include <iostream>
 #include <cmath>
 #include <cstdint>
 #include <GLFW/glfw3.h>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "glad/glad.h"
 #include "core/Window.h"
 #include "math/Vec.h"
@@ -132,13 +138,20 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto qa = quat::axis_angle(1.f, 0.f, 0.f, 3.14159265f / 2.f);
-    auto qb = quat::axis_angle(0.f, 0.f, 1.f, 3.14159265f);
+    // auto qa = quat::make(0.f, 0.f, 0.f, 1.f);
+    // auto qb = quat::axis_angle(0.f, 0.f, 1.f, 3.14159265f);
 
-    TransformF t(
-        Vec3F(0.f, 0.f, -10.f),
-        Vec3F(2.f, 1.f, 1.f),
-        qa
+    // TransformF t(
+    //     Vec3F(0.f, 0.f, 0.f),
+    //     Vec3F(2.f, 1.f, 1.f)
+    // );
+
+    //TransformF cam(Vec3F(0.f, 0.f, 0.f));
+
+    auto cam = mat::look_at(
+        Vec3F(5, 5, 5),
+        Vec3F(0, 0, 0),
+        Vec3F(0, 1, 0)
     );
 
     while (!window.should_close() && !esc)
@@ -149,9 +162,9 @@ int main() {
 
         auto perspective = mat::perspective(static_cast<float>(dim.x) / dim.y, 1.17f, 0.1f, 50.f);
 
-        t.rotation = smix(qa, qb, float(std::sin(glfwGetTime()) * 0.5 + 0.5));
+        //t.rotation = smix(qa, qb, float(std::sin(glfwGetTime()) * 0.5 + 0.5));
 
-        glUniformMatrix4fv(uModel, 1, GL_FALSE, t.to_matrix().data());
+        glUniformMatrix4fv(uModel, 1, GL_FALSE, cam.data());
     
         glUniformMatrix4fv(uPerspective, 1, GL_FALSE, perspective.data());
         glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
