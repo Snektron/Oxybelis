@@ -395,41 +395,32 @@ namespace mat {
         return result;
     }
 
-    // template <typename T>
-    // constexpr auto look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up) {
-    //     auto x = normalize(cross(up, dir));
-    //     auto y = cross(dir, x);
-
-    //     return Mat4<T>(
-    //         vec::make(x.x, y.x, dir.x, -dot(x, eye)),
-    //         vec::make(x.y, y.y, dir.y, -dot(y, eye)),
-    //         vec::make(x.z, y.z, dir.z, -dot(dir, eye)),
-    //         vec::make<T>(0, 0, 0, 1)
-    //     );
-    // }
-
     template <typename T>
-    constexpr auto look_at(const Vec3<T>& eye, const Vec3<T>& target, const Vec3<T>& up) {
-        auto f = normalize(target - eye);
-        auto s = normalize(cross(f, up));
-        auto u = cross(s, f);
+    constexpr auto look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up) {
+        auto s = normalize(cross(dir, up));
+        auto u = cross(s, dir);
 
         Mat4<T> result(1.0);
 
         result(0, 0) = s.x;
-        result(1, 0) = s.y;
-        result(2, 0) = s.z;
-        result(0, 1) = u.x;
+        result(0, 1) = s.y;
+        result(0, 2) = s.z;
+        result(1, 0) = u.x;
         result(1, 1) = u.y;
-        result(2, 1) = u.z;
-        result(0, 2) = -f.x;
-        result(1, 2) = -f.y;
-        result(2, 2) = -f.z;
-        result(3, 0) = -dot(s, eye);
-        result(3, 1) = -dot(u, eye);
-        result(3, 2) = dot(f, eye);
+        result(1, 2) = u.z;
+        result(2, 0) = -dir.x;
+        result(2, 1) = -dir.y;
+        result(2, 2) = -dir.z;
+        result(0, 3) = -dot(s, eye);
+        result(1, 3) = -dot(u, eye);
+        result(2, 3) = dot(dir, eye);
 
-        return transpose(result);// * translation(-eye);
+        return result;
+    }
+
+    template <typename T>
+    constexpr auto look_at(const Vec3<T>& eye, const Vec3<T>& target, const Vec3<T>& up) {
+        return look(eye, normalize(target - eye), up);
     }
 }
 
