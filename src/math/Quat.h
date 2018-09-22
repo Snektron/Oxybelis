@@ -5,6 +5,8 @@
 #include "math/Mat.h"
 #include "math/Vec.h"
 
+const static double SLERP_THRESHOLD = 0.9995;
+
 template <typename T>
 struct Quat;
 
@@ -45,22 +47,30 @@ struct Quat {
     }
 
     template <typename U>
-    Quat<T>& operator+=(const U& u);
+    constexpr Quat<T>& operator+=(const U& u);
 
     template <typename U>
-    Quat<T>& operator-=(const U& u);
+    constexpr Quat<T>& operator-=(const U& u);
 
     template <typename U>
-    Quat<T>& operator*=(const U& u);
+    constexpr Quat<T>& operator*=(const U& u);
 
     template <typename U>
-    Quat<T>& operator/=(const U& u);
+    constexpr Quat<T>& operator/=(const U& u);
 
-    Quat<T>& conjugate();
+    constexpr Quat<T>& conjugate();
 
-    Quat<T>& reciprocal();
+    constexpr Quat<T>& reciprocal();
 
-    Mat4<T> rotation_matrix() const;
+    constexpr Quat<T>& normalize();
+
+    template <typename U>
+    constexpr Quat<T>& mix(const Quat<U>& other);
+
+    template <typename U>
+    constexpr Quat<T>& smix(const Quat<U>& other);
+
+    constexpr Mat4<T> rotation_matrix() const;
 };
 
 namespace quat {
@@ -125,6 +135,11 @@ constexpr auto operator-(const Quat<T>& lhs, const U& rhs) {
 }
 
 template <typename T, typename U>
+constexpr auto operator-(const Quat<T>& q) {
+    return quat::make(-q.elements);
+}
+
+template <typename T, typename U>
 constexpr auto operator*(const Quat<T>& lhs, const Quat<U>& rhs) {
     return quat::make(
         lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z,
@@ -164,6 +179,40 @@ constexpr auto reciprocal(const Quat<T>& q) {
     return conjugate(q) / length_sq(q);
 }
 
+template <typename T, typename U>
+constexpr auto normalize(const Quat<T>& q) {
+    return q / length(q);
+}
+
+template <typename T, typename U, typename V>
+constexpr auto mix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
+    return lhs + t * (rhs - lhs);
+}
+
+template <typename T, typename U, typename V>
+constexpr auto smix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
+    auto dot = ::dot(lhs.vector, rhs.vector);
+    Quat<T> q = rhs;
+
+    if (dot < static_cast<T>(0)) {
+        dot = -dot;
+        q = -q;
+    }
+
+    if (dot > static_cast<T>(SLERP_THRESHOLD))
+        return normalize(lerp(lhs, q, t));
+
+    auto theta_0 = std::acos(dot);
+    auto theta = theta_0 * t;
+    auto sin_theta = std::sin(theta);
+    auto sin_theta_0 = std::sin(theta_0);
+
+    auto s0 = std::cos(theta) - dot * sin_theta / sin_theta_0;
+    auto s1 = sin_theta / sin_theta_0;
+
+    return s0 * lhs + s1 * q;
+}
+
 template <typename T>
 constexpr auto norm_sq(const Quat<T>& q) {
     return length_sq(q.elements);
@@ -186,40 +235,57 @@ constexpr auto distance(const Quat<T>& lhs, const Quat<U>& rhs) {
 
 template <typename T>
 template <typename U>
-Quat<T>& Quat<T>::operator+=(const U& u) {
+constexpr Quat<T>& Quat<T>::operator+=(const U& u) {
     return *this = *this + u;
 }
 
 template <typename T>
 template <typename U>
-Quat<T>& Quat<T>::operator-=(const U& u) {
+constexpr Quat<T>& Quat<T>::operator-=(const U& u) {
     return *this = *this - u;
 }
 
 template <typename T>
 template <typename U>
-Quat<T>& Quat<T>::operator*=(const U& u) {
+constexpr Quat<T>& Quat<T>::operator*=(const U& u) {
     return *this = *this * u;
 }
 
 template <typename T>
 template <typename U>
-Quat<T>& Quat<T>::operator/=(const U& u) {
+constexpr Quat<T>& Quat<T>::operator/=(const U& u) {
     return *this = *this / u;
 }
 
 template <typename T>
-Quat<T>& Quat<T>::conjugate() {
+constexpr Quat<T>& Quat<T>::conjugate() {
     return *this = conjugate(*this);
 }
 
 template <typename T>
-Quat<T>& Quat<T>::reciprocal() {
+constexpr Quat<T>& Quat<T>::reciprocal() {
     return *this = reciprocal(*this);
 }
 
 template <typename T>
-Mat4<T> Quat<T>::rotation_matrix() const {
+constexpr Quat<T>& Quat<T>::normalize() {
+    return *this = normalize(*this);
+}
+
+template <typename T>
+template <typename U>
+constexpr Quat<T>& Quat<T>::mix(const Quat<U>& other) {
+    return *this = mix(*this, other);
+}
+
+template <typename T>
+template <typename U>
+constexpr Quat<T>& Quat<T>::smix(const Quat<U>& other) {
+    return *this = smix(*this, other);
+}
+
+template <typename T>
+constexpr Mat4<T> Quat<T>::rotation_matrix() const {
     Mat4<T> result;
 
     auto qr = this->w;

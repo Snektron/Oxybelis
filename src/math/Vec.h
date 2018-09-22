@@ -202,6 +202,9 @@ struct Vec: BaseVec<T, N> {
     constexpr Vec<T, 3>& cross(const Vec<U, 3>& other);
 
     constexpr Vec<T, N>& normalize();
+
+    template <typename U>
+    constexpr Vec<T, N>& mix(const Vec<U, N>& other);
 };
 
 namespace vec {
@@ -335,6 +338,11 @@ constexpr auto cross(const Vec<T, 3>& rhs, const Vec<U, 3>& lhs) {
     );
 }
 
+template <typename T, typename U, typename V, size_t N>
+constexpr auto mix(const Vec<T, N>& lhs, const Vec<U, N>& rhs, V t) {
+    return lhs + t * (rhs - lhs);
+}
+
 template <typename T, typename U, size_t N>
 constexpr auto dot(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
     auto result = lhs[0] * rhs[0];
@@ -402,6 +410,12 @@ constexpr Vec<T, 3>& Vec<T, N>::cross(const Vec<U, 3>& other) {
 template <typename T, size_t N>
 constexpr Vec<T, N>& Vec<T, N>::normalize() {
     return *this = normalize(*this);
+}
+
+template <typename T, size_t N>
+template <typename U>
+constexpr Vec<T, N>& Vec<T, N>::mix(const Vec<U, N>& other) {
+    return *this = mix(*this, other);
 }
 
 #endif
