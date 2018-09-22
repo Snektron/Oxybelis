@@ -358,6 +358,16 @@ constexpr auto normalize(const Vec<T, N>& v) {
     return v / length(v);
 }
 
+template <typename T, typename U, size_t N>
+constexpr auto distance_sq(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
+    return length_sq(lhs - rhs);
+}
+
+template <typename T, typename U, size_t N>
+constexpr auto distance(const Vec<T, N>& lhs, const Vec<U, N>& rhs) {
+    return length(lhs - rhs);
+}
+
 template <typename T, size_t N>
 template <typename U>
 constexpr Vec<T, N>& Vec<T, N>::operator+=(const U& other) {

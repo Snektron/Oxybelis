@@ -287,6 +287,11 @@ namespace mat {
     }
 
     template <typename T>
+    constexpr auto translation(const Vec3<T>& t) {
+        return translation(t.x, t.y, t.z);
+    }
+
+    template <typename T>
     constexpr auto scaling(const T& x, const T& y, const T& z) {
         Mat4<T> result;
         result(0, 0) = x;
@@ -297,7 +302,12 @@ namespace mat {
     }
 
     template <typename T>
-    constexpr auto rotation(const T& x, const T& y, const T& z, const T& a) {
+    constexpr auto scaling(const Vec3<T>& s) {
+        return scaling(s.x, s.y, s.z);
+    }
+
+    template <typename T>
+    constexpr auto axis_angle(const T& x, const T& y, const T& z, const T& a) {
         Mat4<T> result;
         auto c = std::cos(a);
         auto ci = 1 - c;
@@ -317,6 +327,11 @@ namespace mat {
 
         result(3, 3) = 1;
         return result;
+    }
+
+    template <typename T>
+    constexpr auto axis_angle(const Vec3<T>& r, const T& a) {
+        return axis_angle(r.x, r.y, r.z, a);
     }
 
     template <typename T>

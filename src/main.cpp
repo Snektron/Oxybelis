@@ -6,6 +6,7 @@
 #include "core/Window.h"
 #include "math/Vec.h"
 #include "math/Mat.h"
+#include "math/Quat.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
 #include "graphics/VertexArray.h"
@@ -141,7 +142,8 @@ int main() {
 
         auto perspective = mat::perspective(static_cast<float>(dim.x) / dim.y, 1.17f, 0.1f, 50.f);
 
-        auto rot = mat::rotation(0.f, 1.f, 0.f, float(glfwGetTime()));
+        auto rotq = quat::axis_angle(0.f, 1.f, 0.f, float(glfwGetTime()));
+        auto rot = rotq.rotation_matrix();
 
         glUniformMatrix4fv(uModel, 1, GL_FALSE, (trans * rot * scale).data());
     
