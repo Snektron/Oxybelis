@@ -7,7 +7,7 @@
 #include "input/ActionMap.h"
 #include "input/AxisMap.h"
 #include "core/Window.h"
-#include "math/Vector.h"
+#include "math/Vec.h"
 
 constexpr const double MB_PRESS_VALUE = 1.0;
 constexpr const double MB_RELEASE_VALUE = 0.0;
@@ -40,8 +40,8 @@ class Mouse {
     AxisMap<I, MouseButton> mb_axis_map;
     AxisMap<I, MouseAxis> axis_map;
     Window& win;
-    Vector2d cursor;
-    Vector2d delta;
+    Vec2D cursor;
+    Vec2D delta;
 
 public:
     Mouse(InputManager<I>& manager, Window& win):
@@ -70,11 +70,11 @@ public:
     }
 
     void update_cursor(double x, double y) {
-        Vector2<double> new_pos(x, y);
+        Vec2D new_pos(x, y);
         delta = new_pos - this->cursor;
         this->cursor = new_pos;
-        this->dispatch_cursor(MouseAxis::Horizontal, this->delta.x());
-        this->dispatch_cursor(MouseAxis::Vertical, this->delta.y());
+        this->dispatch_cursor(MouseAxis::Horizontal, this->delta.x);
+        this->dispatch_cursor(MouseAxis::Vertical, this->delta.y);
     }
 
     void dispatch_cursor(MouseAxis axis, double value) {

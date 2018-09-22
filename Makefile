@@ -6,11 +6,11 @@ BUILD := build
 ASSETS := assets
 3RDPARTY := 3rdparty
 PKGS := glfw3
-CXXFLAGS := -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) \
+CXXFLAGS := -flto -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) \
 	-g  -std=c++14 -Wall -Wextra -O3 -march=native \
 	-DGLFW_INCLUDE_NONE \
 	`pkg-config --cflags $(PKGS)`
-LDFLAGS := -g -ldl `pkg-config --libs $(PKGS)`
+LDFLAGS := -flto -g -ldl `pkg-config --libs $(PKGS)`
 RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Resource
 
 ifeq ($(OS),Windows_NT)
@@ -35,12 +35,6 @@ CLEAR := $(ESC)[0m
 
 TOTAL := $(words $(OBJECTS) . .)
 progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info $(WHITE)[$(YELLOW)$(words $(PROCESSED))$(WHITE)/$(YELLOW)$(TOTAL)$(WHITE)] $1$(CLEAR)))
-
-#vpath %.cpp $(SRC)
-#vpath %.cpp $(3RDPARTY)
-#vpath $(ASSETS).o $(BUILD)/$(ASSETS)
-#vpath %.o $(BUILD)/objects
-#vpath $(TARGET) $(BUILD)/target
 
 all: $(BUILD)/target/$(TARGET)
 

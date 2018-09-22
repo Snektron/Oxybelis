@@ -3,7 +3,7 @@
 
 #include <functional>
 #include <GLFW/glfw3.h>
-#include "math/Vector.h"
+#include "math/Vec.h"
 #include "utility/utility.h"
 
 using KeyCallback = std::function<void(int, int, int, int)>;
@@ -37,9 +37,9 @@ public:
         glfwSwapBuffers(this->handle.get());
     }
 
-    inline Vector2i dimensions() {
-        Vector2i dim;
-        glfwGetWindowSize(this->handle.get(), &dim.x(), &dim.y());
+    inline Vec2I dimensions() {
+        Vec2I dim;
+        glfwGetWindowSize(this->handle.get(), &dim.x, &dim.y);
         return dim;
     }
 

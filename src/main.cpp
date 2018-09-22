@@ -4,11 +4,8 @@
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
 #include "core/Window.h"
-#include "math/Matrix.h"
-#include "math/Quaternion.h"
 #include "math/Vec.h"
 #include "math/Mat.h"
-#include "math/Simd.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
 #include "graphics/VertexArray.h"
@@ -136,23 +133,15 @@ int main() {
     auto scale = make_scaling(2.f, 1.f, 1.f);
     auto trans = make_translation(0.f, 0.f, -10.f); 
 
-    Vec3F test{0, 1, 0};
-    Vec3F test2(0, 1, 0);
-    std::cout << dot(test, test2) << std::endl;
-
-    auto identity = Mat4F::identity();
-    std::cout << identity << std::endl;
-
     while (!window.should_close() && !esc)
     {
         auto dim = window.dimensions();
-        glViewport(0, 0, dim.x(), dim.y());
+        glViewport(0, 0, dim.x, dim.y);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        auto perspective = make_perspective(static_cast<float>(dim.x()) / dim.y(), 1.17f, 0.1f, 50.f);
+        auto perspective = make_perspective(static_cast<float>(dim.x) / dim.y, 1.17f, 0.1f, 50.f);
 
-        auto rotq = make_rotation_quat(0.f, 1.f, 0.f, float(glfwGetTime()));
-        auto rot = rotq.rotation_matrix();
+        auto rot = make_rotation(0.f, 1.f, 0.f, float(glfwGetTime()));
 
         glUniformMatrix4fv(uModel, 1, GL_FALSE, (trans * rot * scale).data());
     
