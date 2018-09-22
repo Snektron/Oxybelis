@@ -21,9 +21,9 @@ endif
 
 find = $(shell find $1 -type f -name $2 -print)
 
-SRCS := $(patsubst $(SRC)/%, %, $(call find, $(SRC)/, "*.cpp")) \
-	$(patsubst $(3RDPARTY)/%, %, $(call find, $(3RDPARTY)/, "*.cpp"))
-OBJECTS := $(SRCS:%.cpp=%.o)
+SRCS := $(call find, $(SRC)/, "*.cpp") $(call find, $(3RDPARTY)/, "*.cpp")
+
+OBJECTS := $(SRCS:%.cpp=$(BUILD)/objects/%.o)
 RSRCS := $(call find, $(ASSETS)/, "*")
 
 ESC := 
@@ -36,32 +36,32 @@ CLEAR := $(ESC)[0m
 TOTAL := $(words $(OBJECTS) . .)
 progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info $(WHITE)[$(YELLOW)$(words $(PROCESSED))$(WHITE)/$(YELLOW)$(TOTAL)$(WHITE)] $1$(CLEAR)))
 
-vpath %.cpp $(SRC)
-vpath %.cpp $(3RDPARTY)
-vpath $(ASSETS).o $(BUILD)/$(ASSETS)
-vpath %.o $(BUILD)/objects
-vpath $(TARGET) $(BUILD)/target
+#vpath %.cpp $(SRC)
+#vpath %.cpp $(3RDPARTY)
+#vpath $(ASSETS).o $(BUILD)/$(ASSETS)
+#vpath %.o $(BUILD)/objects
+#vpath $(TARGET) $(BUILD)/target
 
-all: $(TARGET)
+all: $(BUILD)/target/$(TARGET)
 
-$(TARGET): $(OBJECTS) $(ASSETS).o
+$(BUILD)/target/$(TARGET): $(OBJECTS) $(BUILD)/$(ASSETS)/$(ASSETS).o
 	@$(call progress,$(RED)Linking $@)
 	@mkdir -p $(BUILD)/target
-	@$(CXX) -o $(BUILD)/target/$@ $(OBJECTS:%=$(BUILD)/objects/%) $(BUILD)/$(ASSETS)/$(ASSETS).o $(LDFLAGS)
+	@$(CXX) -o $@ $^ $(LDFLAGS)
 
-%.o: %.cpp $(ASSETS).o
+$(BUILD)/objects/%.o: %.cpp $(BUILD)/$(ASSETS)/$(ASSETS).o
 	@$(call progress,$(BLUE)Compiling $<)
-	@mkdir -p $(BUILD)/objects/$(dir $@)
-	@$(CXX) -c $(CXXFLAGS) -o $(BUILD)/objects/$@ $<
+	@mkdir -p $(dir $@)
+	@$(CXX) -MMD -c $(CXXFLAGS) -o $@ $<
 
-$(ASSETS).o: $(RSRCS)
+$(BUILD)/$(ASSETS)/$(ASSETS).o: $(RSRCS)
 	@$(call progress,$(BLUE)Compiling $(ASSETS))
 	@mkdir -p $(BUILD)/$(ASSETS)
 	@python3 ./genrsrc.py \
 		$(RSRCFLAGS) \
 		-o $(BUILD)/$(ASSETS)/$(ASSETS).asm $(BUILD)/$(ASSETS)/$(ASSETS).h \
 		$(^:$(ASSETS)/%=%)
-	@$(CXX) -x assembler -c -I$(ASSETS) -o $(BUILD)/$(ASSETS)/$@ $(BUILD)/$(ASSETS)/$(ASSETS).asm
+	@$(CXX) -x assembler -c -I$(ASSETS) -o $(BUILD)/$(ASSETS)/$(ASSETS).o $(BUILD)/$(ASSETS)/$(ASSETS).asm
 
 clean:
 	@echo Cleaning build files
@@ -73,5 +73,7 @@ clean-cpp:
 	
 run: all
 	@$(BUILD)/target/$(TARGET)
+
+-include build/objects/src/main.d
 
 .PHONY: clean
