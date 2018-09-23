@@ -139,9 +139,6 @@ int main() {
     manager.switch_context(ctx);
 
     auto qa = QuatF::identity();
-    auto qb = quat::axis_angle(0.f, 0.707f, 0.707f, 0.42f);
-
-    std::cout << qb << std::endl << (inverse(qb) * qb) << std::endl;
 
     TransformF t(
         Vec3F(0.f, 0.f, 0.f),
@@ -167,6 +164,10 @@ int main() {
 
         //t.rotation *= QuatF::identity();
         //t.rotation.normalize();
+
+        float x = float(std::sin(glfwGetTime()) * 0.5 + 0.5) * float(M_PI) / 2.f;
+        float y = float(glfwGetTime());
+        t.rotation *= QuatF(0, 0.01f, 0, 1).normalize() * QuatF(0, 0, 0.01f, 1).normalize();
 
         glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam * t.to_matrix()).data());
     

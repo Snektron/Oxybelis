@@ -27,7 +27,7 @@ struct Quat {
     };
 
     constexpr static Quat<T> identity() {
-        return Quat<T>(1, 0, 0, 0);
+        return Quat<T>(0, 0, 0, 1);
     }
 
     constexpr Quat():

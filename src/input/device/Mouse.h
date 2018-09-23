@@ -50,18 +50,18 @@ public:
         win(win),
         cursor(0, 0), delta(0, 0) {
         
-        win.connect_mouse([this](double x, double y) {
+        win.mouse_callback = [this](double x, double y) {
             this->update_cursor(x, y);
-        });
+        };
 
-        win.connect_mouse_button([this](int button, int action, int) {
+        win.mouse_button_callback = [this](int button, int action, int) {
             this->dispatch_button(static_cast<MouseButton>(button), static_cast<Action>(action));
-        });
+        };
     }
 
     ~Mouse() {
-        win.connect_mouse(nullptr);
-        win.connect_mouse_button(nullptr);
+        win.mouse_callback = nullptr;
+        win.mouse_button_callback = nullptr;
     }
 
     inline void dispatch_button(MouseButton mb, Action action) {

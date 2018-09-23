@@ -9,58 +9,50 @@
 using KeyCallback = std::function<void(int, int, int, int)>;
 using MouseCallback = std::function<void(double, double)>;
 using MouseButtonCallback = std::function<void(int, int, int)>;
+using ResizeCallback = std::function<void(int, int)>;
 
 class Window {
     CPtr<GLFWwindow, glfwDestroyWindow> handle;
+
+public:
     KeyCallback key_callback;
     MouseCallback mouse_callback;
     MouseButtonCallback mouse_button_callback;
+    ResizeCallback resize_callback;
 
-public:
     Window(size_t width, size_t height, const char* title):
         handle(glfwCreateWindow(width, height, title, nullptr, nullptr)) {
         glfwSetWindowUserPointer(this->handle.get(), reinterpret_cast<void*>(this));
         glfwSetKeyCallback(this->handle.get(), glfw_key_callback);
         glfwSetCursorPosCallback(this->handle.get(), glfw_cursor_callback);
         glfwSetMouseButtonCallback(this->handle.get(), glfw_mouse_button_callback);
+        glfwSetWindowSizeCallback(this->handle.get(), glfw_resize_callback);
     }
 
-    inline void make_context_current() {
+    void make_context_current() {
         glfwMakeContextCurrent(this->handle.get());
     }
 
-    inline bool should_close() {
+    bool should_close() {
         return glfwWindowShouldClose(this->handle.get());
     }
 
-    inline void swap_buffers() {
+    void swap_buffers() {
         glfwSwapBuffers(this->handle.get());
     }
 
-    inline Vec2I dimensions() {
+    Vec2I dimensions() {
         Vec2I dim;
         glfwGetWindowSize(this->handle.get(), &dim.x, &dim.y);
         return dim;
     }
 
-    inline GLFWwindow* get() {
+    GLFWwindow* get() {
         return this->handle.get();
     }
 
-    inline const GLFWwindow* get() const {
+    const GLFWwindow* get() const {
         return this->handle.get();
-    }
-
-    inline void connect_key(KeyCallback cbk) {
-        this->key_callback = cbk;
-    }
-
-    inline void connect_mouse(MouseCallback cbk) {
-        this->mouse_callback = cbk;
-    }
-
-    inline void connect_mouse_button(MouseButtonCallback cbk) {
-        this->mouse_button_callback = cbk;
     }
 
 private:
@@ -80,6 +72,12 @@ private:
         auto& win = *reinterpret_cast<Window*>(glfwGetWindowUserPointer(w));
         if (win.mouse_button_callback)
             win.mouse_button_callback(mb, action, mods);
+    }
+
+    static void glfw_resize_callback(GLFWwindow* w, int width, int height) {
+        auto& win = *reinterpret_cast<Window*>(glfwGetWindowUserPointer(w));
+        if (win.resize_callback)
+            win.resize_callback(width, height);
     }
 };
 

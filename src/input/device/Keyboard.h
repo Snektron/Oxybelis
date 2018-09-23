@@ -27,14 +27,14 @@ public:
         action_map(manager), axis_map(manager),
         win(win) {
 
-        win.connect_key([this](int key, int, int action, int) {
+        win.key_callback = [this](int key, int, int action, int) {
             if (action != GLFW_REPEAT)
                 this->dispatch(key, static_cast<Action>(action));
-        });
+        };
     }
 
     ~Keyboard() {
-        win.connect_key(nullptr);
+        win.key_callback = nullptr;
     }
 
     inline void dispatch(Key key, Action action) {
