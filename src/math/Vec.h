@@ -132,6 +132,8 @@ struct BaseVec<T, 4> {
     }
 };
 
+#include <iostream>
+
 template <typename T, size_t N>
 struct Vec: BaseVec<T, N> {
     static_assert(N > 1, "Cannot create a vector of size 1");
@@ -141,6 +143,13 @@ struct Vec: BaseVec<T, N> {
 
     using Base = BaseVec<T, N>;
     using Base::Base;
+
+    template <typename U>
+    constexpr Vec(const Vec<U, N>& other) {
+        std::transform(other.begin(), other.end(), this->begin(), [](const auto& elem){
+            return static_cast<T>(elem);
+        });
+    }
 
     template <typename F>
     static Vec<T, N> generate(F f) {
@@ -175,7 +184,7 @@ struct Vec: BaseVec<T, N> {
     }
 
     constexpr auto end() {
-        return this->elements.begin();
+        return this->elements.end();
     }
 
     constexpr auto begin() const{
@@ -183,7 +192,7 @@ struct Vec: BaseVec<T, N> {
     }
 
     constexpr auto end() const {
-        return this->elements.begin();
+        return this->elements.end();
     }
 
     template <typename U>

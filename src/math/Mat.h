@@ -85,6 +85,13 @@ struct Mat: BaseMat<T, M, N> {
     using Base = BaseMat<T, M, N>;
     using Base::Base;
 
+    template <typename U>
+    constexpr Mat(const Mat<U, M, N>& other) {
+        std::transform(other.begin(), other.end(), this->begin(), [](const auto& elem){
+            return static_cast<T>(elem);
+        });
+    }
+
     template <typename F>
     static Mat<T, M, N> generate(F f) {
         Mat<T, M, N> m;
@@ -134,12 +141,12 @@ struct Mat: BaseMat<T, M, N> {
         return this->elements.begin();
     }
 
-    constexpr auto begin() const {
-        return this->elements.begin();
-    }
-
     constexpr auto end() {
         return this->elements.end();
+    }
+
+    constexpr auto begin() const {
+        return this->elements.begin();
     }
 
     constexpr auto end() const {

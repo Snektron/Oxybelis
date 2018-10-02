@@ -36,12 +36,12 @@ public:
         return std::forward<ProgramBuilder>(this->with(Shader(type, sources...)));
     }
 
-    inline auto bind_attrib_location(const GLuint index, CStringView name) {
+    auto bind_attrib_location(const GLuint index, CStringView name) {
         glBindAttribLocation(this->program, index, name.data());
         return std::forward<ProgramBuilder>(*this);
     }
 
-    inline auto bind_frag_data_location(GLuint color_number, CStringView name) {
+    auto bind_frag_data_location(GLuint color_number, CStringView name) {
         glBindFragDataLocation(this->program, color_number, name.data());
         return std::forward<ProgramBuilder>(*this);
     }

@@ -19,6 +19,7 @@
 #include "graphics/VertexArray.h"
 #include "graphics/Buffer.h"
 #include "graphics/shader/ProgramBuilder.h"
+#include "graphics/Projection.h"
 #include "input/InputContext.h"
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
@@ -152,26 +153,21 @@ int main() {
         Vec3F(0, 1, 0)
     );
 
+    Perspective projection(1.0, 1.17f, 0.1f, 50.f);
+
     while (!window.should_close() && !esc)
     {
         auto dim = window.dimensions();
         glViewport(0, 0, dim.x, dim.y);
+        projection.resize(dim);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        auto perspective = mat::perspective(static_cast<float>(dim.x) / dim.y, 1.17f, 0.1f, 50.f);
-
-        //t.rotation = smix(qa, qb, float(std::sin(glfwGetTime()) * 0.5 + 0.5));
-
-        //t.rotation *= QuatF::identity();
-        //t.rotation.normalize();
-
-        float x = float(std::sin(glfwGetTime()) * 0.5 + 0.5) * float(M_PI) / 2.f;
-        float y = float(glfwGetTime());
         t.rotation *= QuatF(0, 0.01f, 0, 1).normalize() * QuatF(0, 0, 0.01f, 1).normalize();
 
         glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam * t.to_matrix()).data());
     
-        glUniformMatrix4fv(uPerspective, 1, GL_FALSE, perspective.data());
+        glUniformMatrix4fv(uPerspective, 1, GL_FALSE, projection.to_matrix().data());
         glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
 
         window.swap_buffers();
