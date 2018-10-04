@@ -14,6 +14,7 @@
 #include "math/Mat.h"
 #include "math/Quat.h"
 #include "math/Transform.h"
+#include "math/Fixed.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
 #include "graphics/VertexArray.h"
@@ -154,6 +155,9 @@ int main() {
     );
 
     Perspective projection(1.0, 1.17f, 0.1f, 50.f);
+
+    auto x = UFixed4816(10, 65535);
+    std::cout << x << std::endl;
 
     while (!window.should_close() && !esc)
     {
