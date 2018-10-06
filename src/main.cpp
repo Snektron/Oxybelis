@@ -156,8 +156,9 @@ int main() {
 
     Perspective projection(1.0, 1.17f, 0.1f, 50.f);
 
-    auto x = UFixed4816(10, 65535);
-    std::cout << x << std::endl;
+    auto x = UFixed4816(27);
+    auto y = UFixed4816(10.7f);
+    std::cout << (x % y) << std::endl;
 
     while (!window.should_close() && !esc)
     {
