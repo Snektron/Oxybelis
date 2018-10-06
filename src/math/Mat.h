@@ -3,10 +3,16 @@
 
 #include <array>
 #include <algorithm>
+#include <type_traits>
 #include "math/Vec.h"
 
 template <typename T, size_t M, size_t N>
 struct Mat;
+
+namespace detail {
+    template <size_t M, size_t N>
+    using EnableIfMat4 = std::enable_if_t<M == 4 && M == 4>;
+}
 
 template <typename T>
 using Mat2 = Mat<T, 2, 2>;
@@ -92,8 +98,38 @@ struct Mat: BaseMat<T, M, N> {
         });
     }
 
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto translation(const Vec3<T>& translation);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto translation(const T& x, const T& y, const T& z);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto scaling(const Vec3<T>& translation);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto scaling(const T& x, const T& y, const T& z);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto axis_angle(const Vec3<T>& axis, const T& angle);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto axis_angle(const T& x, const T& y, const T& z, const T& angle);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto perspective(const T& aspect, const T& fov, const T& near, const T& far);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up);
+
+    template <typename = detail::EnableIfMat4<M, N>>
+    constexpr static auto look_at(const Vec3<T>& eye, const Vec3<T>& target, const Vec3<T>& up);
+
     template <typename F>
-    static Mat<T, M, N> generate(F f) {
+    constexpr static Mat<T, M, N> generate(F f) {
         Mat<T, M, N> m;
         for (size_t j = 0; j < N; ++j)
             for (size_t i = 0; i < M; ++i)
@@ -163,12 +199,10 @@ struct Mat: BaseMat<T, M, N> {
     constexpr Mat<T, M, N>& operator*=(const U& other);
 };
 
-namespace mat {
-    template <size_t M, size_t N, typename F>
-    constexpr auto generate(F f) {
-        using Result = std::result_of_t<F(size_t, size_t)>;
-        return Mat<Result, M, N>::generate(f);
-    }
+template <size_t M, size_t N, typename F>
+constexpr auto generate_mat(F f) {
+    using Result = std::result_of_t<F(size_t, size_t)>;
+    return Mat<Result, M, N>::generate(f);
 }
 
 template <typename Os, typename T, size_t M, size_t N>
@@ -189,42 +223,42 @@ Os& operator<<(Os& os, const Mat<T, M, N>& mat) {
 
 template <typename T, typename U, size_t M, size_t N>
 constexpr auto operator+(const Mat<T, M, N>& lhs, const Mat<U, M, N>& rhs) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return lhs(i, j) + rhs(i, j);
     });
 }
 
 template <typename T, typename U, size_t M, size_t N>
 constexpr auto operator+(const T& lhs, const Mat<U, M, N>& rhs) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return lhs + rhs(i, j);
     });
 }
 
 template <typename T, typename U, size_t M, size_t N>
 constexpr auto operator+(const Mat<T, M, N>& lhs, const U& rhs) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return lhs(i, j) + rhs;
     });
 }
 
 template <typename T, typename U, size_t M, size_t N>
 constexpr auto operator-(const Mat<T, M, N>& lhs, const Mat<U, M, N>& rhs) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return lhs(i, j) - rhs(i, j);
     });
 }
 
 template <typename T, typename U, size_t M, size_t N>
 constexpr auto operator-(const T& lhs, const Mat<U, M, N>& rhs) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return lhs - rhs(i, j);
     });
 }
 
 template <typename T, typename U, size_t M, size_t N>
 constexpr auto operator-(const Mat<T, M, N>& lhs, const U& rhs) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return lhs(i, j) - rhs;
     });
 }
@@ -246,30 +280,160 @@ constexpr auto operator*(const Mat<T, M, N>& lhs, const Mat<U, N, O>& rhs) {
 
 template <typename T, typename U, size_t M, size_t N>
 constexpr auto operator*(const T& lhs, const Mat<U, M, N>& rhs) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return lhs * rhs(i, j);
     });
 }
 
 template <typename T, typename U, size_t M, size_t N>
 constexpr auto operator*(const Mat<T, M, N>& lhs, const U& rhs) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return lhs(i, j) * rhs;
     });
 }
 
 template <typename T, size_t M, size_t N>
 constexpr auto operator-(const Mat<T, M, N>& m) {
-    return mat::generate<M, N>([&](size_t i, size_t j) {
+    return generate_mat<M, N>([&](size_t i, size_t j) {
         return -m(i, j);
     });
 }
 
 template <typename T, size_t M, size_t N>
 constexpr auto transpose(const Mat<T, M, N>& m) {
-    return mat::generate<N, M>([&](size_t i, size_t j) {
+    return generate_mat<N, M>([&](size_t i, size_t j) {
         return m(j, i);
     });
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::translation(const Vec3<T>& translation) {
+    return translation(translation.x, translation.y, translation.z);
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::translation(const T& x, const T& y, const T& z) {
+    auto result = Mat4<T>::identity();
+    result(0, 3) = x;
+    result(1, 3) = y;
+    result(2, 3) = z;
+    return result;
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::scaling(const Vec3<T>& scaling) {
+    return scaling(scaling.x, scaling.y, scaling.z);
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::scaling(const T& x, const T& y, const T& z) {
+    Mat4<T> result;
+    result(0, 0) = x;
+    result(1, 1) = y;
+    result(2, 2) = z;
+    result(3, 3) = 1;
+    return result;
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::axis_angle(const Vec3<T>& axis, const T& angle) {
+    return axis_angle(axis.x, axis.y, axis.z, angle);
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::axis_angle(const T& x, const T& y, const T& z, const T& angle) {
+    Mat4<T> result;
+    auto c = std::cos(angle);
+    auto ci = 1 - c;
+    auto s = std::sin(angle);
+
+    result(0, 0) = x * x * ci + c;
+    result(1, 0) = x * y * ci + z * s;
+    result(2, 0) = x * z * ci - y * s;
+
+    result(0, 1) = x * y * ci - z * s;
+    result(1, 1) = y * y * ci + c;
+    result(2, 1) = y * z * ci + x * s;
+
+    result(0, 2) = x * z * ci + y * s;
+    result(1, 2) = y * z * ci - x * s;
+    result(2, 2) = z * z * ci + c;
+
+    result(3, 3) = 1;
+    return result;
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far) {
+    Mat4<T> result;
+
+    auto rl = right - left;
+    auto tb = top - bottom;
+    auto nf = near - far;
+
+    result(0, 0) = 2 / rl;
+    result(1, 1) = 2 / tb;
+    result(2, 2) = 2 / nf;
+    result(0, 3) = -(right + left) / rl;
+    result(1, 3) = -(top + bottom) / tb;
+    result(2, 3) = -(near + far) / nf;
+    result(3, 3) = 1;
+
+    return result;
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T& near, const T& far) {
+    Mat4<T> result;
+
+    auto nf = near - far;
+    auto tan_fov_2 = tan(fov / 2);
+
+    result(0, 0) = 1 / (aspect * tan_fov_2);
+    result(1, 1) = 1 / tan_fov_2;
+    result(2, 2) = -(near + far) / nf;
+    result(2, 3) = -2 * far * near / nf;
+    result(3, 2) = -1;
+
+    return result;
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up) {
+    auto s = normalize(cross(dir, up));
+    auto u = cross(s, dir);
+
+    Mat4<T> result(1.0);
+
+    result(0, 0) = s.x;
+    result(0, 1) = s.y;
+    result(0, 2) = s.z;
+    result(1, 0) = u.x;
+    result(1, 1) = u.y;
+    result(1, 2) = u.z;
+    result(2, 0) = -dir.x;
+    result(2, 1) = -dir.y;
+    result(2, 2) = -dir.z;
+    result(0, 3) = -dot(s, eye);
+    result(1, 3) = -dot(u, eye);
+    result(2, 3) = dot(dir, eye);
+
+    return result;
+}
+
+template <typename T, size_t M, size_t N>
+template <typename>
+constexpr auto Mat<T, M, N>::look_at(const Vec3<T>& eye, const Vec3<T>& target, const Vec3<T>& up) {
+    return look(eye, normalize(target - eye), up);
 }
 
 template <typename T, size_t M, size_t N>
@@ -288,147 +452,6 @@ template <typename T, size_t M, size_t N>
 template <typename U>
 constexpr Mat<T, M, N>& Mat<T, M, N>::operator*=(const U& other) {
     return *this = *this * other;
-}
-
-namespace mat {
-    template <typename T>
-    constexpr auto translation(const T& x, const T& y, const T& z) {
-        auto result = Mat4<T>::identity();
-        result(0, 3) = x;
-        result(1, 3) = y;
-        result(2, 3) = z;
-        return result;
-    }
-
-    template <typename T>
-    constexpr auto translation(const Vec3<T>& t) {
-        return translation(t.x, t.y, t.z);
-    }
-
-    template <typename T>
-    constexpr auto scaling(const T& x, const T& y, const T& z) {
-        Mat4<T> result;
-        result(0, 0) = x;
-        result(1, 1) = y;
-        result(2, 2) = z;
-        result(3, 3) = 1;
-        return result;
-    }
-
-    template <typename T>
-    constexpr auto scaling(const Vec3<T>& s) {
-        return scaling(s.x, s.y, s.z);
-    }
-
-    template <typename T>
-    constexpr auto axis_angle(const T& x, const T& y, const T& z, const T& a) {
-        Mat4<T> result;
-        auto c = std::cos(a);
-        auto ci = 1 - c;
-        auto s = std::sin(a);
-
-        result(0, 0) = x * x * ci + c;
-        result(1, 0) = x * y * ci + z * s;
-        result(2, 0) = x * z * ci - y * s;
-
-        result(0, 1) = x * y * ci - z * s;
-        result(1, 1) = y * y * ci + c;
-        result(2, 1) = y * z * ci + x * s;
-
-        result(0, 2) = x * z * ci + y * s;
-        result(1, 2) = y * z * ci - x * s;
-        result(2, 2) = z * z * ci + c;
-
-        result(3, 3) = 1;
-        return result;
-    }
-
-    template <typename T>
-    constexpr auto axis_angle(const Vec3<T>& r, const T& a) {
-        return axis_angle(r.x, r.y, r.z, a);
-    }
-
-    template <typename T>
-    constexpr auto orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far) {
-        Mat4<T> result;
-
-        auto rl = right - left;
-        auto tb = top - bottom;
-        auto nf = near - far;
-
-        result(0, 0) = 2 / rl;
-        result(1, 1) = 2 / tb;
-        result(2, 2) = 2 / nf;
-        result(0, 3) = -(right + left) / rl;
-        result(1, 3) = -(top + bottom) / tb;
-        result(2, 3) = -(near + far) / nf;
-        result(3, 3) = 1;
-
-        return result;
-    }
-
-    template <typename T>
-    constexpr auto frustrum(const T& top, const T& bottom, const T& left, const T& right, const T& near, const T& far) {
-        Mat4<T> result;
-
-        auto rl = right - left;
-        auto tb = top - bottom;
-        auto nf = near - far;
-
-        result(0, 0) = 2 * near / rl;
-        result(1, 1) = 2 * near / tb;
-        result(0, 2) = -(right + left) / rl;
-        result(1, 2) = -(bottom + top) / tb;
-        result(2, 2) = (near + far) / nf;
-        result(2, 3) = -2 * far * near / nf;
-        result(3, 2) = 1;
-
-        return result;
-    }
-
-    template <typename T>
-    constexpr auto perspective(const T& aspect, const T& fov, const T& near, const T& far) {
-        Mat4<T> result;
-
-        auto nf = near - far;
-        auto tan_fov_2 = tan(fov / 2);
-
-        result(0, 0) = 1 / (aspect * tan_fov_2);
-        result(1, 1) = 1 / tan_fov_2;
-        result(2, 2) = -(near + far) / nf;
-        result(2, 3) = -2 * far * near / nf;
-        result(3, 2) = -1;
-
-        return result;
-    }
-
-    template <typename T>
-    constexpr auto look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up) {
-        auto s = normalize(cross(dir, up));
-        auto u = cross(s, dir);
-
-        Mat4<T> result(1.0);
-
-        result(0, 0) = s.x;
-        result(0, 1) = s.y;
-        result(0, 2) = s.z;
-        result(1, 0) = u.x;
-        result(1, 1) = u.y;
-        result(1, 2) = u.z;
-        result(2, 0) = -dir.x;
-        result(2, 1) = -dir.y;
-        result(2, 2) = -dir.z;
-        result(0, 3) = -dot(s, eye);
-        result(1, 3) = -dot(u, eye);
-        result(2, 3) = dot(dir, eye);
-
-        return result;
-    }
-
-    template <typename T>
-    constexpr auto look_at(const Vec3<T>& eye, const Vec3<T>& target, const Vec3<T>& up) {
-        return look(eye, normalize(target - eye), up);
-    }
 }
 
 #endif

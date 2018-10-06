@@ -1,5 +1,5 @@
-#ifndef _OXYBELIS_GRAPHICS_FREECAM_H
-#define _OXYBELIS_GRAPHICS_FREECAM_H
+#ifndef _OXYBELIS_GRAPHICS_CAMERA_FREECAM_H
+#define _OXYBELIS_GRAPHICS_CAMERA_FREECAM_H
 
 #include "math/Mat.h"
 #include "math/Vec.h"

@@ -26,10 +26,6 @@ struct Quat {
         Vec4<T> elements;
     };
 
-    constexpr static Quat<T> identity() {
-        return Quat<T>(0, 0, 0, 1);
-    }
-
     constexpr Quat():
         x(0), y(0), z(0), w(0) {
     }
@@ -44,6 +40,22 @@ struct Quat {
 
     constexpr Quat(const Vec4<T>& elements):
         elements(elements) {
+    }
+
+    constexpr static Quat<T> identity() {
+        return Quat<T>(0, 0, 0, 1);
+    }
+
+    constexpr static auto axis_angle(const Vec3<T>& axis, const T& a) {
+        T half = 0.5;
+        auto cosa2 = std::cos(a * half);
+        auto sina2 = std::sin(a * half);
+
+        return Quat(axis * sina2, cosa2);
+    }
+
+    constexpr static auto axis_angle(const T& x, const T& y, const T& z, const T& a) {
+        return axis_angle(Vec3<T>(x, y, z), a);
     }
 
     constexpr const T* data() const {
@@ -77,87 +89,60 @@ struct Quat {
     constexpr Mat4<T> to_matrix() const;
 };
 
-namespace quat {
-    template <typename T>
-    auto make(const T& x, const T& y, const T& z, const T& w) {
-        return Quat<T>(x, y, z, w);
-    }
 
-    template <typename T>
-    auto make(const Vec4<T>& v) {
-        return Quat<T>(v);
-    }
+template <typename T>
+auto make_quat(const T& x, const T& y, const T& z, const T& w) {
+    return Quat<T>(x, y, z, w);
+}
 
-    template <typename T>
-    auto make(const Vec3<T>& v, const T& s) {
-        return Quat<T>(v, s);
-    }
+template <typename T>
+auto make_quat(const Vec4<T>& v) {
+    return Quat<T>(v);
+}
 
-    template <typename T>
-    constexpr auto axis_angle(const Vec3<T>& axis, const T& a) {
-        T half = 0.5;
-        auto cosa2 = std::cos(a * half);
-        auto sina2 = std::sin(a * half);
-
-        return make(axis * sina2, cosa2);
-    }
-
-    template <typename T>
-    constexpr auto axis_angle(const T& x, const T& y, const T& z, const T& a) {
-        return axis_angle(Vec3<T>(x, y, z), a);
-    }
-
-    template <typename T>
-    constexpr auto extract(const Mat4<T>& m) {
-        auto w = std::sqrt(1 + m(0, 0) + m(1, 1) + m(2, 2));
-        auto w2 = w + w;
-        return make(
-            (m(2, 1) - m(1, 2)) / w2,
-            (m(0, 2) - m(2, 1)) / w2,
-            (m(1, 0) - m(0, 1)) / w2,
-            w / 2
-        );
-    }
-};
+template <typename T>
+auto make_quat(const Vec3<T>& v, const T& s) {
+    return Quat<T>(v, s);
+}
 
 template <typename T, typename U>
 constexpr auto operator+(const Quat<T>& lhs, const Quat<U>& rhs) {
-    return quat::make(lhs.elements + rhs.elements);
+    return make_quat(lhs.elements + rhs.elements);
 }
 
 template <typename T, typename U>
 constexpr auto operator+(const T& lhs, const Quat<U>& rhs) {
-    return quat::make(lhs + rhs.elements);
+    return make_quat(lhs + rhs.elements);
 }
 
 template <typename T, typename U>
 constexpr auto operator+(const Quat<T>& lhs, const U& rhs) {
-    return quat::make(lhs.elements + rhs);
+    return make_quat(lhs.elements + rhs);
 }
 
 template <typename T, typename U>
 constexpr auto operator-(const Quat<T>& lhs, const Quat<U>& rhs) {
-    return quat::make(lhs.elements - rhs.elements);
+    return make_quat(lhs.elements - rhs.elements);
 }
 
 template <typename T, typename U>
 constexpr auto operator-(const T& lhs, const Quat<U>& rhs) {
-    return quat::make(lhs - rhs.elements);
+    return make_quat(lhs - rhs.elements);
 }
 
 template <typename T, typename U>
 constexpr auto operator-(const Quat<T>& lhs, const U& rhs) {
-    return quat::make(lhs.elements - rhs);
+    return make_quat(lhs.elements - rhs);
 }
 
 template <typename T>
 constexpr auto operator-(const Quat<T>& q) {
-    return quat::make(-q.elements);
+    return make_quat(-q.elements);
 }
 
 template <typename T, typename U>
 constexpr auto operator*(const Quat<T>& lhs, const Quat<U>& rhs) {
-    return quat::make(
+    return make_quat(
         lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
         lhs.w * rhs.y - lhs.x * rhs.z + lhs.y * rhs.w + lhs.z * rhs.x,
         lhs.w * rhs.z + lhs.x * rhs.y - lhs.y * rhs.x + lhs.z * rhs.w,
@@ -167,27 +152,27 @@ constexpr auto operator*(const Quat<T>& lhs, const Quat<U>& rhs) {
 
 template <typename T, typename U>
 constexpr auto operator*(const Quat<T>& lhs, const Vec3<U>& rhs) {
-    return (lhs * quat::make<U>(rhs, 0)).vector;
+    return (lhs * make_quat<U>(rhs, 0)).vector;
 }
 
 template <typename T, typename U>
 constexpr auto operator*(const T& lhs, const Quat<U>& rhs) {
-    return quat::make(lhs * rhs.elements);
+    return make_quat(lhs * rhs.elements);
 }
 
 template <typename T, typename U>
 constexpr auto operator*(const Quat<T>& lhs, const U& rhs) {
-    return quat::make(lhs.elements * rhs);
+    return make_quat(lhs.elements * rhs);
 }
 
 template <typename T, typename U>
 constexpr auto operator/(const T& lhs, const Quat<U>& rhs) {
-    return quat::make(lhs / rhs.elements);
+    return make_quat(lhs / rhs.elements);
 }
 
 template <typename T, typename U>
 constexpr auto operator/(const Quat<T>& lhs, const U& rhs) {
-    return quat::make(lhs.elements / rhs);
+    return make_quat(lhs.elements / rhs);
 }
 
 template <typename Os, typename T>
@@ -205,7 +190,7 @@ Os& operator<<(Os& os, const Quat<T>& q) {
 
 template <typename T>
 constexpr auto conjugate(const Quat<T>& q) {
-    return quat::make(-q.vector, q.scalar);
+    return make_quat(-q.vector, q.scalar);
 }
 
 template <typename T>

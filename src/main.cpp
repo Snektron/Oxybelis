@@ -1,4 +1,3 @@
-#define GLM_ENABLE_EXPERIMENTAL
 #include <iostream>
 #include <cmath>
 #include <cstdint>
@@ -9,14 +8,13 @@
 #include "math/Mat.h"
 #include "math/Quat.h"
 #include "math/Transform.h"
-#include "math/Fixed.h"
 #include "graphics/Error.h"
 #include "graphics/GlObject.h"
 #include "graphics/VertexArray.h"
 #include "graphics/Buffer.h"
 #include "graphics/shader/ProgramBuilder.h"
-#include "graphics/Projection.h"
-#include "graphics/FreeCam.h"
+#include "graphics/camera/Projection.h"
+#include "graphics/camera/FreeCam.h"
 #include "input/InputContext.h"
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
@@ -160,17 +158,17 @@ int main() {
     auto projection = Perspective(1.0, 1.17f, 0.1f, 50.f);
 
     ctx.connect_axis(Input::Vertical, [&](double v){
-        cam.rotation *= quat::axis_angle<float>(1, 0, 0, -float(v));
+        cam.rotation *= QuatF::axis_angle(1, 0, 0, -float(v));
         cam.rotation.normalize();
     });
 
     ctx.connect_axis(Input::Horizontal, [&](double v){
-        cam.rotation *= quat::axis_angle<float>(0, 1, 0, -float(v));
+        cam.rotation *= QuatF::axis_angle(0, 1, 0, -float(v));
         cam.rotation.normalize();
     });
 
     ctx.connect_axis(Input::Rotate, [&](double v){
-        cam.rotation *= quat::axis_angle<float>(0, 0, 1, -float(v));
+        cam.rotation *= QuatF::axis_angle(0, 0, 1, -float(v));
         cam.rotation.normalize();
     });
 
@@ -196,7 +194,7 @@ int main() {
 
         trans.rotation *= QuatF(0, 0.01f, 0, 1).normalize() * QuatF(0, 0, 0.01f, 1).normalize();
 
-        glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam.to_view_matrix() * trans.to_matrix()).data());
+        glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam.to_view_matrix() * trans.to_matrix() * Mat4F::translation(0, 0, 0)).data());
     
         glUniformMatrix4fv(uPerspective, 1, GL_FALSE, projection.to_matrix().data());
         glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);

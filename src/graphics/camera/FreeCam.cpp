@@ -1,4 +1,4 @@
-#include "graphics/FreeCam.h"
+#include "graphics/camera/FreeCam.h"
 
 FreeCam::FreeCam(const QuatF& rotation, const Vec3F& translation):
     rotation(rotation), translation(translation) {

@@ -1,5 +1,5 @@
-#ifndef _OXYBELIS_GRAPHICS_CAMERA_H
-#define _OXYBELIS_GRAPHICS_CAMERA_H
+#ifndef _OXYBELIS_GRAPHICS_CAMERA_PROJECTION_H
+#define _OXYBELIS_GRAPHICS_CAMERA_PROJECTION_H
 
 #include "math/Mat.h"
 #include "math/Vec.h"
@@ -44,11 +44,11 @@ struct Orthographic {
 
 
 constexpr Mat4F Perspective::to_matrix() const {
-    return mat::perspective(this->aspect, this->fov, this->near, this->far);
+    return Mat4F::perspective(this->aspect, this->fov, this->near, this->far);
 }
 
 constexpr Mat4F Orthographic::to_matrix() const {
-    return mat::orthographic(this->left, this->right, this->top, this->bottom, this->near, this->far);
+    return Mat4F::orthographic(this->left, this->right, this->top, this->bottom, this->near, this->far);
 }
 
 #endif
