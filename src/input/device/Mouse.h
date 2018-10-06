@@ -49,6 +49,7 @@ public:
         axis_map(manager),
         win(win),
         cursor(0, 0), delta(0, 0) {
+        glfwGetCursorPos(win.get(), &this->cursor.x, &this->cursor.y);
         
         win.mouse_callback = [this](double x, double y) {
             this->update_cursor(x, y);

@@ -5,6 +5,7 @@
 #include <array>
 #include <type_traits>
 #include <algorithm>
+#include <cmath>
 #include "utility/utility.h"
 
 template <typename T, size_t N>

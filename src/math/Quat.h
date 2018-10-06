@@ -64,7 +64,7 @@ struct Quat {
 
     constexpr Quat<T>& conjugate();
 
-    constexpr Quat<T>& inverse();
+    constexpr Quat<T>& invert();
 
     constexpr Quat<T>& normalize();
 
@@ -166,23 +166,8 @@ constexpr auto operator*(const Quat<T>& lhs, const Quat<U>& rhs) {
 }
 
 template <typename T, typename U>
-constexpr auto operator*(const Vec4<T>& lhs, const Quat<U>& rhs) {
-    return quat::make(lhs) * rhs;
-}
-
-template <typename T, typename U>
-constexpr auto operator*(const Quat<T>& lhs, const Vec4<U>& rhs) {
-    return lhs * quat::make(rhs);
-}
-
-template <typename T, typename U>
-constexpr auto operator*(const Vec3<T>& lhs, const Quat<U>& rhs) {
-    return quat::make(lhs, 0) * rhs;
-}
-
-template <typename T, typename U>
 constexpr auto operator*(const Quat<T>& lhs, const Vec3<U>& rhs) {
-    return lhs * quat::make(rhs, 0);
+    return (lhs * quat::make<U>(rhs, 0)).vector;
 }
 
 template <typename T, typename U>
@@ -224,23 +209,23 @@ constexpr auto conjugate(const Quat<T>& q) {
 }
 
 template <typename T>
-constexpr auto norm_sq(const Quat<T>& q) {
+constexpr auto length_sq(const Quat<T>& q) {
     return length_sq(q.elements);
 }
 
 template <typename T>
-constexpr auto norm(const Quat<T>& q) {
+constexpr auto length(const Quat<T>& q) {
     return length(q.elements);
 }
 
 template <typename T>
 constexpr auto inverse(const Quat<T>& q) {
-    return conjugate(q) / norm_sq(q);
+    return conjugate(q) / length_sq(q);
 }
 
 template <typename T>
 constexpr auto normalize(const Quat<T>& q) {
-    return q / norm(q);
+    return q / length(q);
 }
 
 template <typename T, typename U, typename V>
@@ -274,12 +259,12 @@ constexpr auto smix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
 
 template <typename T, typename U>
 constexpr auto distance_sq(const Quat<T>& lhs, const Quat<U>& rhs) {
-    return norm_sq(lhs - rhs);
+    return length_sq(lhs - rhs);
 }
 
 template <typename T, typename U>
 constexpr auto distance(const Quat<T>& lhs, const Quat<U>& rhs) {
-    return norm(lhs - rhs);
+    return length(lhs - rhs);
 }
 
 template <typename T>
@@ -312,7 +297,7 @@ constexpr Quat<T>& Quat<T>::conjugate() {
 }
 
 template <typename T>
-constexpr Quat<T>& Quat<T>::inverse() {
+constexpr Quat<T>& Quat<T>::invert() {
     return *this = ::inverse(*this);
 }
 

@@ -3,11 +3,6 @@
 #include <cmath>
 #include <cstdint>
 #include <GLFW/glfw3.h>
-#include <glm/mat4x4.hpp>
-#include <glm/vec3.hpp>
-#include <glm/ext.hpp>
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include "glad/glad.h"
 #include "core/Window.h"
 #include "math/Vec.h"
@@ -21,6 +16,7 @@
 #include "graphics/Buffer.h"
 #include "graphics/shader/ProgramBuilder.h"
 #include "graphics/Projection.h"
+#include "graphics/FreeCam.h"
 #include "input/InputContext.h"
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
@@ -116,21 +112,32 @@ int main() {
     enum class Input {
         Button,
         Vertical,
-        Horizontal
+        Horizontal,
+        Strafe,
+        Forward,
+        Fly,
+        Rotate
     };
 
-    InputManager<Input> manager;
+    auto manager = InputManager<Input>();
 
     Keyboard<Input> kb(manager, window);
-    kb.bind_axis(Input::Vertical, GLFW_KEY_W, -1.0);
-    kb.bind_axis(Input::Vertical, GLFW_KEY_S, 1.0);
-    kb.bind_axis(Input::Horizontal, GLFW_KEY_A, -1.0);
-    kb.bind_axis(Input::Horizontal, GLFW_KEY_D, 1.0);
     kb.bind_action(Input::Button, GLFW_KEY_ESCAPE);
+    kb.bind_axis(Input::Strafe, GLFW_KEY_D, 1.0);
+    kb.bind_axis(Input::Strafe, GLFW_KEY_A, -1.0);
+    kb.bind_axis(Input::Forward, GLFW_KEY_W, 1.0);
+    kb.bind_axis(Input::Forward, GLFW_KEY_S, -1.0);
+    kb.bind_axis(Input::Fly, GLFW_KEY_SPACE, 1.0);
+    kb.bind_axis(Input::Fly, GLFW_KEY_LEFT_SHIFT, -1.0);
+    kb.bind_axis(Input::Rotate, GLFW_KEY_Q, -0.01);
+    kb.bind_axis(Input::Rotate, GLFW_KEY_E, 0.01);
 
-    Mouse<Input> mouse(manager, window);
+    auto mouse = Mouse<Input>(manager, window);
+    mouse.bind_axis(Input::Horizontal, MouseAxis::Horizontal, 0.01);
+    mouse.bind_axis(Input::Vertical, MouseAxis::Vertical, 0.01);
+    mouse.disable_cursor();
 
-    InputContext<Input> ctx;
+    auto ctx = InputContext<Input>();
 
     bool esc = false;
 
@@ -142,23 +149,42 @@ int main() {
 
     auto qa = QuatF::identity();
 
-    TransformF t(
+    auto trans = TransformF(
         Vec3F(0.f, 0.f, 0.f),
         Vec3F(2.f, 1.f, 1.f),
         qa
     );
 
-    auto cam = mat::look_at(
-        Vec3F(5, 5, 5),
-        Vec3F(0, 0, 0),
-        Vec3F(0, 1, 0)
-    );
+    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 0, 10));
 
-    Perspective projection(1.0, 1.17f, 0.1f, 50.f);
+    auto projection = Perspective(1.0, 1.17f, 0.1f, 50.f);
 
-    auto x = UFixed4816(27);
-    auto y = UFixed4816(10.7f);
-    std::cout << (x % y) << std::endl;
+    ctx.connect_axis(Input::Vertical, [&](double v){
+        cam.rotation *= quat::axis_angle<float>(1, 0, 0, -float(v));
+        cam.rotation.normalize();
+    });
+
+    ctx.connect_axis(Input::Horizontal, [&](double v){
+        cam.rotation *= quat::axis_angle<float>(0, 1, 0, -float(v));
+        cam.rotation.normalize();
+    });
+
+    ctx.connect_axis(Input::Rotate, [&](double v){
+        cam.rotation *= quat::axis_angle<float>(0, 0, 1, -float(v));
+        cam.rotation.normalize();
+    });
+
+    ctx.connect_axis(Input::Strafe, [&](double v){
+        cam.translation += cam.rotation.to_matrix().column(0).xyz * 0.05 * v;
+    });
+
+    ctx.connect_axis(Input::Fly, [&](double v){
+        cam.translation += cam.rotation.to_matrix().column(1).xyz * 0.05 * v;
+    });
+
+    ctx.connect_axis(Input::Forward, [&](double v){
+        cam.translation += cam.rotation.to_matrix().column(2).xyz * 0.05 * -v;
+    });
 
     while (!window.should_close() && !esc)
     {
@@ -168,9 +194,9 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        t.rotation *= QuatF(0, 0.01f, 0, 1).normalize() * QuatF(0, 0, 0.01f, 1).normalize();
+        trans.rotation *= QuatF(0, 0.01f, 0, 1).normalize() * QuatF(0, 0, 0.01f, 1).normalize();
 
-        glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam * t.to_matrix()).data());
+        glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam.to_view_matrix() * trans.to_matrix()).data());
     
         glUniformMatrix4fv(uPerspective, 1, GL_FALSE, projection.to_matrix().data());
         glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
