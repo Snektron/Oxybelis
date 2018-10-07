@@ -21,8 +21,6 @@
 #include "input/device/Keyboard.h"
 #include "assets.h"
 
-const float SCALE = 10000000.f;
-
 const float VERTICES[] = {
     0, -0.525731, 0.850651,
     0.850651, 0, 0.525731,
@@ -100,8 +98,8 @@ int main() {
     Buffer vertices = Buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, VERTICES);
     glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     vao.enable_attrib(aVertex);
-
-    Buffer indices = Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, INDICES);
+    
+    auto indices = Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, INDICES);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -147,43 +145,38 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto qa = QuatF::identity();
-
     auto trans = TransformF(
         Vec3F(0.f, 0.f, 0.f),
-        Vec3F(SCALE),
-        qa
+        Vec3F(1.f),
+        QuatF::identity()
     );
 
-    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 0, SCALE * 1.1f));
+    auto projection = Perspective(1.0, 1.17f, 0.1f, 50.f);
 
-    auto projection = Perspective(1.0, 1.17f, 0.1f, 10000000.f);
+    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 0, 10));
 
     ctx.connect_axis(Input::Vertical, [&](double v){
-        cam.rotation *= QuatF::axis_angle(1, 0, 0, -float(v));
-        cam.rotation.normalize();
+        cam.rotate_pitch(-v);
     });
 
     ctx.connect_axis(Input::Horizontal, [&](double v){
-        cam.rotation *= QuatF::axis_angle(0, 1, 0, -float(v));
-        cam.rotation.normalize();
+        cam.rotate_yaw(-v);
     });
 
     ctx.connect_axis(Input::Rotate, [&](double v){
-        cam.rotation *= QuatF::axis_angle(0, 0, 1, -float(v));
-        cam.rotation.normalize();
+        cam.rotate_roll(-v);
     });
 
     ctx.connect_axis(Input::Strafe, [&](double v){
-        cam.translation += cam.rotation.to_matrix().column(0).xyz * 0.05 * 100000 * v;
+        cam.strafe(0.05 * v);
     });
 
     ctx.connect_axis(Input::Fly, [&](double v){
-        cam.translation += cam.rotation.to_matrix().column(1).xyz * 0.05 * 100000 * v;
+        cam.fly(0.05 * v);
     });
 
     ctx.connect_axis(Input::Forward, [&](double v){
-        cam.translation += cam.rotation.to_matrix().column(2).xyz * 0.05 * 100000 * -v;
+        cam.forward(-0.05 * v);
     });
 
     while (!window.should_close() && !esc)
@@ -194,12 +187,12 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // trans.rotation *= QuatF::axis_angle(0, 1, 0, 0.0001f);
+        trans.rotation *= QuatF::axis_angle(0, 1, 0, 0.01f);
 
-        glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam.to_view_matrix() * trans.to_matrix() * Mat4F::translation(0, 0, 0)).data());
+        glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam.to_view_matrix() * trans.to_matrix()).data());
     
         glUniformMatrix4fv(uPerspective, 1, GL_FALSE, projection.to_matrix().data());
-        glDrawElementsInstanced(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0, instances);
+        glDrawElements(GL_TRIANGLES, sizeof(INDICES) / sizeof(uint8_t), GL_UNSIGNED_BYTE, 0);
 
         window.swap_buffers();
         assert_gl();

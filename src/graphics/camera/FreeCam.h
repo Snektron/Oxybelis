@@ -11,6 +11,14 @@ struct FreeCam {
 
     FreeCam(const QuatF& rotation, const Vec3F& translation);
 
+    void rotate_pitch(float amount);
+    void rotate_yaw(float amount);
+    void rotate_roll(float amount);
+
+    void forward(float amount);
+    void strafe(float amount);
+    void fly(float amount);
+
     Mat4F to_view_matrix() const;
 };
 

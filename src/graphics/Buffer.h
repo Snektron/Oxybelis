@@ -27,11 +27,16 @@ public:
     Buffer(GLuint target, GLenum usage, T (&data)[N]):
         Buffer() {
         this->bind(target);
-        glBufferData(target, N * sizeof(T), data, usage);
+        upload_data(target, usage, data);
     }
 
     void bind(GLuint target) {
         glBindBuffer(target, this->buffer);
+    }
+
+    template <typename T, size_t N>
+    static void upload_data(GLuint target, GLenum usage, T(&data)[N]) {
+        glBufferData(target, N * sizeof(T), data, usage);
     }
 };
 

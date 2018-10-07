@@ -7,7 +7,6 @@
 #include "graphics/GlObject.h"
 #include "graphics/shader/Shader.h"
 #include "graphics/shader/Program.h"
-#include "utility/CStringView.h"
 
 class ProgramLinkException: public std::runtime_error {
 public:
@@ -32,13 +31,13 @@ public:
         return std::forward<ProgramBuilder>(this->with(Shader(type, sources...)));
     }
 
-    auto bind_attrib_location(const GLuint index, CStringView name) {
-        glBindAttribLocation(this->program, index, name.data());
+    auto bind_attrib_location(const GLuint index, std::string name) {
+        glBindAttribLocation(this->program, index, name.c_str());
         return std::forward<ProgramBuilder>(*this);
     }
 
-    auto bind_frag_data_location(GLuint color_number, CStringView name) {
-        glBindFragDataLocation(this->program, color_number, name.data());
+    auto bind_frag_data_location(GLuint color_number, std::string name) {
+        glBindFragDataLocation(this->program, color_number, name.c_str());
         return std::forward<ProgramBuilder>(*this);
     }
 
