@@ -399,9 +399,9 @@ constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T&
 
     result(0, 0) = 1 / (aspect * tan_fov_2);
     result(1, 1) = 1 / tan_fov_2;
-    result(2, 2) = -(near + far) / nf;
-    result(2, 3) = -2 * far * near / nf;
-    result(3, 2) = -1;
+    result(2, 2) = (-near - far) / nf;
+    result(2, 3) = (2 * far * near) / nf;
+    result(3, 2) = 1;
 
     return result;
 }

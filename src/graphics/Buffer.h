@@ -30,6 +30,13 @@ public:
         upload_data(target, usage, data);
     }
 
+    template <typename T>
+    Buffer(GLuint target, GLenum usage, const T& container):
+        Buffer() {
+        this->bind(target);
+        upload_data(target, usage, container);
+    }
+
     void bind(GLuint target) {
         glBindBuffer(target, this->buffer);
     }
@@ -37,6 +44,16 @@ public:
     template <typename T, size_t N>
     static void upload_data(GLuint target, GLenum usage, T(&data)[N]) {
         glBufferData(target, N * sizeof(T), data, usage);
+    }
+
+    template <typename T>
+    static void upload_data(GLuint target, GLenum usage, const T& container) {
+        glBufferData(target, container.size() * sizeof(typename T::value_type), container.data(), usage);
+    }
+
+    template <typename T, size_t N>
+    static void upload_sub_data(GLuint target, GLintptr offset, T (&data)[N]) {
+        glBufferSubData(target, offset, N * sizeof(T), data);
     }
 };
 
