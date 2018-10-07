@@ -5,5 +5,5 @@ FreeCam::FreeCam(const QuatF& rotation, const Vec3F& translation):
 }
 
 Mat4F FreeCam::to_view_matrix() const {
-    return normalize(this->rotation).conjugate().to_matrix() * mat::translation(-this->translation);
+    return normalize(this->rotation).conjugate().to_matrix() * Mat4F::translation(-this->translation);
 }

@@ -65,7 +65,7 @@ public:
         win.mouse_button_callback = nullptr;
     }
 
-    inline void dispatch_button(MouseButton mb, Action action) {
+    void dispatch_button(MouseButton mb, Action action) {
         this->action_map.dispatch(mb, action);
         this->mb_axis_map.dispatch(mb, action == Action::Press ? MB_PRESS_VALUE : MB_RELEASE_VALUE);
     }
@@ -86,7 +86,7 @@ public:
         this->action_map.bind(action_input, mb);
     }
 
-    inline void bind_action(const I& input, MouseButton mb) {
+    void bind_action(const I& input, MouseButton mb) {
         this->action_map.bind(input, mb);
     }
 
@@ -94,7 +94,7 @@ public:
         this->mb_axis_map.bind(axis_input, mb, scale, reset_after_update);
     }
 
-    inline void bind_axis(const I& input, MouseButton mb, double scale, bool reset_after_update = false) {
+    void bind_axis(const I& input, MouseButton mb, double scale, bool reset_after_update = false) {
         this->mb_axis_map.bind(input, mb, scale, reset_after_update);
     }
 
@@ -102,7 +102,7 @@ public:
         this->axis_map.bind(axis_input, axis, scale, reset_after_update);
     }
 
-    inline void bind_axis(const I& input, MouseAxis axis, double scale, bool reset_after_update = true) {
+    void bind_axis(const I& input, MouseAxis axis, double scale, bool reset_after_update = true) {
         this->axis_map.bind(input, axis, scale, reset_after_update);
     }
 

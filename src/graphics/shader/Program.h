@@ -1,6 +1,7 @@
 #ifndef _OXYBELIS_GRAPHICS_SHADER_PROGRAM_H
 #define _OXYBELIS_GRAPHICS_SHADER_PROGRAM_H
 
+#include "glad/glad.h"
 #include "experimental/string_view"
 #include "graphics/GlObject.h"
 #include "utility/CStringView.h"
@@ -9,11 +10,16 @@ using Uniform = GLint;
 using Attribute = GLint;
 
 class Program {
-    globject::Program program;
-
-    Program(globject::Program&& program):
-        program(std::move(program)) {
+    static void destroy_id(GLuint id) {
+        glDeleteProgram(id);
     }
+
+    GlObject<destroy_id> program;
+
+    Program():
+        program(glCreateProgram()) {
+    }
+
 public:
     void use() const {
         glUseProgram(this->program);
@@ -27,7 +33,7 @@ public:
         return glGetAttribLocation(*this, name.data());
     }
 
-    inline operator GLuint() const {
+    operator GLuint() const {
         return this->program;
     }
 

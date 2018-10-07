@@ -2,70 +2,37 @@
 #define _OXYBELIS_GRAPHICS_GLOBJECT_H
 
 #include <utility>
-#include "glad/glad.h"
 
-namespace globject {
-    using DeleteFn = void(GLuint);
+using DeleteFn = void(GLuint);
 
-    template <DeleteFn Delete>
-    class GlObject {
-        GLuint handle;
+template <DeleteFn Delete>
+class GlObject {
+    GLuint handle;
 
-    public:
-        GlObject(const GlObject&) = delete;
-        GlObject& operator=(const GlObject&) = delete;
+public:
+    GlObject(const GlObject&) = delete;
+    GlObject& operator=(const GlObject&) = delete;
 
-        explicit GlObject(GLuint handle):
-            handle(handle) {
-        }
-
-        GlObject(GlObject&& other):
-            handle(other.handle) {
-            other.handle = 0;
-        }
-
-        GlObject& operator=(GlObject&& other) {
-            std::swap(this->handle, other.handle);
-        }
-
-        ~GlObject() {
-            Delete(this->handle);
-        }
-
-        inline operator GLuint() const {
-            return this->handle;
-        }
-    };
-
-    inline void delete_shader(GLuint shader) {
-        glDeleteShader(shader);
+    explicit GlObject(GLuint handle):
+        handle(handle) {
     }
 
-    using Shader = GlObject<delete_shader>;
-
-    inline void delete_program(GLuint program) {
-        glDeleteProgram(program);
+    GlObject(GlObject&& other):
+        handle(other.handle) {
+        other.handle = 0;
     }
 
-    using Program = GlObject<delete_program>;
-
-    inline void delete_texture(GLuint texture) {
-        glDeleteTextures(1, &texture);
+    GlObject& operator=(GlObject&& other) {
+        std::swap(this->handle, other.handle);
     }
 
-    using Texture = GlObject<delete_texture>;
-
-    inline void delete_buffer(GLuint buffer) {
-        glDeleteBuffers(1, &buffer);
+    ~GlObject() {
+        Delete(this->handle);
     }
 
-    using Buffer = GlObject<delete_buffer>;
-
-    inline void delete_vertex_array(GLuint array) {
-        glDeleteVertexArrays(1, &array);
+    operator GLuint() const {
+        return this->handle;
     }
-
-    using VertexArray = GlObject<delete_vertex_array>;
-}
+};
 
 #endif

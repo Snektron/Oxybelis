@@ -1,7 +1,6 @@
 #version 400
 
 in vec3 aVertex;
-in vec3 aNormal;
 
 uniform mat4 uPerspective;
 uniform mat4 uModel;

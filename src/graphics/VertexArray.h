@@ -5,33 +5,33 @@
 #include "graphics/GlObject.h"
 
 class VertexArray {
-    globject::VertexArray id;
-
-    GLuint gen() {
+    static GLuint gen_id() {
         GLuint id;
         glGenVertexArrays(1, &id);
         return id;
     }
 
+    static void destroy_id(GLuint vao) {
+        glDeleteVertexArrays(1, &vao);
+    }
+
+    GlObject<destroy_id> vao;
+
 public:
     VertexArray():
-        id(gen()) {
+        vao(gen_id()) {
     }
 
     void bind() {
-        glBindVertexArray(this->id);
+        glBindVertexArray(this->vao);
     }
 
     void enable_attrib(GLuint index) {
-        glEnableVertexArrayAttrib(this->id, index);
+        glEnableVertexArrayAttrib(this->vao, index);
     }
 
     void disable_attrib(GLuint index) {
-        glDisableVertexArrayAttrib(this->id, index);
-    }
-
-    inline operator GLuint() const {
-        return this->id;
+        glDisableVertexArrayAttrib(this->vao, index);
     }
 };
 

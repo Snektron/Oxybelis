@@ -21,42 +21,44 @@
 #include "input/device/Keyboard.h"
 #include "assets.h"
 
-float VERTICES[] = {
-    -1, -1, -1,
-     1, -1, -1,
-    -1,  1, -1,
-     1,  1, -1,
+const float SCALE = 10000000.f;
 
-    -1, -1,  1,
-     1, -1,  1,
-    -1,  1,  1,
-     1,  1,  1,
+const float VERTICES[] = {
+    0, -0.525731, 0.850651,
+    0.850651, 0, 0.525731,
+    0.850651, 0, -0.525731,
+    -0.850651, 0, -0.525731,
+    -0.850651, 0, 0.525731,
+    -0.525731, 0.850651, 0,
+    0.525731, 0.850651, 0,
+    0.525731, -0.850651, 0,
+    -0.525731, -0.850651, 0,
+    0, -0.525731, -0.850651,
+    0, 0.525731, -0.850651,
+    0, 0.525731, 0.850651
 };
 
-uint8_t INDICES[] = {
-    // back
-    0, 3, 1,
-    0, 2, 3,
-
-    // front
-    4, 5, 7,
-    4, 7, 6,
-
-    // bottom
-    0, 1, 4,
-    4, 1, 5,
-
-    // top
-    2, 6, 3,
-    3, 6, 7,
-
-    // left
-    0, 4, 2,
-    4, 6, 2,
-
-    // right
-    1, 3, 5,
-    5, 3, 7
+const uint8_t INDICES[] = {
+    1, 2, 6,
+    1, 7, 2,
+    3, 4, 5,
+    4, 3, 8,
+    6, 5, 11,
+    5, 6, 10,
+    9, 10, 2,
+    10, 9, 3,
+    7, 8, 9,
+    8, 7, 0,
+    11, 0, 1,
+    0, 11, 4,
+    6, 2, 10,
+    1, 6, 11,
+    3, 5, 10,
+    5, 4, 11,
+    2, 7, 9,
+    7, 1, 0,
+    3, 9, 8,
+    4, 8, 0,
 };
 
 int main() {
@@ -73,7 +75,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    Window window(640, 480, "Oxybelis");
+    Window window(1280, 800, "Oxybelis");
     window.make_context_current();
 
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
@@ -95,11 +97,11 @@ int main() {
     VertexArray vao;
     vao.bind();
 
-    auto vertices = Buffer::make_static(VERTICES, sizeof(VERTICES) / sizeof(float));
+    Buffer vertices = Buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, VERTICES);
     glVertexAttribPointer(aVertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     vao.enable_attrib(aVertex);
 
-    auto indices = Buffer::make_static(INDICES, sizeof(INDICES) / sizeof(uint8_t), GL_ELEMENT_ARRAY_BUFFER);
+    Buffer indices = Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, INDICES);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -149,13 +151,13 @@ int main() {
 
     auto trans = TransformF(
         Vec3F(0.f, 0.f, 0.f),
-        Vec3F(2.f, 1.f, 1.f),
+        Vec3F(SCALE),
         qa
     );
 
-    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 0, 10));
+    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 0, SCALE * 1.1f));
 
-    auto projection = Perspective(1.0, 1.17f, 0.1f, 50.f);
+    auto projection = Perspective(1.0, 1.17f, 0.1f, 10000000.f);
 
     ctx.connect_axis(Input::Vertical, [&](double v){
         cam.rotation *= QuatF::axis_angle(1, 0, 0, -float(v));
@@ -173,15 +175,15 @@ int main() {
     });
 
     ctx.connect_axis(Input::Strafe, [&](double v){
-        cam.translation += cam.rotation.to_matrix().column(0).xyz * 0.05 * v;
+        cam.translation += cam.rotation.to_matrix().column(0).xyz * 0.05 * 100000 * v;
     });
 
     ctx.connect_axis(Input::Fly, [&](double v){
-        cam.translation += cam.rotation.to_matrix().column(1).xyz * 0.05 * v;
+        cam.translation += cam.rotation.to_matrix().column(1).xyz * 0.05 * 100000 * v;
     });
 
     ctx.connect_axis(Input::Forward, [&](double v){
-        cam.translation += cam.rotation.to_matrix().column(2).xyz * 0.05 * -v;
+        cam.translation += cam.rotation.to_matrix().column(2).xyz * 0.05 * 100000 * -v;
     });
 
     while (!window.should_close() && !esc)
@@ -192,7 +194,7 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        trans.rotation *= QuatF(0, 0.01f, 0, 1).normalize() * QuatF(0, 0, 0.01f, 1).normalize();
+        // trans.rotation *= QuatF::axis_angle(0, 1, 0, 0.0001f);
 
         glUniformMatrix4fv(uModel, 1, GL_FALSE, (cam.to_view_matrix() * trans.to_matrix() * Mat4F::translation(0, 0, 0)).data());
     

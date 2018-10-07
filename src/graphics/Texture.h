@@ -5,24 +5,27 @@
 #include "graphics/GlObject.h"
 
 class Texture {
-    globject::Texture id;
-
-    GLuint gen() {
+    static GLuint gen_id() {
         GLuint id;
         glGenTextures(1, &id);
         return id;
     }
 
+    static void destroy_id(GLuint texture) {
+        glDeleteTextures(1, &texture);
+    }
+
+    GlObject<destroy_id> id;
 public:
     Texture():
-        id(gen()) {
+        id(gen_id()) {
     }
 
     void bind(GLuint target) {
         glBindBuffer(target, this->id);
     }
 
-    inline operator GLuint() const {
+    operator GLuint() const {
         return this->id;
     }
 };

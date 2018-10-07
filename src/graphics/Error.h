@@ -20,7 +20,7 @@ public:
         error(error) {
     }
 
-    inline GLenum error_code() const {
+    GLenum error_code() const {
         return this->error;
     }
 };

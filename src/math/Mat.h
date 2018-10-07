@@ -309,7 +309,7 @@ constexpr auto transpose(const Mat<T, M, N>& m) {
 template <typename T, size_t M, size_t N>
 template <typename>
 constexpr auto Mat<T, M, N>::translation(const Vec3<T>& translation) {
-    return translation(translation.x, translation.y, translation.z);
+    return Mat<T, M, N>::translation(translation.x, translation.y, translation.z);
 }
 
 template <typename T, size_t M, size_t N>
@@ -325,7 +325,7 @@ constexpr auto Mat<T, M, N>::translation(const T& x, const T& y, const T& z) {
 template <typename T, size_t M, size_t N>
 template <typename>
 constexpr auto Mat<T, M, N>::scaling(const Vec3<T>& scaling) {
-    return scaling(scaling.x, scaling.y, scaling.z);
+    return Mat<T, M, N>::scaling(scaling.x, scaling.y, scaling.z);
 }
 
 template <typename T, size_t M, size_t N>
@@ -342,7 +342,7 @@ constexpr auto Mat<T, M, N>::scaling(const T& x, const T& y, const T& z) {
 template <typename T, size_t M, size_t N>
 template <typename>
 constexpr auto Mat<T, M, N>::axis_angle(const Vec3<T>& axis, const T& angle) {
-    return axis_angle(axis.x, axis.y, axis.z, angle);
+    return Mat<T, M, N>::axis_angle(axis.x, axis.y, axis.z, angle);
 }
 
 template <typename T, size_t M, size_t N>

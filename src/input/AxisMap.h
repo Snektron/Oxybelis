@@ -34,7 +34,7 @@ public:
         }
     }
 
-    inline void bind(const I& input, T key, double scale, bool reset_after_update) {
+    void bind(const I& input, T key, double scale, bool reset_after_update) {
         this->bind(this->manager.axis(input), key, scale, reset_after_update);
     }
 

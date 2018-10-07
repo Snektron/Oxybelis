@@ -37,7 +37,7 @@ public:
             this->actions.emplace(key, action_input);
     }
 
-    inline void bind(const I& input, T key) {
+    void bind(const I& input, T key) {
         this->bind(this->manager.action(input), key);
     }
 };

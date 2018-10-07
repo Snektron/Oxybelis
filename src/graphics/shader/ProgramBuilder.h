@@ -17,14 +17,10 @@ public:
 };
 
 class ProgramBuilder {
-    globject::Program program;
+    Program program;
     std::vector<GLuint> attached_shaders;
 
 public:
-    ProgramBuilder():
-        program(glCreateProgram()) {
-    }
-
     auto with(const Shader& shader) {
         glAttachShader(this->program, shader);
         attached_shaders.push_back(shader);
@@ -64,13 +60,13 @@ public:
         return std::string(log, log + length);
     }
 
-    inline GLint parameter(GLenum parameter) const {
+    GLint parameter(GLenum parameter) const {
         GLint result;
         glGetProgramiv(this->program, parameter, &result);
         return result;
     }
 
-    inline operator GLuint() const {
+    operator GLuint() const {
         return this->program;
     }
 };

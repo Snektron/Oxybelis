@@ -26,7 +26,11 @@ public:
 };
 
 class Shader {
-    globject::Shader shader;
+    static void destroy_id(GLuint id) {
+        glDeleteShader(id);
+    }
+
+    GlObject<destroy_id> shader;
 
 public:
     template <typename... Sources>
@@ -64,13 +68,13 @@ public:
         return std::string(log, log + length);
     }
 
-    inline GLint parameter(GLenum parameter) const {
+    GLint parameter(GLenum parameter) const {
         GLint result;
         glGetShaderiv(this->shader, parameter, &result);
         return result;
     }
 
-    inline operator GLuint() const {
+    operator GLuint() const {
         return this->shader;
     }
 };
