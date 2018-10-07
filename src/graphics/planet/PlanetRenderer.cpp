@@ -1,6 +1,6 @@
 #include "graphics/planet/PlanetRenderer.h"
-#include <vector>
 #include <cstdlib>
+#include <memory>
 #include "graphics/shader/ProgramBuilder.h"
 #include "assets.h"
 
@@ -49,14 +49,13 @@ Program load_shader() {
         .link();
 }
 
-void subdivide_ico_sphere(std::vector<Vec3F>& data, float r, const Vec3F& a, const Vec3F& b, const Vec3F& c, unsigned level) {
+void subdivide_ico_sphere(std::vector<Vec3F>& data, const Vec3F& a, const Vec3F& b, const Vec3F& c, float radius, unsigned level) {
     if (level == 0) {
+        Vec3F x = normalize(a) * radius;
+        Vec3F y = normalize(b) * radius;
+        Vec3F z = normalize(c) * radius;
 
-        Vec3F x = a * r * ((rand() / (float) RAND_MAX) * 0.001f + 1.f);
-        Vec3F y = b * r * ((rand() / (float) RAND_MAX) * 0.001f + 1.f);
-        Vec3F z = c * r * ((rand() / (float) RAND_MAX) * 0.001f + 1.f);
-
-        auto normal = normalize(x + y + z);
+        auto normal = normalize(cross(c - a, b - a));
         data.push_back(x);
         data.push_back(normal);
         data.push_back(y);
@@ -68,14 +67,25 @@ void subdivide_ico_sphere(std::vector<Vec3F>& data, float r, const Vec3F& a, con
         Vec3F bc = normalize((b + c) / 2);
         Vec3F ac = normalize((a + c) / 2);
 
-        subdivide_ico_sphere(data, r, ab, bc, ac, level - 1);
-        subdivide_ico_sphere(data, r, a, ab, ac, level - 1);
-        subdivide_ico_sphere(data, r, b, bc, ab, level - 1);
-        subdivide_ico_sphere(data, r, c, ac, bc, level - 1);
+        subdivide_ico_sphere(data, ab, bc, ac, radius, level - 1);
+        subdivide_ico_sphere(data, a, ab, ac, radius, level - 1);
+        subdivide_ico_sphere(data, b, bc, ab, radius, level - 1);
+        subdivide_ico_sphere(data, c, ac, bc, radius, level - 1);
     }
 }
 
-Buffer create_iso_sphere(size_t& num_vertices, float r, unsigned levels) {
+SizedBuffer generate_chunk(const Vec3F& a, const Vec3F& b, const Vec3F& c, float radius, size_t subdivs) {
+    std::vector<Vec3F> data;
+
+    subdivide_ico_sphere(data, a, b, c, radius, subdivs);
+
+    return {
+        Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, data),
+        data.size()
+    };
+}
+
+SizedBuffer create_iso_sphere(float radius, unsigned levels) {
     std::vector<Vec3F> data;
 
     for (unsigned i = 0; i < 20; ++i) {
@@ -83,40 +93,113 @@ Buffer create_iso_sphere(size_t& num_vertices, float r, unsigned levels) {
         const Vec3F& b = VERTICES[INDICES[i * 3 + 1]];
         const Vec3F& c = VERTICES[INDICES[i * 3 + 2]];
 
-        subdivide_ico_sphere(data, r, a, b, c, levels);
+        subdivide_ico_sphere(data, a, b, c, radius, levels);
     }
 
-    num_vertices = data.size() / 2;
-    std::cout << (num_vertices / 3) << std::endl;
-    return Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, data);
+    return {
+        Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, data),
+        data.size()
+    };
+}
+
+Children::~Children() {
+    for (unsigned i = 0; i < 4; ++i)
+        delete this->children[i];
+}
+
+void Children::draw(const Vec3F& eye) {
+    for (unsigned i = 0; i < 4; ++i)
+        this->children[i]->draw(eye);
+}
+
+Leaf::Leaf(const Vec3F& a, const Vec3F& b, const Vec3F& c):
+    terrain(generate_chunk(a, b, c, 5, 2)) {
+
+    this->vao.bind();
+    this->terrain.buffer.bind(GL_ARRAY_BUFFER);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), 0);
+    this->vao.enable_attrib(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), (void*)(3 * sizeof(GLfloat)));
+    this->vao.enable_attrib(1);
+}
+
+void Leaf::draw() {
+    this->vao.bind();
+    glDrawArrays(GL_TRIANGLES, 0, this->terrain.size / 2);
+}
+
+Node::Node(size_t level, const Vec3F& a, const Vec3F& b, const Vec3F& c):
+    level(level),
+    a(a), b(b), c(c),
+    var(Leaf(a, b, c)) {
+}
+
+void Node::draw(const Vec3F& eye) {
+    if (std::holds_alternative<Children>(this->var)) {
+        std::get<Children>(this->var).draw(eye);
+    } else {
+        std::get<Leaf>(this->var).draw();
+    }
+
+    Vec3F mid = (this->a + this->b + this->c) / 3.f * 5.f;
+
+    if (distance(eye, mid) < std::pow(this->level, 2.0) / 10.f)
+        this->subdivide();
+    else
+        this->unsubdivide();
+}
+
+void Node::subdivide() {
+    if (this->level != 0 && std::holds_alternative<Leaf>(this->var)) {
+        Vec3F ab = normalize((this->a + this->b) / 2);
+        Vec3F bc = normalize((this->b + this->c) / 2);
+        Vec3F ac = normalize((this->a + this->c) / 2);
+
+        this->var.emplace<Children>(
+            new Node(this->level - 1, ab, bc, ac),
+            new Node(this->level - 1, this->a, ab, ac),
+            new Node(this->level - 1, this->b, bc, ab),
+            new Node(this->level - 1, this->c, ac, bc)
+        );
+    }
+}
+
+void Node::unsubdivide() {
+    if (std::holds_alternative<Children>(this->var)) {
+        this->var.emplace<Leaf>(this->a, this->b, this->c);
+    }
+}
+
+std::vector<Node> generate_faces(size_t levels) {
+    std::vector<Node> f;
+
+    for (unsigned i = 0; i < 20; ++i) {
+        const Vec3F& a = VERTICES[INDICES[i * 3 + 0]];
+        const Vec3F& b = VERTICES[INDICES[i * 3 + 1]];
+        const Vec3F& c = VERTICES[INDICES[i * 3 + 2]];
+
+        f.emplace_back(levels, a, b, c);
+    }
+
+    return f;
 }
 
 PlanetRenderer::PlanetRenderer(const Planet& planet):
     shader(load_shader()),
     planet(planet),
-    vertices(create_iso_sphere(this->num_vertices, planet.radius, 7)),
+    faces(generate_faces(9)),
     perspective(this->shader.uniform("uPerspective")),
     model(this->shader.uniform("uModel")) {
-
-    this->shader.use();
-    Attribute a_vertex = this->shader.attribute("aVertex");
-    Attribute a_normal = this->shader.attribute("aNormal");
-
-    this->vao.bind();
-    this->vertices.bind(GL_ARRAY_BUFFER);
-
-    glVertexAttribPointer(a_vertex, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), 0);
-    vao.enable_attrib(a_vertex);
-    glVertexAttribPointer(a_normal, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), (void*)(3 * sizeof(GLfloat)));
-    vao.enable_attrib(a_normal);
 }
 
 void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
     this->shader.use();
-    this->vao.bind();
 
     glUniformMatrix4fv(this->model, 1, GL_FALSE, (cam.to_view_matrix() * this->planet.trans.to_matrix()).data());
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
 
-    glDrawArrays(GL_TRIANGLES, 0, this->num_vertices);
+    for (Node& n : this->faces) {
+        n.draw(cam.translation);
+    }
 }

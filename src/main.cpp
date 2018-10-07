@@ -56,7 +56,7 @@ int main() {
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     auto manager = InputManager<Input>();
 
@@ -103,15 +103,15 @@ int main() {
     });
 
     ctx.connect_axis(Input::Strafe, [&](double v){
-        cam.strafe(0.05 * v);
+        cam.strafe(0.01 * v);
     });
 
     ctx.connect_axis(Input::Fly, [&](double v){
-        cam.fly(0.05 * v);
+        cam.fly(0.01 * v);
     });
 
     ctx.connect_axis(Input::Forward, [&](double v){
-        cam.forward(0.05 * v);
+        cam.forward(0.01 * v);
     });
 
     auto p = Planet{

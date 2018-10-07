@@ -24,6 +24,7 @@ public:
 
     GlObject& operator=(GlObject&& other) {
         std::swap(this->handle, other.handle);
+        return *this;
     }
 
     ~GlObject() {
