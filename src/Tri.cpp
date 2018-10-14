@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cmath>
+#include <noise/noise.h>
 #include "math/Vec.h"
 #include "math/Mat.h"
 #include "graphics/shader/ProgramBuilder.h"
@@ -160,6 +161,7 @@ bool Triangulation::advance() {
     if (this->index >= this->points.size()) {
         size_t flipped = 0;
         size_t j = 0;
+        size_t x = 0;
 
         while(true) {
             size_t f = flipped;
@@ -167,8 +169,9 @@ bool Triangulation::advance() {
                 legalize(this->points, this->tris, i, flipped);
             }
             std::cout << "Iter flipped: " << (flipped - f) << std::endl;
-            if (f == flipped || j > 50)
+            if (f == flipped || (x != 0 && x < (flipped - f)) || j > 50)
                 break;
+            x = flipped - f;
             ++j;
         }
 
@@ -205,14 +208,20 @@ std::vector<Vec3F> generate_points() {
     auto seed = rd();
     std::cout << "Seed: " << seed << std::endl;
     auto gen = std::mt19937(seed);
-    auto dist = std::uniform_real_distribution<float>(0.f, 1.f);
+    auto dist = std::uniform_real_distribution<float>(-10.f, 10.f);
 
     auto points = std::vector<Vec3F>();
+
+    auto perlin = noise::module::Perlin();
+    perlin.SetOctaveCount(8);
 
     std::generate_n(std::back_inserter(points), 1'000'000, [&] {
         float theta = dist(gen) * TAU;
         float r = std::sqrt(dist(gen));
-        return Vec3F(std::cos(theta) * r, dist(gen) * 0.01f, std::sin(theta) * r);
+        float x = dist(gen);//std::cos(theta) * r;
+        float z = dist(gen);//std::sin(theta) * r;
+        float y = perlin.GetValue(x / 5.f, 0, z / 5.f) * 1.0;
+        return Vec3F(x, y, z);
     });
 
     return points;

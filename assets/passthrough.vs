@@ -7,6 +7,7 @@ uniform mat4 uPerspective;
 uniform mat4 uModel;
 
 out vec3 vNormal;
+out float vHeight;
 
 const float PI = 3.14159264;
 const float TAU = 2 * PI;
@@ -14,4 +15,5 @@ const float TAU = 2 * PI;
 void main() {
     gl_Position = uPerspective * uModel * vec4(aVertex, 1);
     vNormal = aNormal;
+    vHeight = aVertex.y;
 }

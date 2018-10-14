@@ -55,7 +55,7 @@ int main() {
     
     glClearColor(.97f, .97f, .97f, .97f);
 
-    // glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
     auto manager = InputManager<Input>();
@@ -116,7 +116,7 @@ int main() {
         cam.forward(0.01 * v);
     });
 
-    GLenum polymode = GL_LINE;
+    GLenum polymode = GL_FILL;
     glPolygonMode(GL_FRONT_AND_BACK, polymode);
     ctx.connect_action(Input::TogglePolygonMode, [&](Action a) {
         if (a == Action::Press) {
