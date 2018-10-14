@@ -17,13 +17,25 @@ struct SizedBuffer {
     size_t size;
 };
 
+struct Edge {
+    size_t from, to;
+    size_t left_tri; // The triangle left of this edge
+    size_t tri_edge;
+
+    Edge(size_t from, size_t to, size_t left_tri, size_t tri_edge):
+        from(from), to(to), left_tri(left_tri), tri_edge(tri_edge) {
+    }
+};
+
 struct Triangle {
     size_t p[3];
     size_t adjacent[3];
+    Edge* edges[3];
 
     Triangle(size_t p0, size_t p1, size_t p2):
         p{p0, p1, p2},
-        adjacent{NO_TRI, NO_TRI, NO_TRI} {
+        adjacent{NO_TRI, NO_TRI, NO_TRI},
+        edges{nullptr, nullptr, nullptr} {
     }
 
     size_t opposing(size_t edge) {
@@ -37,16 +49,6 @@ struct Triangle {
         }
 
         std::abort();
-    }
-};
-
-struct Edge {
-    size_t from, to;
-    size_t left_tri; // The triangle left of this edge
-    size_t tri_edge;
-
-    Edge(size_t from, size_t to, size_t left_tri, size_t tri_edge):
-        from(from), to(to), left_tri(left_tri), tri_edge(tri_edge) {
     }
 };
 

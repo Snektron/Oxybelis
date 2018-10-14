@@ -13,7 +13,6 @@
 #include "graphics/shader/ProgramBuilder.h"
 #include "assets.h"
 
-const float TAU = 3.14159264f * 2.f;
 size_t NO_TRI = std::numeric_limits<size_t>::max();
 
 enum class Side {
@@ -59,47 +58,66 @@ void legalize(const std::vector<Vec3F>& pts, std::vector<Triangle>& tris, size_t
 
     for (size_t edge = 0; edge < 3; ++edge) {
         size_t other_tri_i = tri.adjacent[edge];
-        if (other_tri_i != NO_TRI) {
-            auto& other = tris[other_tri_i];
-            size_t other_edge = other.edge_of(current);
-            size_t a_i = tri.p[(edge + 2) % 3];
-            size_t b_i = tri.p[edge];
-            size_t c_i = tri.p[(edge + 4) % 3];
-            size_t d_i = other.opposing(other_edge);
+        if (other_tri_i == NO_TRI)
+            continue;
 
-            const Vec3F& a = pts[a_i];
-            const Vec3F& b = pts[b_i];
-            const Vec3F& c = pts[c_i];
-            const Vec3F& d = pts[d_i];
+        auto& other = tris[other_tri_i];
+        size_t other_edge = other.edge_of(current);
+        size_t a_i = tri.p[(edge + 2) % 3];
+        size_t b_i = tri.p[edge];
+        size_t c_i = tri.p[(edge + 4) % 3];
+        size_t d_i = other.opposing(other_edge);
 
-            if (circum_test(a, b, c, d)) {
-                ++flipped;
-                auto t0 = Triangle(a_i, d_i, c_i);
-                size_t t0_i = current;
-                auto t1 = Triangle(d_i, a_i, b_i);
-                size_t t1_i = other_tri_i;
+        const Vec3F& a = pts[a_i];
+        const Vec3F& b = pts[b_i];
+        const Vec3F& c = pts[c_i];
+        const Vec3F& d = pts[d_i];
 
-                t0.adjacent[0] = t1_i;
-                t0.adjacent[1] = other.adjacent[(other_edge + 2) % 3];
-                t0.adjacent[2] = tri.adjacent[(edge + 1) % 3];
-                if (t0.adjacent[1] != NO_TRI) {
-                    auto& y = tris[t0.adjacent[1]];
-                    y.adjacent[y.edge_of(other_tri_i)] = t0_i;
-                }
+        if (!circum_test(a, b, c, d))
+            continue;
 
-                t1.adjacent[0] = t0_i;
-                t1.adjacent[1] = tri.adjacent[(edge + 2) % 3];
-                t1.adjacent[2] = other.adjacent[(other_edge + 1) % 3];
-                if (t1.adjacent[1] != NO_TRI) {
-                    auto& y = tris[t1.adjacent[1]];
-                    y.adjacent[y.edge_of(current)] = t1_i;
-                }
+        ++flipped;
+        auto t0 = Triangle(a_i, d_i, c_i);
+        size_t t0_i = current;
+        auto t1 = Triangle(d_i, a_i, b_i);
+        size_t t1_i = other_tri_i;
 
-                tri = t0;
-                other = t1;
-                return;
-            }
+        t0.adjacent[0] = t1_i;
+        t0.adjacent[1] = other.adjacent[(other_edge + 2) % 3];
+        t0.adjacent[2] = tri.adjacent[(edge + 1) % 3];
+        if (t0.adjacent[1] != NO_TRI) {
+            auto& y = tris[t0.adjacent[1]];
+            y.adjacent[y.edge_of(other_tri_i)] = t0_i;
         }
+        t0.edges[1] = other.edges[(other_edge + 2) % 3];
+        t0.edges[2] = tri.edges[(edge + 1) % 3];
+
+        auto fix_edge = [](Triangle& t, size_t i, size_t edge) {
+            if (t.edges[edge]) {
+                t.edges[edge]->left_tri = i;
+                t.edges[edge]->tri_edge = edge;
+            }
+        };
+
+        fix_edge(t0, t0_i, 1);
+        fix_edge(t0, t0_i, 2);
+
+        t1.adjacent[0] = t0_i;
+        t1.adjacent[1] = tri.adjacent[(edge + 2) % 3];
+        t1.adjacent[2] = other.adjacent[(other_edge + 1) % 3];
+        if (t1.adjacent[1] != NO_TRI) {
+            auto& y = tris[t1.adjacent[1]];
+            y.adjacent[y.edge_of(current)] = t1_i;
+        }
+        t1.edges[1] = tri.edges[(edge + 2) % 3];
+        t1.edges[2] = other.edges[(other_edge + 1) % 3];
+
+        fix_edge(t1, t1_i, 1);
+        fix_edge(t1, t1_i, 2);
+
+        tri = t0;
+        other = t1;
+        return;
     }
 }
 
@@ -111,7 +129,8 @@ Triangulation::Triangulation(std::vector<Vec3F> points):
         std::abort();
 
     std::sort(this->points.begin(), this->points.end(), [](const Vec3F& a, const Vec3F& b){
-        return std::make_tuple(a.x, a.y) < std::make_tuple(b.x, b.y);
+        // return std::make_tuple(a.x, a.z) < std::make_tuple(b.x, b.z);
+        return std::make_tuple(a.x, b.z) < std::make_tuple(b.x, a.z);
     });
 
     const Vec3F& p0 = this->points[0];
@@ -120,28 +139,42 @@ Triangulation::Triangulation(std::vector<Vec3F> points):
 
     if (side(p0, p1, p2) == Side::Left) {
         this->tris.emplace_back(0, 1, 2);
-        this->hull.emplace_back(0, 1, 0, 0);
-        this->hull.emplace_back(1, 2, 0, 1);
-        this->hull.emplace_back(2, 0, 0, 2);
+        auto& tri = this->tris.back();
+
+        tri.edges[0] = &this->hull.emplace_back(0, 1, 0, 0);
+        tri.edges[1] = &this->hull.emplace_back(1, 2, 0, 1);
+        tri.edges[2] = &this->hull.emplace_back(2, 0, 0, 2);
     } else {
         this->tris.emplace_back(1, 0, 2);
-        this->hull.emplace_back(1, 0, 0, 0);
-        this->hull.emplace_back(0, 2, 0, 1);
-        this->hull.emplace_back(2, 1, 0, 2);
+        auto& tri = this->tris.back();
+
+        tri.edges[0] = &this->hull.emplace_back(1, 0, 0, 0);
+        tri.edges[1] = &this->hull.emplace_back(0, 2, 0, 1);
+        tri.edges[2] = &this->hull.emplace_back(2, 1, 0, 2);
     }
 }
 
 bool Triangulation::advance() {
+    auto hull_erase = [&](typename std::list<Edge>::iterator it) {
+        auto& tri = this->tris[it->left_tri];
+        auto& edge = tri.edges[it->tri_edge];
+        if (edge != nullptr && edge != &*it)
+            std::abort();
+
+        edge = nullptr;
+        return hull.erase(it);
+    };
+
     auto insert_lower = [&](typename std::list<Edge>::iterator it, size_t from, size_t to, size_t left_tri) {
         // cycle iterator back to the end if it is begin
         auto it0 = --(it == this->hull.begin() ? this->hull.end() : it);
 
         if (it0->from == to && it0->to == from) {
             this->tris.back().adjacent[1] = it0->left_tri;
-            this->tris[it0->left_tri].adjacent[2] = this->tris.size() - 1;
-            this->hull.erase(it0);
+            this->tris[it0->left_tri].adjacent[it0->tri_edge] = this->tris.size() - 1;
+            hull_erase(it0);
         } else {
-            this->hull.emplace(it, from, to, left_tri, 1);
+            this->tris.back().edges[1] = &*this->hull.emplace(it, from, to, left_tri, 1);
         }
     };
 
@@ -151,10 +184,10 @@ bool Triangulation::advance() {
 
         if (it0->from == to && it0->to == from) {
             this->tris.back().adjacent[2] = it0->left_tri;
-            this->tris[it0->left_tri].adjacent[1] = this->tris.size() - 1;
-            this->hull.erase(it0);
+            this->tris[it0->left_tri].adjacent[it0->tri_edge] = this->tris.size() - 1;
+            hull_erase(it0);
         } else {
-            this->hull.emplace(it, from, to, left_tri, 2);
+            this->tris.back().edges[2] = &*this->hull.emplace(it, from, to, left_tri, 2);
         }
     };
 
@@ -166,10 +199,10 @@ bool Triangulation::advance() {
         while(true) {
             size_t f = flipped;
             for (size_t i = 0; i < this->tris.size(); ++i) {
-                legalize(this->points, this->tris, i, flipped);
+                legalize(this->points, this->tris, this->tris.size() - i - 1, flipped);
             }
             std::cout << "Iter flipped: " << (flipped - f) << std::endl;
-            if (f == flipped || (x != 0 && x < (flipped - f)) || j > 50)
+            if (f == flipped || j > 20)
                 break;
             x = flipped - f;
             ++j;
@@ -185,7 +218,7 @@ bool Triangulation::advance() {
     while (it != this->hull.end()) {
         const Vec3F& from = this->points[it->from];
         const Vec3F& to = this->points[it->to];
-        if (side(from, to, p) == Side::Right) {
+        if ((side(from, to, p) == Side::Right)) {
             size_t j = tris.size();
             this->tris.emplace_back(it->to, it->from, this->index);
             this->tris.back().adjacent[0] = it->left_tri;
@@ -193,7 +226,10 @@ bool Triangulation::advance() {
 
             insert_lower(it, it->from, this->index, j);
             insert_upper(it, this->index, it->to, j);
-            it = this->hull.erase(it);
+            it = hull_erase(it);
+            size_t flipped = 0;
+            legalize(this->points, this->tris, j, flipped);
+            std::cout << "Intermediate flips: " << flipped << std::endl;
         } else {
             ++it;
         }
@@ -205,22 +241,34 @@ bool Triangulation::advance() {
 
 std::vector<Vec3F> generate_points() {
     auto rd = std::random_device();
-    auto seed = rd();
+    auto seed = 1046427720;//rd();
     std::cout << "Seed: " << seed << std::endl;
     auto gen = std::mt19937(seed);
-    auto dist = std::uniform_real_distribution<float>(-10.f, 10.f);
+    auto dist = std::uniform_real_distribution<float>(-10.0f, 10.0f);
 
     auto points = std::vector<Vec3F>();
 
     auto perlin = noise::module::Perlin();
-    perlin.SetOctaveCount(8);
+    perlin.SetOctaveCount(6);
 
-    std::generate_n(std::back_inserter(points), 100'000, [&] {
-        float x = dist(gen);
-        float z = dist(gen);
+    auto add_pt = [&](float x, float z) {
         float y = perlin.GetValue(x / 5.f, 0, z / 5.f) * 1.0;
-        return Vec3F(x, y, z);
-    });
+        points.emplace_back(x, 0, z);
+    };
+
+    // for (size_t i = 0; i < 100; ++i) {
+    //     float x = float(i) / 5.f - 10.f;
+    //     add_pt(x, -10.f);
+    //     add_pt(x, 10.f);
+    //     add_pt(-10.f, x);
+    //     add_pt(10.f, x);
+    //     // float x = float(i) / 100.f * 3.141592f * 2.f;
+    //     // add_pt(std::sin(x) * 15.f, std::cos(x) * 15.f);
+    // }
+
+    for (size_t i = 0; i < 10; ++i) {
+        add_pt(dist(gen), dist(gen));
+    }
 
     return points;
 }
@@ -232,6 +280,7 @@ std::vector<Vec3F> triangulation_to_mesh(const Triangulation& tr) {
         const Vec3F& a = tr.points[tri.p[0]];
         const Vec3F& b = tr.points[tri.p[1]];
         const Vec3F& c = tr.points[tri.p[2]];
+
         auto normal = normalize(cross(c - a, b - a));
         vertices.push_back(a);
         vertices.push_back(normal);
@@ -257,20 +306,20 @@ Tri::Tri():
     model(this->shader.uniform("uModel")),
     tr(generate_points()) {
 
-    auto begin = std::chrono::high_resolution_clock::now();
-    auto mid = std::chrono::high_resolution_clock::now();
-    while (!this->tr.advance()) {
-        if (this->tr.index >= this->tr.points.size())
-            mid = std::chrono::high_resolution_clock::now();
-        continue;
-    }
-    auto end = std::chrono::high_resolution_clock::now();
+    // auto begin = std::chrono::high_resolution_clock::now();
+    // auto mid = std::chrono::high_resolution_clock::now();
+    // while (!this->tr.advance()) {
+    //     if (this->tr.index >= this->tr.points.size())
+    //         mid = std::chrono::high_resolution_clock::now();
+    //     continue;
+    // }
+    // auto end = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<double, std::chrono::milliseconds::period> elapsed = end - begin;
-    std::chrono::duration<double, std::chrono::milliseconds::period> elapsed1 = mid - begin;
-    std::cout << "Phase 1 took " << elapsed1.count() << "ms" << std::endl;
-    std::cout << "Generation took " << elapsed.count() << "ms" << std::endl;
-    std::cout << "Total triangles: " << this->tr.tris.size() << std::endl; 
+    // std::chrono::duration<double, std::chrono::milliseconds::period> elapsed = end - begin;
+    // std::chrono::duration<double, std::chrono::milliseconds::period> elapsed1 = mid - begin;
+    // std::cout << "Phase 1 took " << elapsed1.count() << "ms" << std::endl;
+    // std::cout << "Generation took " << elapsed.count() << "ms" << std::endl;
+    // std::cout << "Total triangles: " << this->tr.tris.size() << std::endl; 
 
     reupload();
 }
@@ -318,7 +367,12 @@ void Tri::reupload() {
     // for (const Edge& e : this->tr.hull) {
     //     const Vec3F& from = this->tr.points[e.from];
     //     const Vec3F& to = this->tr.points[e.to];
+    //     auto m = (from + to) / 2.f;
+    //     const Triangle& adj = this->tr.tris[e.left_tri];
+    //     auto target_tri = (this->tr.points[adj.p[0]] + this->tr.points[adj.p[1]] + this->tr.points[adj.p[2]]) / 3.f;
+    //     auto d = (target_tri - m) * 0.9f;
     //     add_vector(hull_data, from, to);
+    //     add_vector(hull_data, m, m + d);
     // }
 
     for (const Triangle& t : this->tr.tris) {
@@ -355,10 +409,10 @@ void Tri::render(const Mat4F& proj, const FreeCam& cam) {
     this->tri_vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, this->tri_buffer.size / 2);
 
-    // this->pts_vao.bind();
-    // glDrawArrays(GL_POINTS, 0, this->pts_buffer.size);
+    this->pts_vao.bind();
+    glDrawArrays(GL_POINTS, 0, this->pts_buffer.size);
 
-    // glLineWidth(2);
-    // this->hull_vao.bind();
-    // glDrawArrays(GL_LINES, 0, this->hull_buffer.size);
+    glLineWidth(2);
+    this->hull_vao.bind();
+    glDrawArrays(GL_LINES, 0, this->hull_buffer.size);
 }
