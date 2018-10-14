@@ -215,11 +215,9 @@ std::vector<Vec3F> generate_points() {
     auto perlin = noise::module::Perlin();
     perlin.SetOctaveCount(8);
 
-    std::generate_n(std::back_inserter(points), 1'000'000, [&] {
-        float theta = dist(gen) * TAU;
-        float r = std::sqrt(dist(gen));
-        float x = dist(gen);//std::cos(theta) * r;
-        float z = dist(gen);//std::sin(theta) * r;
+    std::generate_n(std::back_inserter(points), 100'000, [&] {
+        float x = dist(gen);
+        float z = dist(gen);
         float y = perlin.GetValue(x / 5.f, 0, z / 5.f) * 1.0;
         return Vec3F(x, y, z);
     });
@@ -272,6 +270,7 @@ Tri::Tri():
     std::chrono::duration<double, std::chrono::milliseconds::period> elapsed1 = mid - begin;
     std::cout << "Phase 1 took " << elapsed1.count() << "ms" << std::endl;
     std::cout << "Generation took " << elapsed.count() << "ms" << std::endl;
+    std::cout << "Total triangles: " << this->tr.tris.size() << std::endl; 
 
     reupload();
 }
