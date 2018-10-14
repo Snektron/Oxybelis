@@ -15,22 +15,23 @@
 #include "graphics/shader/ProgramBuilder.h"
 #include "graphics/camera/Projection.h"
 #include "graphics/camera/FreeCam.h"
-#include "graphics/planet/Planet.h"
-#include "graphics/planet/PlanetRenderer.h"
 #include "input/InputContext.h"
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
 #include "input/device/Keyboard.h"
+#include "Tri.h"
 #include "assets.h"
 
 enum class Input {
-    Button,
+    Quit,
     Vertical,
     Horizontal,
     Strafe,
     Forward,
     Fly,
-    Rotate
+    Rotate,
+    TogglePolygonMode,
+    Advance
 };
 
 int main() {
@@ -54,14 +55,15 @@ int main() {
     
     glClearColor(.97f, .97f, .97f, .97f);
 
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     auto manager = InputManager<Input>();
 
     auto kb = Keyboard<Input>(manager, window);
-    kb.bind_action(Input::Button, GLFW_KEY_ESCAPE);
+    kb.bind_action(Input::Quit, GLFW_KEY_ESCAPE);
+    kb.bind_action(Input::TogglePolygonMode, GLFW_KEY_F);
+    kb.bind_action(Input::Advance, GLFW_KEY_R);
     kb.bind_axis(Input::Strafe, GLFW_KEY_D, 1.0);
     kb.bind_axis(Input::Strafe, GLFW_KEY_A, -1.0);
     kb.bind_axis(Input::Forward, GLFW_KEY_W, 1.0);
@@ -80,7 +82,7 @@ int main() {
 
     bool esc = false;
 
-    ctx.connect_action(Input::Button, [&](Action) {
+    ctx.connect_action(Input::Quit, [&](Action) {
         esc = true;
     });
 
@@ -88,7 +90,7 @@ int main() {
 
     auto projection = Perspective(1.0, 1.17f, 0.01f, 20.f);
 
-    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 0, -10));
+    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 1, -2));
 
     ctx.connect_axis(Input::Vertical, [&](double v){
         cam.rotate_pitch(v);
@@ -114,16 +116,34 @@ int main() {
         cam.forward(0.01 * v);
     });
 
-    auto p = Planet{
-        TransformF(
-            Vec3F(0.f, 0.f, 0.f),
-            Vec3F(1.f),
-            QuatF::identity()
-        ),
-        5
-    };
+    GLenum polymode = GL_LINE;
+    glPolygonMode(GL_FRONT_AND_BACK, polymode);
+    ctx.connect_action(Input::TogglePolygonMode, [&](Action a) {
+        if (a == Action::Press) {
+            if (polymode == GL_LINE)
+                polymode = GL_FILL;
+            else
+                polymode = GL_LINE;
+            glPolygonMode(GL_FRONT_AND_BACK, polymode);
+        }
+    });
 
-    auto pr = PlanetRenderer(p);
+    // auto p = Planet{
+    //     TransformF(
+    //         Vec3F(0.f, 0.f, 0.f),
+    //         Vec3F(1.f),
+    //         QuatF::identity()
+    //     ),
+    //     5
+    // };
+
+    // auto pr = PlanetRenderer(p);
+    auto t = Tri();
+
+    ctx.connect_action(Input::Advance, [&](Action a) {
+        if (a == Action::Press)
+            t.advance();
+    });
 
     while (!window.should_close() && !esc) {
         auto dim = window.dimensions();
@@ -132,7 +152,8 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        pr.render(projection.to_matrix(), cam);
+        // pr.render(projection.to_matrix(), cam);
+        t.render(projection.to_matrix(), cam);
 
         window.swap_buffers();
         assert_gl();

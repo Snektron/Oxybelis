@@ -33,17 +33,17 @@ BLUE := $(ESC)[1;34m
 YELLOW := $(ESC)[1;33m
 CLEAR := $(ESC)[0m
 
-TOTAL := $(words $(OBJECTS) . .)
+TOTAL := $(words $(SRCS) . . )
 progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info $(WHITE)[$(YELLOW)$(words $(PROCESSED))$(WHITE)/$(YELLOW)$(TOTAL)$(WHITE)] $1$(CLEAR)))
 
 all: $(BUILD)/target/$(TARGET)
 
-$(BUILD)/target/$(TARGET): $(OBJECTS) $(BUILD)/$(ASSETS)/$(ASSETS).o
+$(BUILD)/target/$(TARGET): $(BUILD)/$(ASSETS)/$(ASSETS).o $(OBJECTS)
 	@$(call progress,$(RED)Linking $@)
 	@mkdir -p $(BUILD)/target
 	@$(CXX) -o $@ $^ $(LDFLAGS)
 
-$(BUILD)/objects/%.o: %.cpp $(BUILD)/$(ASSETS)/$(ASSETS).o
+$(BUILD)/objects/%.o: %.cpp
 	@$(call progress,$(BLUE)Compiling $<)
 	@mkdir -p $(dir $@)
 	@$(CXX) -MMD -c $(CXXFLAGS) -o $@ $<
