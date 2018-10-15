@@ -57,6 +57,7 @@ struct Triangulation {
     std::vector<Triangle> tris;
     std::list<Edge> hull;
     size_t index;
+    size_t flipped;
 
     Triangulation(std::vector<Vec3F> points);
     bool advance();
