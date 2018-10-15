@@ -70,6 +70,8 @@ class Tri {
 
     Triangulation tr;
 
+    std::vector<Vec3F> vertices;
+
     VertexArray tri_vao;
     SizedBuffer tri_buffer;
 

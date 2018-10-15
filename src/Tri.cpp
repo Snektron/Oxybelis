@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <cmath>
 #include <noise/noise.h>
+#define MPE_POLY2TRI_IMPLEMENTATION
+#include "fast-poly2tri/MPE_fastpoly2tri.h"
 #include "math/Vec.h"
 #include "math/Mat.h"
 #include "graphics/shader/ProgramBuilder.h"
@@ -56,7 +58,7 @@ bool circum_test(const Vec3F& a, const Vec3F& b, const Vec3F& c, const Vec3F& d)
 bool legalize(const std::vector<Vec3F>& pts, std::vector<Triangle>& tris, size_t current, size_t& flipped) {
     auto& tri = tris[current];
 
-    if (flipped > 100)
+    if (flipped > 10)
         return true;
 
     for (size_t edge = 0; edge < 3; ++edge) {
@@ -148,14 +150,8 @@ Triangulation::Triangulation(std::vector<Vec3F> points):
         std::abort();
 
     std::sort(this->points.begin(), this->points.end(), [](const Vec3F& a, const Vec3F& b){
-        // if (std::fabs(a.x - b.x) < 0.0001)
-        //     return a.z < b.z;
-        // return a.x < b.x;
-        // return a.x + a.z < b.x + b.z;
         return a.x * a.x + a.z * a.z < b.x * b.x + b.z * b.z;
     });
-
-    std::cout << "sort end" << std::endl;
 
     const Vec3F& p0 = this->points[0];
     const Vec3F& p1 = this->points[1];
@@ -316,19 +312,95 @@ Tri::Tri():
     tr(generate_points()) {
 
     auto begin = std::chrono::high_resolution_clock::now();
-    auto mid = std::chrono::high_resolution_clock::now();
-    while (!this->tr.advance()) {
-        if (this->tr.index >= this->tr.points.size())
-            mid = std::chrono::high_resolution_clock::now();
-        continue;
+    // while (!this->tr.advance())
+    //     continue;
+
+    uint32_t max_point_count = 500000;
+    size_t mem_req = MPE_PolyMemoryRequired(max_point_count);
+
+    void* mem = std::calloc(mem_req, 1);
+
+    MPEPolyContext poly_ctx;
+
+    MPE_PolyInitContext(&poly_ctx, mem, max_point_count);
+
+    auto rd = std::random_device();
+    auto seed = rd();
+    std::cout << "Seed2: " << seed << std::endl;
+    auto gen = std::mt19937(seed);
+    auto dist = std::uniform_real_distribution<float>(-10.0f, 10.0f);
+
+    auto perlin = noise::module::Perlin();
+    perlin.SetOctaveCount(6);
+
+    auto add_pt = [&](float x, float z, bool advance = false) {
+        auto* pt = MPE_PolyPushPoint(&poly_ctx);
+        pt->X = x;
+        pt->Y = z;
+        if (advance)
+            poly_ctx.Points[poly_ctx.PointCount++] = pt;
+    };
+
+    const size_t pts = 200;
+    for (size_t i = 0; i < pts - 1; ++i) {
+        float x = float(i) / pts * 20.f - 10.f;
+        add_pt(x, -10.f);
     }
+
+    for (size_t i = 0; i < pts - 1; ++i) {
+        float x = float(i) / pts * 20.f - 10.f;
+        add_pt(10.f, x);
+    }
+
+    for (size_t i = 0; i < pts - 1; ++i) {
+        float x = float(i) / pts * 20.f - 10.f;
+        add_pt(-x, 10.f);
+    }
+
+    for (size_t i = 0; i < pts - 1; ++i) {
+        float x = float(i) / pts * 20.f - 10.f;
+        add_pt(-10.f, -x);
+    }
+
+    MPE_PolyAddEdge(&poly_ctx);
+
+    for (size_t i = 0; i < max_point_count - (pts * 4 - 4); ++i) {
+        add_pt(dist(gen), dist(gen), true);
+    }
+
+    MPE_PolyTriangulate(&poly_ctx);
+
+    auto to_vec = [&](const MPEPolyPoint* pt) {
+        float y = perlin.GetValue(pt->X / 5.f, 0, pt->Y / 5.f) * 1.0;
+        return Vec3F(pt->X, y, pt->Y);
+    };
+
+    for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {
+        const auto* t = poly_ctx.Triangles[i];
+        const auto* ta = t->Points[0];
+        const auto* tb = t->Points[1];
+        const auto* tc = t->Points[2];
+
+        Vec3F a = to_vec(ta);
+        Vec3F b = to_vec(tb);
+        Vec3F c = to_vec(tc);
+
+        auto normal = normalize(cross(c - a, b - a));
+        this->vertices.push_back(a);
+        this->vertices.push_back(normal);
+        this->vertices.push_back(b);
+        this->vertices.push_back(normal);
+        this->vertices.push_back(c);
+        this->vertices.push_back(normal);
+    }
+
+    std::free(mem);
+
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double, std::chrono::milliseconds::period> elapsed = end - begin;
-    std::chrono::duration<double, std::chrono::milliseconds::period> elapsed1 = mid - begin;
-    std::cout << "Phase 1 took " << elapsed1.count() << "ms" << std::endl;
     std::cout << "Generation took " << elapsed.count() << "ms" << std::endl;
-    std::cout << "Total triangles: " << this->tr.tris.size() << std::endl; 
+    std::cout << "Total triangles: " << this->vertices.size() / 6 << std::endl; 
 
     reupload();
 }
@@ -352,9 +424,9 @@ void add_vector(std::vector<Vec3F>& data, const Vec3F& from, const Vec3F& to) {
 void Tri::reupload() {
     this->tri_vao.bind();
     this->tri_buffer.buffer.bind(GL_ARRAY_BUFFER);
-    auto vertices = triangulation_to_mesh(this->tr);
-    this->tri_buffer.size = vertices.size();
-    Buffer::upload_data(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices);
+    // this->vertices = triangulation_to_mesh(this->tr);
+    this->tri_buffer.size = this->vertices.size();
+    Buffer::upload_data(GL_ARRAY_BUFFER, GL_STATIC_DRAW, this->vertices);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), 0);
     this->tri_vao.enable_attrib(0);
