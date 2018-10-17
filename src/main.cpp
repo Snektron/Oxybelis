@@ -88,7 +88,7 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto projection = Perspective(1.0, 1.17f, 0.01f, 20.f);
+    auto projection = Perspective(1.0, 1.17f, 0.01f, 50.f);
 
     auto cam = FreeCam(QuatF::identity(), Vec3F(0, 1, -2));
 
@@ -139,11 +139,6 @@ int main() {
 
     // auto pr = PlanetRenderer(p);
     auto t = Tri();
-
-    ctx.connect_action(Input::Advance, [&](Action a) {
-        if (a == Action::Press)
-            t.advance();
-    });
 
     while (!window.should_close() && !esc) {
         auto dim = window.dimensions();

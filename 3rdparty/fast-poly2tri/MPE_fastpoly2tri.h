@@ -134,6 +134,8 @@
 #ifndef MPE_POLY2TRI_HEADER
 #define MPE_POLY2TRI_HEADER
 
+#define internal_static extern
+
 //SECTION: Engine define overrides
 
 #include <math.h>  // fabs fabsf
@@ -779,6 +781,14 @@ MPEPolyPoint* MPE_PolyPushPoint(MPEPolyContext* PolyContext)
 }
 
 internal_static
+MPEPolyPoint* MPE_PolyPushSteinerPoint(MPEPolyContext* PolyContext)
+{
+  MPEPolyPoint* Result = MPE_PolyPushPoint(PolyContext);
+  PolyContext->Points[PolyContext->PointCount++] = Result;
+  return Result;
+}
+
+internal_static
 MPEPolyPoint* MPE_PolyPushPointArray(MPEPolyContext* PolyContext, u32 Count)
 {
   MPE_Assert(PolyContext->MaxPointCount > (PolyContext->PointPoolCount+Count));
@@ -786,7 +796,6 @@ MPEPolyPoint* MPE_PolyPushPointArray(MPEPolyContext* PolyContext, u32 Count)
   PolyContext->PointPoolCount += Count;
   return Result;
 }
-
 
 internal_static MPE_INLINE
 MPEPolyTriangle* MPE_PushTriangle(MPEPolyContext* PolyContext, MPEPolyPoint* A, MPEPolyPoint* B, MPEPolyPoint* C)
