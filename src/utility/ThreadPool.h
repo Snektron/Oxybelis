@@ -22,7 +22,7 @@ class Task: public BaseTask {
 
 public:
     Task(F&& f);
-    virtual void invoke();
+    virtual void invoke() override;
 };
 
 class ThreadPool {
