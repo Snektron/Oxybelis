@@ -5,6 +5,7 @@
 #include <future>
 #include "utility/ThreadPool.h"
 #include "math/Vec.h"
+#include "fast-poly2tri/fastpoly2tri.h"
 
 struct TerrainVertexData {
     Vec3F vertex;

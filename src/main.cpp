@@ -19,6 +19,7 @@
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
 #include "input/device/Keyboard.h"
+#include "planet/render/PlanetRenderer.h"
 #include "Tri.h"
 #include "assets.h"
 
@@ -128,17 +129,9 @@ int main() {
         }
     });
 
-    // auto p = Planet{
-    //     TransformF(
-    //         Vec3F(0.f, 0.f, 0.f),
-    //         Vec3F(1.f),
-    //         QuatF::identity()
-    //     ),
-    //     5
-    // };
+    // auto t = Tri();
 
-    // auto pr = PlanetRenderer(p);
-    auto t = Tri();
+    auto pr = PlanetRenderer();
 
     while (!window.should_close() && !esc) {
         auto dim = window.dimensions();
@@ -147,8 +140,9 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // pr.render(projection.to_matrix(), cam);
-        t.render(projection.to_matrix(), cam);
+        pr.render(projection.to_matrix(), cam);
+
+        // t.render(projection.to_matrix(), cam);
 
         window.swap_buffers();
         assert_gl();
