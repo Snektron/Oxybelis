@@ -32,7 +32,7 @@ enum class Input {
     Fly,
     Rotate,
     TogglePolygonMode,
-    Advance
+    ToggleCullFace
 };
 
 int main() {
@@ -56,7 +56,6 @@ int main() {
     
     glClearColor(.97f, .97f, .97f, .97f);
 
-    glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
 
     auto manager = InputManager<Input>();
@@ -64,7 +63,7 @@ int main() {
     auto kb = Keyboard<Input>(manager, window);
     kb.bind_action(Input::Quit, GLFW_KEY_ESCAPE);
     kb.bind_action(Input::TogglePolygonMode, GLFW_KEY_F);
-    kb.bind_action(Input::Advance, GLFW_KEY_R);
+    kb.bind_action(Input::ToggleCullFace, GLFW_KEY_R);
     kb.bind_axis(Input::Strafe, GLFW_KEY_D, 1.0);
     kb.bind_axis(Input::Strafe, GLFW_KEY_A, -1.0);
     kb.bind_axis(Input::Forward, GLFW_KEY_W, 1.0);
@@ -129,6 +128,16 @@ int main() {
         }
     });
 
+    glEnable(GL_CULL_FACE);
+    ctx.connect_action(Input::ToggleCullFace, [&](Action a) {
+        if (a == Action::Press) {
+            if (glIsEnabled(GL_CULL_FACE))
+                glDisable(GL_CULL_FACE);
+            else
+                glEnable(GL_CULL_FACE);
+        }
+    });
+
     auto pr = PlanetRenderer();
 
     while (!window.should_close() && !esc) {
@@ -139,8 +148,6 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         pr.render(projection.to_matrix(), cam);
-
-        // t.render(projection.to_matrix(), cam);
 
         window.swap_buffers();
         assert_gl();

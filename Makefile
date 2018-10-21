@@ -68,6 +68,6 @@ clean-cpp:
 run: all
 	@$(BUILD)/target/$(TARGET)
 
--include build/objects/src/main.d
+-include $(call find, $(BUILD)/, "*.d")
 
 .PHONY: clean
