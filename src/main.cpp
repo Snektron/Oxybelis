@@ -129,8 +129,6 @@ int main() {
         }
     });
 
-    // auto t = Tri();
-
     auto pr = PlanetRenderer();
 
     while (!window.should_close() && !esc) {
