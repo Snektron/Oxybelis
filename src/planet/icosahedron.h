@@ -6,11 +6,23 @@
 #include "math/Triangle.h"
 
 namespace icosahedron {
-    extern const Vec3F VERTICES[12];
-    extern const uint8_t INDICES[20 * 3];
+    constexpr const size_t NUM_VERTICES = 12;
+    constexpr const size_t NUM_FACES = 20;
 
-    const Vec3F& vertex(size_t sector, uint8_t triangle_vertex);
-    TriangleF sector(size_t sector);
+    extern const Vec3F VERTICES[NUM_VERTICES];
+    extern const uint8_t INDICES[NUM_FACES * 3];
+
+    const Vec3F& vertex(size_t face, uint8_t triangle_vertex);
+    TriangleF face(size_t face);
+
+    inline size_t face_of(const Vec3F& p) {
+        for (size_t i = 0; i < NUM_FACES - 1; ++i) {
+            if (face(i).sphere_classify(p) == 0)
+                return i;
+        }
+
+        return NUM_FACES - 1;
+    }
 }
 
 #endif

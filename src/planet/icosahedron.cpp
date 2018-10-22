@@ -43,7 +43,7 @@ namespace icosahedron {
         return VERTICES[INDICES[sector * 3 + triangle_vertex]];
     }
 
-    TriangleF sector(size_t sector) {
+    TriangleF face(size_t sector) {
         return TriangleF(
             vertex(sector, 0),
             vertex(sector, 1),

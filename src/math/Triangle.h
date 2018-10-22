@@ -2,11 +2,18 @@
 #define _OXYBELIS_MATH_TRIANGLE_H
 
 #include <cmath>
+#include <array>
 #include "math/Vec.h"
 
 template <typename T>
 struct Triangle {
-    Vec3<T> a, b, c;
+    union {
+        struct {
+            Vec3<T> a, b, c;
+        };
+
+        std::array<Vec3<T>, 3> points;
+    };
 
     constexpr Triangle(const Vec3<T>& a, const Vec3<T>& b, const Vec3<T>& c):
         a(a), b(b), c(c) {

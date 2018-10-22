@@ -34,13 +34,45 @@ public:
 
         pack_foreach([&, depth = 0](uint8_t quadrant) mutable {
             assert(quadrant >= 0 && quadrant <= 3);
-            this->id |= static_cast<uint64_t>(quadrant & QUADRANT_MASK) << (++depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
+            this->id |= static_cast<uint64_t>(quadrant) << (++depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
         }, quadrants...);
     }
 
-    // static ChunkId from_position(const Vec3F& p) {
-        
-    // }
+    static ChunkId from_position(const Vec3F& p, uint8_t depth) {
+        size_t sector = icosahedron::face_of(p);
+        TriangleF tri = icosahedron::face(sector);
+        uint64_t id = sector | depth << SECTOR_WIDTH;
+        size_t current_depth = 0;
+
+        for (size_t i = 0; i < depth; ++i) {
+            Vec3F ab = normalize((tri.a + tri.b) / 2.f);
+            Vec3F bc = normalize((tri.b + tri.c) / 2.f);
+            Vec3F ac = normalize((tri.a + tri.c) / 2.f);
+
+            size_t quadrant = TriangleF(ac, ab, bc).sphere_classify(p);
+            id |= static_cast<uint64_t>(quadrant) << (++current_depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
+            switch (quadrant) {
+            case 0:
+                tri.a = bc;
+                tri.b = ac;
+                tri.c = ab;
+                break;
+            case 1:
+                tri.b = ab;
+                tri.c = ac;
+                break;
+            case 2:
+                tri.a = ab;
+                tri.c = bc;
+                break;
+            case 3:
+                tri.a = ac;
+                tri.b = bc;
+            };
+        }
+
+        return ChunkId(id);
+    }
 
     constexpr uint64_t raw() const {
         return this->id;
@@ -60,7 +92,7 @@ public:
     }
 
     TriangleF to_triangle() const {
-        TriangleF tri = icosahedron::sector(this->sector());
+        TriangleF tri = icosahedron::face(this->sector());
 
         this->walk([&, even = false](size_t quadrant) mutable {
             Vec3F ab = normalize((tri.a + tri.b) / 2.f);
@@ -69,9 +101,9 @@ public:
 
             switch (quadrant) {
             case 0:
-                tri.c = ab;
                 tri.a = bc;
                 tri.b = ac;
+                tri.c = ab;
                 break;
             case 1:
                 tri.b = ab;
