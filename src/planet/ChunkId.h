@@ -24,12 +24,12 @@ class ChunkId {
     uint64_t id;
 
 public:
-    explicit ChunkId(uint64_t raw):
+    constexpr explicit ChunkId(uint64_t raw):
         id(raw) {
     }
 
     template <typename... Ts>
-    ChunkId(uint8_t sector, Ts... quadrants):
+    constexpr ChunkId(uint8_t sector, Ts... quadrants):
         id((sector & SECTOR_MASK) | (sizeof...(quadrants) & DEPTH_MASK) << SECTOR_WIDTH) {
 
         pack_foreach([&, depth = 0](uint8_t quadrant) mutable {
@@ -38,19 +38,23 @@ public:
         }, quadrants...);
     }
 
-    uint64_t raw() const {
+    // static ChunkId from_position(const Vec3F& p) {
+        
+    // }
+
+    constexpr uint64_t raw() const {
         return this->id;
     }
 
-    uint8_t sector() const {
+    constexpr uint8_t sector() const {
         return static_cast<uint8_t>(this->id & SECTOR_MASK);
     }
 
-    uint8_t depth() const {
+    constexpr uint8_t depth() const {
         return static_cast<uint8_t>(this->id >> SECTOR_WIDTH) & SECTOR_MASK;
     }
 
-    uint8_t quadrant(size_t depth) const {
+    constexpr uint8_t quadrant(size_t depth) const {
         assert(depth != 0 && depth <= this->depth());
         return static_cast<uint8_t>((this->id >> (depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH)) & QUADRANT_MASK);
     }
@@ -94,7 +98,7 @@ public:
             f(this->quadrant(i));
     }
 
-    ChunkId child(uint8_t quadrant) const {
+    constexpr ChunkId child(uint8_t quadrant) const {
         assert(quadrant >= 0 && quadrant <= 3);
         uint64_t id = this->id;
         id &= ~(DEPTH_MASK << SECTOR_WIDTH);
@@ -102,24 +106,15 @@ public:
         id |= static_cast<uint64_t>(quadrant) << ((this->depth() + 1) * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
         return ChunkId(id);
     }
-
-    ChunkId neighbor(size_t neighbor) const {
-        // this->quadrant(this->depth()) == 0;
-        
-        uint64_t id = this->id;
-        id &= ~(QUADRANT_MASK << ((this->depth()) * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH));
-        id |= static_cast<uint64_t>(neighbor + 1) << ((this->depth()) * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
-        return ChunkId(id);
-    }
-
-    friend bool operator==(ChunkId, ChunkId);
 };
 
 std::ostream& operator<<(std::ostream& os, ChunkId id);
 
-bool operator==(ChunkId lhs, ChunkId rhs);
+constexpr inline bool operator==(ChunkId lhs, ChunkId rhs) {
+    return lhs.raw() == rhs.raw();
+}
 
-inline bool operator!=(ChunkId lhs, ChunkId rhs) {
+constexpr inline bool operator!=(ChunkId lhs, ChunkId rhs) {
     return !(lhs == rhs);
 }
 

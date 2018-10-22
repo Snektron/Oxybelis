@@ -15,7 +15,3 @@ std::ostream& operator<<(std::ostream& os, ChunkId id) {
 
     return os << "})";
 }
-
-bool operator==(ChunkId lhs, ChunkId rhs) {
-    return lhs.id == rhs.id;
-}
