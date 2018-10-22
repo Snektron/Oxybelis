@@ -1,7 +1,7 @@
 #include "planet/ChunkId.h"
 
-std::ostream& operator<<(std::ostream& os, const ChunkId& id) {
-    os << "Chunk(Sector = " << static_cast<int>(id.sector());
+std::ostream& operator<<(std::ostream& os, ChunkId id) {
+    os << "ChunkId(Sector = " << static_cast<int>(id.sector());
     os << ", Depth = " << static_cast<int>(id.depth());
     os << ", Quadrants = {";
 
@@ -14,4 +14,8 @@ std::ostream& operator<<(std::ostream& os, const ChunkId& id) {
     });
 
     return os << "})";
+}
+
+bool operator==(ChunkId lhs, ChunkId rhs) {
+    return lhs.id == rhs.id;
 }

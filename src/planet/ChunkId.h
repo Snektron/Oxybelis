@@ -51,23 +51,23 @@ public:
     }
 
     uint8_t quadrant(size_t depth) const {
-        assert(depth < this->depth());
-        return static_cast<uint8_t>((this->id >> ((depth + 1) * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH)) & QUADRANT_MASK);
+        assert(depth != 0 && depth <= this->depth());
+        return static_cast<uint8_t>((this->id >> (depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH)) & QUADRANT_MASK);
     }
 
     TriangleF to_triangle() const {
         TriangleF tri = icosahedron::sector(this->sector());
 
-        this->walk([&](size_t quadrant) {
+        this->walk([&, even = false](size_t quadrant) mutable {
             Vec3F ab = normalize((tri.a + tri.b) / 2.f);
             Vec3F bc = normalize((tri.b + tri.c) / 2.f);
             Vec3F ac = normalize((tri.a + tri.c) / 2.f);
 
             switch (quadrant) {
             case 0:
-                tri.a = ab;
-                tri.b = bc;
-                tri.c = ac;
+                tri.c = ab;
+                tri.a = bc;
+                tri.b = ac;
                 break;
             case 1:
                 tri.b = ab;
@@ -81,6 +81,8 @@ public:
                 tri.a = ac;
                 tri.b = bc;
             };
+
+            even ^= true;
         });
 
         return tri;
@@ -88,7 +90,7 @@ public:
 
     template <typename F>
     void walk(F&& f) const {
-        for (size_t i = 0; i < this->depth(); ++i)
+        for (size_t i = 1; i <= this->depth(); ++i)
             f(this->quadrant(i));
     }
 
@@ -100,8 +102,25 @@ public:
         id |= static_cast<uint64_t>(quadrant) << ((this->depth() + 1) * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
         return ChunkId(id);
     }
+
+    ChunkId neighbor(size_t neighbor) const {
+        // this->quadrant(this->depth()) == 0;
+        
+        uint64_t id = this->id;
+        id &= ~(QUADRANT_MASK << ((this->depth()) * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH));
+        id |= static_cast<uint64_t>(neighbor + 1) << ((this->depth()) * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
+        return ChunkId(id);
+    }
+
+    friend bool operator==(ChunkId, ChunkId);
 };
 
-std::ostream& operator<<(std::ostream& os, const ChunkId& id);
+std::ostream& operator<<(std::ostream& os, ChunkId id);
+
+bool operator==(ChunkId lhs, ChunkId rhs);
+
+inline bool operator!=(ChunkId lhs, ChunkId rhs) {
+    return !(lhs == rhs);
+}
 
 #endif

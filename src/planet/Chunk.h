@@ -7,7 +7,6 @@
 #include "planet/ChunkId.h"
 
 class Chunk {
-    size_t depth;
     ChunkId id;
     VertexArray vao;
     Buffer terrain;

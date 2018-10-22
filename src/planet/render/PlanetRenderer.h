@@ -15,6 +15,8 @@ class PlanetRenderer {
 
 public:
     PlanetRenderer();
+    void generate_patch(ChunkId center);
+    void rec(ChunkId center, ChunkId current);
     void render(const Mat4F& proj, const FreeCam& cam);
 };
 
