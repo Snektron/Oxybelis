@@ -38,19 +38,18 @@ public:
         }, quadrants...);
     }
 
-    static ChunkId from_position(const Vec3F& p, uint8_t depth) {
-        size_t sector = icosahedron::face_of(p);
-        TriangleF tri = icosahedron::face(sector);
-        uint64_t id = sector | depth << SECTOR_WIDTH;
+    ChunkId(const Vec3F& p, uint8_t depth):
+        id((icosahedron::face_of(p) & SECTOR_MASK) | (depth & DEPTH_MASK) << SECTOR_WIDTH) {
+        TriangleF tri = icosahedron::face(this->sector());
         size_t current_depth = 0;
 
         for (size_t i = 0; i < depth; ++i) {
-            Vec3F ab = normalize((tri.a + tri.b) / 2.f);
-            Vec3F bc = normalize((tri.b + tri.c) / 2.f);
-            Vec3F ac = normalize((tri.a + tri.c) / 2.f);
+            Vec3F ab = normalize(mix(tri.a, tri.b, 0.5f));
+            Vec3F bc = normalize(mix(tri.b, tri.c, 0.5f));
+            Vec3F ac = normalize(mix(tri.a, tri.c, 0.5f));
 
             size_t quadrant = TriangleF(ac, ab, bc).sphere_classify(p);
-            id |= static_cast<uint64_t>(quadrant) << (++current_depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
+            this->id |= static_cast<uint64_t>(quadrant) << (++current_depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
             switch (quadrant) {
             case 0:
                 tri.a = bc;
@@ -70,8 +69,6 @@ public:
                 tri.b = bc;
             };
         }
-
-        return ChunkId(id);
     }
 
     constexpr uint64_t raw() const {
@@ -95,9 +92,9 @@ public:
         TriangleF tri = icosahedron::face(this->sector());
 
         this->walk([&, even = false](size_t quadrant) mutable {
-            Vec3F ab = normalize((tri.a + tri.b) / 2.f);
-            Vec3F bc = normalize((tri.b + tri.c) / 2.f);
-            Vec3F ac = normalize((tri.a + tri.c) / 2.f);
+            Vec3F ab = normalize(mix(tri.a, tri.b, 0.5f));
+            Vec3F bc = normalize(mix(tri.b, tri.c, 0.5f));
+            Vec3F ac = normalize(mix(tri.a, tri.c, 0.5f));
 
             switch (quadrant) {
             case 0:

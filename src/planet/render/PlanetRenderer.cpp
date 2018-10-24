@@ -18,7 +18,6 @@ PlanetRenderer::PlanetRenderer():
     model(this->shader.uniform("uModel")) {
 
     this->generate_patch(ChunkId(0, 0, 0));
-    std::cout << size_t(ChunkId(0).depth()) << std::endl;
 }
 
 void PlanetRenderer::generate_patch(ChunkId center) {
@@ -43,9 +42,9 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
     glUniformMatrix4fv(this->model, 1, GL_FALSE, cam.to_view_matrix().data());
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
 
-    size_t d = 4;
+    size_t d = 2;
 
-    auto id = ChunkId::from_position(cam.translation, d);
+    auto id = ChunkId(cam.translation, d);
 
     auto chunks = std::vector<Chunk>();
     // chunks.emplace_back(id);
@@ -53,29 +52,32 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
     auto tri = id.to_triangle();
     auto center = tri.center();
 
-    auto neigh = [d](const TriangleF& t, const Vec3F& c, size_t side){
-        auto mid = (t.points[side] + t.points[(side + 1) % 3]) / 2;
-        auto v = 2 * mid - c;
-        return ChunkId::from_position(v, d);
+    auto neighbor = [d](const TriangleF& t, const Vec3F& c, size_t side){
+        auto mid = mix(t.points[side], t.points[(side + 1) % 3], 0.5f);
+        auto v = mix(c, mid, 2.f);
+        return ChunkId(v, d);
     };
 
     auto add_arm = [&](size_t side){
-        auto id = neigh(tri, center, side);
+        auto id = neighbor(tri, center, side);
         chunks.emplace_back(id);
-        auto tri = id.to_triangle();
-        auto center = tri.center();
-        
-        auto id_a = neigh(tri, center, (side + 1) % 3);
-        chunks.emplace_back(id_a);
-        auto tri_a = id_a.to_triangle();
-        auto center_a = tri_a.center();
-        chunks.emplace_back(neigh(tri_a, center_a, (side + 2) % 3));
 
-        auto id_b = neigh(tri, center, (side + 2) % 3);
-        chunks.emplace_back(id_b);
-        auto tri_b = id_b.to_triangle();
-        auto center_b = tri_b.center();
-        chunks.emplace_back(neigh(tri_b, center_b, (side + 1) % 3));
+        auto tri = id.to_triangle();
+        tri.orient(center);
+        auto c = tri.center();
+
+        auto id_0 = neighbor(tri, c, 1);
+        chunks.emplace_back(id_0);
+
+        auto id_1 = neighbor(tri, c, 2);
+        chunks.emplace_back(id_1);
+
+        auto tri_1 = id_1.to_triangle();
+        tri_1.orient(c);
+        auto c1 = tri_1.center();
+
+        auto id_2 = neighbor(tri_1, c1, 2);
+        chunks.emplace_back(id_2);
     };
 
     add_arm(0);

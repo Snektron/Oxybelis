@@ -34,7 +34,7 @@ struct Triangle {
     /// 2 between b-c and 3 between c-a.
     constexpr int sphere_classify(const Vec3<T>& p) {
         auto test = [&](const auto& x, const auto& y) {
-            auto pn = normalize(cross(y, x));
+            auto pn = cross(y, x);
             return std::signbit(dot(p, pn));
         };
 
@@ -46,6 +46,31 @@ struct Triangle {
             return 3;
         else
             return 0;
+    }
+
+    /// Orient the triangle in such a way that p lies on side a-b
+    /// p must lie outside the triangle
+    constexpr Triangle<T>& orient(const Vec3<T>& p) {
+        auto test = [&](const auto& x, const auto& y) {
+            auto pn = cross(y, x);
+            return std::signbit(dot(p, pn));
+        };
+
+        if (test(this->b, this->c)) {
+            // p is on b-c, rotate clockwise            
+            auto tmp = this->a;
+            this->a = this->b;
+            this->b = this->c;
+            this->c = tmp;
+        } else if (test(this->c, this->a)) {
+            // p is on c-a, rotate counter clockwise
+            auto tmp = this->c;
+            this->c = this->b;
+            this->b = this->a;
+            this->a = tmp;
+        }
+
+        return *this;
     }
 };
 
