@@ -16,25 +16,6 @@ PlanetRenderer::PlanetRenderer():
     shader(another_load_shader()),
     perspective(this->shader.uniform("uPerspective")),
     model(this->shader.uniform("uModel")) {
-
-    this->generate_patch(ChunkId(0, 0, 0));
-}
-
-void PlanetRenderer::generate_patch(ChunkId center) {
-    for (size_t i = 0; i < 20; ++i) {
-        this->find_patch_chunks(center, ChunkId(i));
-    }
-}
-
-void PlanetRenderer::find_patch_chunks(ChunkId center, ChunkId current) {
-    if (center.depth() == current.depth()) {
-        this->chunks.emplace_back(current);
-    } else {
-        this->find_patch_chunks(center, current.child(0));
-        this->find_patch_chunks(center, current.child(1));
-        this->find_patch_chunks(center, current.child(2));
-        this->find_patch_chunks(center, current.child(3));
-    }
 }
 
 void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
@@ -42,20 +23,20 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
     glUniformMatrix4fv(this->model, 1, GL_FALSE, cam.to_view_matrix().data());
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
 
-    size_t d = 2;
+    size_t depth = 3;
 
-    auto id = ChunkId(cam.translation, d);
+    auto id = ChunkId(cam.translation, depth);
 
     auto chunks = std::vector<Chunk>();
-    // chunks.emplace_back(id);
+    chunks.emplace_back(id);
 
     auto tri = id.to_triangle();
     auto center = tri.center();
 
-    auto neighbor = [d](const TriangleF& t, const Vec3F& c, size_t side){
+    auto neighbor = [depth](const TriangleF& t, const Vec3F& c, size_t side){
         auto mid = mix(t.points[side], t.points[(side + 1) % 3], 0.5f);
         auto v = mix(c, mid, 2.f);
-        return ChunkId(v, d);
+        return ChunkId(v, depth);
     };
 
     auto add_arm = [&](size_t side){
@@ -66,8 +47,7 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
         tri.orient(center);
         auto c = tri.center();
 
-        auto id_0 = neighbor(tri, c, 1);
-        chunks.emplace_back(id_0);
+        chunks.emplace_back(neighbor(tri, c, 1));
 
         auto id_1 = neighbor(tri, c, 2);
         chunks.emplace_back(id_1);
@@ -76,8 +56,7 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
         tri_1.orient(c);
         auto c1 = tri_1.center();
 
-        auto id_2 = neighbor(tri_1, c1, 2);
-        chunks.emplace_back(id_2);
+        chunks.emplace_back(neighbor(tri_1, c1, 2));
     };
 
     add_arm(0);

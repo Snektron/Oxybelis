@@ -12,12 +12,9 @@ class PlanetRenderer {
     Program shader;
     Uniform perspective;
     Uniform model;
-    std::vector<Chunk> chunks;
 
 public:
     PlanetRenderer();
-    void generate_patch(ChunkId center);
-    void find_patch_chunks(ChunkId center, ChunkId current);
     void render(const Mat4F& proj, const FreeCam& cam);
 };
 

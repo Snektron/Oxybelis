@@ -28,16 +28,6 @@ public:
         id(raw) {
     }
 
-    template <typename... Ts>
-    constexpr ChunkId(uint8_t sector, Ts... quadrants):
-        id((sector & SECTOR_MASK) | (sizeof...(quadrants) & DEPTH_MASK) << SECTOR_WIDTH) {
-
-        pack_foreach([&, depth = 0](uint8_t quadrant) mutable {
-            assert(quadrant >= 0 && quadrant <= 3);
-            this->id |= static_cast<uint64_t>(quadrant) << (++depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
-        }, quadrants...);
-    }
-
     ChunkId(const Vec3F& p, uint8_t depth):
         id((icosahedron::face_of(p) & SECTOR_MASK) | (depth & DEPTH_MASK) << SECTOR_WIDTH) {
         TriangleF tri = icosahedron::face(this->sector());
@@ -146,5 +136,45 @@ constexpr inline bool operator==(ChunkId lhs, ChunkId rhs) {
 constexpr inline bool operator!=(ChunkId lhs, ChunkId rhs) {
     return !(lhs == rhs);
 }
+
+// struct ChunkLocation {
+//     ChunkId id;
+//     TriangleF location;
+
+//     ChunkLocation(const Vec3F& p, size_t depth):
+//         id(0) {
+
+//         size_t sector = icosahedron::face_of(p);
+//         TriangleF tri = icosahedron::face(sector);
+//         size_t current_depth = 0;
+
+//         for (size_t i = 0; i < depth; ++i) {
+//             Vec3F ab = normalize(mix(tri.a, tri.b, 0.5f));
+//             Vec3F bc = normalize(mix(tri.b, tri.c, 0.5f));
+//             Vec3F ac = normalize(mix(tri.a, tri.c, 0.5f));
+
+//             size_t quadrant = TriangleF(ac, ab, bc).sphere_classify(p);
+//             this->id |= static_cast<uint64_t>(quadrant) << (++current_depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
+//             switch (quadrant) {
+//             case 0:
+//                 tri.a = bc;
+//                 tri.b = ac;
+//                 tri.c = ab;
+//                 break;
+//             case 1:
+//                 tri.b = ab;
+//                 tri.c = ac;
+//                 break;
+//             case 2:
+//                 tri.a = ab;
+//                 tri.c = bc;
+//                 break;
+//             case 3:
+//                 tri.a = ac;
+//                 tri.b = bc;
+//             };
+//         }
+//     } 
+// };
 
 #endif

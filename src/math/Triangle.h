@@ -27,6 +27,22 @@ struct Triangle {
         return (this->a + this->b + this->c) / static_cast<T>(3);
     }
 
+    constexpr Triangle<T>& rotate_cw() {
+        auto tmp = this->a;
+        this->a = this->b;
+        this->b = this->c;
+        this->c = tmp;
+        return *this;
+    }
+
+    constexpr Triangle<T>& rotate_ccw() {
+        auto tmp = this->c;
+        this->c = this->b;
+        this->b = this->a;
+        this->a = tmp;
+        return *this;
+    }
+
     /// Classify the location of a point with respect to the triangle,
     /// as if the triangle lays on a sphere at the origin.
     /// 0 means the point is above or below the triangle, 
@@ -58,16 +74,10 @@ struct Triangle {
 
         if (test(this->b, this->c)) {
             // p is on b-c, rotate clockwise            
-            auto tmp = this->a;
-            this->a = this->b;
-            this->b = this->c;
-            this->c = tmp;
+            this->rotate_cw();
         } else if (test(this->c, this->a)) {
             // p is on c-a, rotate counter clockwise
-            auto tmp = this->c;
-            this->c = this->b;
-            this->b = this->a;
-            this->a = tmp;
+            this->rotate_ccw();
         }
 
         return *this;
