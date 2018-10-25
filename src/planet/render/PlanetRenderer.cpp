@@ -1,9 +1,51 @@
 #include "planet/render/PlanetRenderer.h"
-#include <cmath>
 #include <iostream>
+#include <array>
+#include <cmath>
 #include "glad/glad.h"
 #include "graphics/shader/ProgramBuilder.h"
 #include "assets.h"
+
+const size_t PATH_LEFT = 0b01;
+const size_t PATH_RIGHT = 0b10;
+const size_t PATH_END = 0b00;
+
+const size_t CHUNK_PATCH_PATH[] = {
+    PATH_LEFT | PATH_RIGHT, PATH_RIGHT, PATH_LEFT | PATH_RIGHT,
+    PATH_END, PATH_END, PATH_LEFT | PATH_RIGHT, PATH_RIGHT,
+    PATH_END, PATH_LEFT, PATH_LEFT | PATH_RIGHT
+};
+
+ChunkLocation neighbor(size_t depth, const ChunkLocation& loc, const Vec3F& c, size_t side) {
+    auto mid = mix(loc.corners.points[side], loc.corners.points[(side + 1) % 3], 0.5f);
+    auto v = mix(c, mid, 2.f);
+    auto n = ChunkLocation(v, depth);
+    n.corners.orient(c);
+    return n;
+}
+
+template <typename It>
+void generate_patch_part(std::vector<Chunk>& chunks, size_t depth, const ChunkLocation& loc, It& begin, const It& end) {
+    chunks.emplace_back(loc);
+
+    if (begin == end)
+        return;
+
+    size_t path_cmd = *begin;
+    ++begin;
+
+    auto center = loc.corners.center();
+
+    if (path_cmd & PATH_LEFT) {
+        auto left = neighbor(depth, loc, center, 2);
+        generate_patch_part(chunks, depth, left, begin, end);
+    }
+
+    if (path_cmd & PATH_RIGHT) {
+        auto right = neighbor(depth, loc, center, 1);
+        generate_patch_part(chunks, depth, right, begin, end);
+    }
+}
 
 Program another_load_shader() {
     return ProgramBuilder()
@@ -32,30 +74,11 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
 
     auto center = loc.corners.center();
 
-    auto neighbor = [depth](const TriangleF& t, const Vec3F& c, size_t side){
-        auto mid = mix(t.points[side], t.points[(side + 1) % 3], 0.5f);
-        auto v = mix(c, mid, 2.f);
-        return ChunkLocation(v, depth);
-    };
-
-    auto add_arm = [&](size_t side){
-        auto x = neighbor(loc.corners, center, side);
-        chunks.emplace_back(x);
-
-        x.corners.orient(center);
-        auto cx = x.corners.center();
-        chunks.emplace_back(neighbor(x.corners, cx, 1));
-
-        auto y = neighbor(x.corners, cx, 2);
-        chunks.emplace_back(y);
-
-        y.corners.orient(cx);
-        auto cy = y.corners.center();
-        chunks.emplace_back(neighbor(y.corners, cy, 2));
-    };
-
-    for (unsigned i = 0; i < 3; ++i)
-        add_arm(i);
+    for (size_t i = 0; i < 3; ++i) {
+        auto cl = neighbor(depth, loc, center, i);
+        auto begin = std::begin(CHUNK_PATCH_PATH);
+        generate_patch_part(chunks, depth, cl, begin, std::end(CHUNK_PATCH_PATH));
+    }
 
     for (auto& chunk : chunks) {
         chunk.vao.bind();

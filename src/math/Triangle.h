@@ -19,11 +19,11 @@ struct Triangle {
         a(a), b(b), c(c) {
     }
 
-    constexpr Vec3<T> face_normal() {
+    constexpr Vec3<T> face_normal() const {
         return normalize(cross(this->c - this->a, this->b - this->a));
     }
 
-    constexpr Vec3<T> center() {
+    constexpr Vec3<T> center() const {
         return (this->a + this->b + this->c) / static_cast<T>(3);
     }
 
