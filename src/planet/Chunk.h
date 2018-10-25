@@ -7,13 +7,13 @@
 #include "planet/ChunkId.h"
 
 class Chunk {
-    ChunkId id;
+    ChunkLocation loc;
     VertexArray vao;
     Buffer terrain;
     size_t vertices;
 
 public:
-    Chunk(ChunkId id);
+    Chunk(const ChunkLocation& loc);
 
     friend class PlanetRenderer;
 };

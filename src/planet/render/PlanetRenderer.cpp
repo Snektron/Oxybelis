@@ -25,43 +25,37 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
 
     size_t depth = 3;
 
-    auto id = ChunkId(cam.translation, depth);
+    auto loc = ChunkLocation(cam.translation, depth);
 
     auto chunks = std::vector<Chunk>();
-    chunks.emplace_back(id);
+    chunks.emplace_back(loc);
 
-    auto tri = id.to_triangle();
-    auto center = tri.center();
+    auto center = loc.corners.center();
 
     auto neighbor = [depth](const TriangleF& t, const Vec3F& c, size_t side){
         auto mid = mix(t.points[side], t.points[(side + 1) % 3], 0.5f);
         auto v = mix(c, mid, 2.f);
-        return ChunkId(v, depth);
+        return ChunkLocation(v, depth);
     };
 
     auto add_arm = [&](size_t side){
-        auto id = neighbor(tri, center, side);
-        chunks.emplace_back(id);
+        auto x = neighbor(loc.corners, center, side);
+        chunks.emplace_back(x);
 
-        auto tri = id.to_triangle();
-        tri.orient(center);
-        auto c = tri.center();
+        x.corners.orient(center);
+        auto cx = x.corners.center();
+        chunks.emplace_back(neighbor(x.corners, cx, 1));
 
-        chunks.emplace_back(neighbor(tri, c, 1));
+        auto y = neighbor(x.corners, cx, 2);
+        chunks.emplace_back(y);
 
-        auto id_1 = neighbor(tri, c, 2);
-        chunks.emplace_back(id_1);
-
-        auto tri_1 = id_1.to_triangle();
-        tri_1.orient(c);
-        auto c1 = tri_1.center();
-
-        chunks.emplace_back(neighbor(tri_1, c1, 2));
+        y.corners.orient(cx);
+        auto cy = y.corners.center();
+        chunks.emplace_back(neighbor(y.corners, cy, 2));
     };
 
-    add_arm(0);
-    add_arm(1);
-    add_arm(2);
+    for (unsigned i = 0; i < 3; ++i)
+        add_arm(i);
 
     for (auto& chunk : chunks) {
         chunk.vao.bind();

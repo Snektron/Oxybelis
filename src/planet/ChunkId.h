@@ -4,6 +4,7 @@
 #include <ostream>
 #include <iterator>
 #include <utility>
+#include <functional>
 #include <cstdint>
 #include <cassert>
 #include "math/Vec.h"
@@ -28,37 +29,8 @@ public:
         id(raw) {
     }
 
-    ChunkId(const Vec3F& p, uint8_t depth):
-        id((icosahedron::face_of(p) & SECTOR_MASK) | (depth & DEPTH_MASK) << SECTOR_WIDTH) {
-        TriangleF tri = icosahedron::face(this->sector());
-        size_t current_depth = 0;
-
-        for (size_t i = 0; i < depth; ++i) {
-            Vec3F ab = normalize(mix(tri.a, tri.b, 0.5f));
-            Vec3F bc = normalize(mix(tri.b, tri.c, 0.5f));
-            Vec3F ac = normalize(mix(tri.a, tri.c, 0.5f));
-
-            size_t quadrant = TriangleF(ac, ab, bc).sphere_classify(p);
-            this->id |= static_cast<uint64_t>(quadrant) << (++current_depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
-            switch (quadrant) {
-            case 0:
-                tri.a = bc;
-                tri.b = ac;
-                tri.c = ab;
-                break;
-            case 1:
-                tri.b = ab;
-                tri.c = ac;
-                break;
-            case 2:
-                tri.a = ab;
-                tri.c = bc;
-                break;
-            case 3:
-                tri.a = ac;
-                tri.b = bc;
-            };
-        }
+    constexpr ChunkId(uint8_t sector, uint8_t depth):
+        id(sector | (depth << SECTOR_WIDTH)) {
     }
 
     constexpr uint64_t raw() const {
@@ -78,37 +50,11 @@ public:
         return static_cast<uint8_t>((this->id >> (depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH)) & QUADRANT_MASK);
     }
 
-    TriangleF to_triangle() const {
-        TriangleF tri = icosahedron::face(this->sector());
-
-        this->walk([&, even = false](size_t quadrant) mutable {
-            Vec3F ab = normalize(mix(tri.a, tri.b, 0.5f));
-            Vec3F bc = normalize(mix(tri.b, tri.c, 0.5f));
-            Vec3F ac = normalize(mix(tri.a, tri.c, 0.5f));
-
-            switch (quadrant) {
-            case 0:
-                tri.a = bc;
-                tri.b = ac;
-                tri.c = ab;
-                break;
-            case 1:
-                tri.b = ab;
-                tri.c = ac;
-                break;
-            case 2:
-                tri.a = ab;
-                tri.c = bc;
-                break;
-            case 3:
-                tri.a = ac;
-                tri.b = bc;
-            };
-
-            even ^= true;
-        });
-
-        return tri;
+    constexpr void set_quadrant(size_t depth, uint64_t quadrant) {
+        assert(depth != 0 && depth <= this->depth());
+        assert(quadrant >= 0 && quadrant <= 3);
+        this->id &= ~(QUADRANT_MASK << (depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH));
+        this->id |= quadrant << (depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
     }
 
     template <typename F>
@@ -119,11 +65,9 @@ public:
 
     constexpr ChunkId child(uint8_t quadrant) const {
         assert(quadrant >= 0 && quadrant <= 3);
-        uint64_t id = this->id;
-        id &= ~(DEPTH_MASK << SECTOR_WIDTH);
-        id |= (static_cast<uint64_t>(this->depth() + 1) & DEPTH_MASK) << SECTOR_WIDTH;
-        id |= static_cast<uint64_t>(quadrant) << ((this->depth() + 1) * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
-        return ChunkId(id);
+        auto id = ChunkId(this->sector(), this->depth() + 1);
+        id.set_quadrant(this->depth() + 1, quadrant);
+        return id;
     }
 };
 
@@ -137,44 +81,47 @@ constexpr inline bool operator!=(ChunkId lhs, ChunkId rhs) {
     return !(lhs == rhs);
 }
 
-// struct ChunkLocation {
-//     ChunkId id;
-//     TriangleF location;
+template<>
+struct std::hash<ChunkId> {
+    size_t operator()(ChunkId id) {
+        return static_cast<size_t>(id.raw());
+    }
+};
 
-//     ChunkLocation(const Vec3F& p, size_t depth):
-//         id(0) {
+struct ChunkLocation {
+    ChunkId id;
+    TriangleF corners;
 
-//         size_t sector = icosahedron::face_of(p);
-//         TriangleF tri = icosahedron::face(sector);
-//         size_t current_depth = 0;
+    ChunkLocation(const Vec3F& p, size_t depth):
+        id(icosahedron::face_of(p), depth), corners(icosahedron::face(this->id.sector())) {
 
-//         for (size_t i = 0; i < depth; ++i) {
-//             Vec3F ab = normalize(mix(tri.a, tri.b, 0.5f));
-//             Vec3F bc = normalize(mix(tri.b, tri.c, 0.5f));
-//             Vec3F ac = normalize(mix(tri.a, tri.c, 0.5f));
+        for (size_t i = 0; i < depth; ++i) {
+            Vec3F ab = normalize(mix(this->corners.a, this->corners.b, 0.5f));
+            Vec3F bc = normalize(mix(this->corners.b, this->corners.c, 0.5f));
+            Vec3F ac = normalize(mix(this->corners.a, this->corners.c, 0.5f));
 
-//             size_t quadrant = TriangleF(ac, ab, bc).sphere_classify(p);
-//             this->id |= static_cast<uint64_t>(quadrant) << (++current_depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
-//             switch (quadrant) {
-//             case 0:
-//                 tri.a = bc;
-//                 tri.b = ac;
-//                 tri.c = ab;
-//                 break;
-//             case 1:
-//                 tri.b = ab;
-//                 tri.c = ac;
-//                 break;
-//             case 2:
-//                 tri.a = ab;
-//                 tri.c = bc;
-//                 break;
-//             case 3:
-//                 tri.a = ac;
-//                 tri.b = bc;
-//             };
-//         }
-//     } 
-// };
+            size_t quadrant = TriangleF(ac, ab, bc).sphere_classify(p);
+            this->id.set_quadrant(i + 1, quadrant);
+            switch (quadrant) {
+            case 0:
+                this->corners.a = bc;
+                this->corners.b = ac;
+                this->corners.c = ab;
+                break;
+            case 1:
+                this->corners.b = ab;
+                this->corners.c = ac;
+                break;
+            case 2:
+                this->corners.a = ab;
+                this->corners.c = bc;
+                break;
+            case 3:
+                this->corners.a = ac;
+                this->corners.b = bc;
+            };
+        }
+    } 
+};
 
 #endif
