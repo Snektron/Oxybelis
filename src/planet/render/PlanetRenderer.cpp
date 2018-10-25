@@ -1,6 +1,7 @@
 #include "planet/render/PlanetRenderer.h"
 #include <iostream>
 #include <array>
+#include <utility>
 #include <cmath>
 #include "glad/glad.h"
 #include "graphics/shader/ProgramBuilder.h"
@@ -25,8 +26,8 @@ ChunkLocation neighbor(size_t depth, const ChunkLocation& loc, const Vec3F& c, s
 }
 
 template <typename It>
-void generate_patch_part(std::vector<Chunk>& chunks, size_t depth, const ChunkLocation& loc, It& begin, const It& end) {
-    chunks.emplace_back(loc);
+void generate_patch_part(std::vector<ChunkLocation>& chunks, size_t depth, const ChunkLocation& loc, It& begin, const It& end) {
+    chunks.push_back(loc);
 
     if (begin == end)
         return;
@@ -69,16 +70,41 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
 
     auto loc = ChunkLocation(cam.translation, depth);
 
-    auto chunks = std::vector<Chunk>();
-    chunks.emplace_back(loc);
+    auto chunk_locs = std::vector<ChunkLocation>();
+    chunk_locs.push_back(loc);
 
     auto center = loc.corners.center();
 
     for (size_t i = 0; i < 3; ++i) {
         auto cl = neighbor(depth, loc, center, i);
         auto begin = std::begin(CHUNK_PATCH_PATH);
-        generate_patch_part(chunks, depth, cl, begin, std::end(CHUNK_PATCH_PATH));
+        generate_patch_part(chunk_locs, depth, cl, begin, std::end(CHUNK_PATCH_PATH));
     }
+
+    auto vec_cmp = [](const Vec3F& a, const Vec3F& b){
+        return std::make_tuple(a.x, a.y, a.z) < std::make_tuple(b.x, b.y, b.z);
+    };
+
+    std::for_each(chunk_locs.begin(), chunk_locs.end(), [&](auto& loc) {
+        while (vec_cmp(loc.corners.points[1], loc.corners.points[0])
+            || vec_cmp(loc.corners.points[2], loc.corners.points[0])) {
+            loc.corners.rotate_cw();
+        }
+    });
+
+    std::sort(chunk_locs.begin(), chunk_locs.end(), [&](const auto& a, const auto& b) {
+        return a.id.raw() < b.id.raw();
+    });
+
+    chunk_locs.erase(std::unique(chunk_locs.begin(), chunk_locs.end(), [](const auto& a, const auto& b) {
+        return a.id == b.id;
+    }), chunk_locs.end());
+
+    auto chunks = std::vector<Chunk>();
+
+    std::transform(chunk_locs.begin(), chunk_locs.end(), std::back_inserter(chunks), [](auto& loc) {
+        return Chunk(loc);
+    });
 
     for (auto& chunk : chunks) {
         chunk.vao.bind();
