@@ -13,9 +13,10 @@ class Chunk {
     size_t vertices;
 
 public:
-    Chunk(const ChunkLocation& loc);
+    Chunk(const ChunkLocation& loc, double radius);
 
     friend class PlanetRenderer;
+    friend class ChunkPatch;
 };
 
 #endif

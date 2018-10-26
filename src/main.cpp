@@ -20,6 +20,7 @@
 #include "input/device/Mouse.h"
 #include "input/device/Keyboard.h"
 #include "planet/render/PlanetRenderer.h"
+#include "planet/Planet.h"
 #include "Tri.h"
 #include "assets.h"
 
@@ -88,9 +89,9 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto projection = Perspective(1.0, 1.17f, 0.01f, 50.f);
+    auto projection = Perspective(1.0, 1.17f, 0.01f, 5000.f);
 
-    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 1, -2));
+    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 1, -2000));
 
     ctx.connect_axis(Input::Vertical, [&](double v){
         cam.rotate_pitch(v);
@@ -104,16 +105,18 @@ int main() {
         cam.rotate_roll(v);
     });
 
+    constexpr double cam_speed = 1.0;
+
     ctx.connect_axis(Input::Strafe, [&](double v){
-        cam.strafe(0.01 * v);
+        cam.strafe(cam_speed * v);
     });
 
     ctx.connect_axis(Input::Fly, [&](double v){
-        cam.fly(0.01 * v);
+        cam.fly(cam_speed * v);
     });
 
     ctx.connect_axis(Input::Forward, [&](double v){
-        cam.forward(0.01 * v);
+        cam.forward(cam_speed * v);
     });
 
     GLenum polymode = GL_FILL;
@@ -138,7 +141,13 @@ int main() {
         }
     });
 
-    auto pr = PlanetRenderer();
+    auto p = Planet {
+        ChunkPatch(Vec3D(0, 0, 0), 0, 1),
+        Vec3D(0, 0, 0),
+        1000.
+    };
+
+    auto pr = PlanetRenderer(p);
 
     while (!window.should_close() && !esc) {
         auto dim = window.dimensions();

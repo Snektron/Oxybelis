@@ -49,6 +49,7 @@ struct Transform {
 };
 
 using TransformF = Transform<float>;
+using TransformD = Transform<double>;
 
 template <typename T>
 Mat4<T> Transform<T>::to_matrix() const {

@@ -6,15 +6,16 @@
 #include "math/Vec.h"
 #include "graphics/camera/FreeCam.h"
 #include "graphics/shader/Program.h"
-#include "planet/Chunk.h"
+#include "planet/Planet.h"
 
 class PlanetRenderer {
     Program shader;
     Uniform perspective;
     Uniform model;
 
+    Planet& planet;
 public:
-    PlanetRenderer();
+    PlanetRenderer(Planet& planet);
     void render(const Mat4F& proj, const FreeCam& cam);
 };
 

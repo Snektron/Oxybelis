@@ -289,6 +289,9 @@ internal_static
 MPEPolyPoint* MPE_PolyPushPoint(MPEPolyContext* PolyContext);
 
 internal_static
+MPEPolyPoint* MPE_PolyPushSteinerPoint(MPEPolyContext* PolyContext);
+
+internal_static
 MPEPolyPoint* MPE_PolyPushPointArray(MPEPolyContext* PolyContext, u32 Count);
 
 internal_static

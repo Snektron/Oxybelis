@@ -90,17 +90,17 @@ struct std::hash<ChunkId> {
 
 struct ChunkLocation {
     ChunkId id;
-    TriangleF corners;
+    TriangleD corners;
 
-    ChunkLocation(const Vec3F& p, size_t depth):
+    ChunkLocation(const Vec3D& p, size_t depth, double radius):
         id(icosahedron::face_of(p), depth), corners(icosahedron::face(this->id.sector())) {
 
         for (size_t i = 0; i < depth; ++i) {
-            Vec3F ab = normalize(mix(this->corners.a, this->corners.b, 0.5f));
-            Vec3F bc = normalize(mix(this->corners.b, this->corners.c, 0.5f));
-            Vec3F ac = normalize(mix(this->corners.a, this->corners.c, 0.5f));
+            Vec3D ab = normalize(mix(this->corners.a, this->corners.b, 0.5f));
+            Vec3D bc = normalize(mix(this->corners.b, this->corners.c, 0.5f));
+            Vec3D ac = normalize(mix(this->corners.a, this->corners.c, 0.5f));
 
-            size_t quadrant = TriangleF(ac, ab, bc).sphere_classify(p);
+            size_t quadrant = TriangleD(ac, ab, bc).sphere_classify(p);
             this->id.set_quadrant(i + 1, quadrant);
             switch (quadrant) {
             case 0:
@@ -121,6 +121,10 @@ struct ChunkLocation {
                 this->corners.b = bc;
             };
         }
+
+        this->corners.a *= radius;
+        this->corners.b *= radius;
+        this->corners.c *= radius;
     } 
 };
 

@@ -19,6 +19,11 @@ struct Triangle {
         a(a), b(b), c(c) {
     }
 
+    template <typename U>
+    constexpr Triangle(const Triangle<U>& other):
+        a(other.a), b(other.b), c(other.c) {
+    }
+
     constexpr Vec3<T> face_normal() const {
         return normalize(cross(this->c - this->a, this->b - this->a));
     }
@@ -85,5 +90,6 @@ struct Triangle {
 };
 
 using TriangleF = Triangle<float>;
+using TriangleD = Triangle<double>;
 
 #endif
