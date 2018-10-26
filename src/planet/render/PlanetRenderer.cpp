@@ -6,6 +6,7 @@
 #include "glad/glad.h"
 #include "graphics/shader/ProgramBuilder.h"
 #include "planet/ChunkId.h"
+#include "planet/Planet.h"
 #include "assets.h"
 
 size_t lod_from_alt(double alt_sq) {

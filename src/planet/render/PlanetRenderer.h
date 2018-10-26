@@ -6,7 +6,8 @@
 #include "math/Vec.h"
 #include "graphics/camera/FreeCam.h"
 #include "graphics/shader/Program.h"
-#include "planet/Planet.h"
+
+struct Planet;
 
 class PlanetRenderer {
     Program shader;
