@@ -36,7 +36,6 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
     double dst = distance_sq(cam.translation, Vec3D(0)) - std::pow(this->planet.radius, 2.0);
     dst /= std::pow(this->planet.radius, 2.0);
     auto lod = lod_from_alt(dst);
-    std::cout << dst << ' ' << lod << std::endl;
     auto loc = ChunkLocation(cam.translation, lod, this->planet.radius);
 
     if (this->planet.patch.center.id != loc.id)
