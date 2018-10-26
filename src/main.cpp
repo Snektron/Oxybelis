@@ -22,7 +22,6 @@
 #include "input/device/Keyboard.h"
 #include "planet/render/PlanetRenderer.h"
 #include "planet/Planet.h"
-#include "Tri.h"
 #include "assets.h"
 
 enum class Input {

@@ -45,16 +45,16 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
 
     MPE_PolyAddEdge(&poly_ctx);
 
+    constexpr auto center = (Vec2F(0, 0) + Vec2F(1, 0) + Vec2F(0, 1)) / 3.f;
+    float edge_dst = 1.f / side_points;
+
     for (size_t i = 0; i < points; ++i) {
-        float a1 = dist(gen);
-        float a2 = dist(gen);
+        auto p = Vec2F(dist(gen), dist(gen));
 
-        if (a1 + a2 > 1) {
-            a1 = 1 - a1;
-            a2 = 1 - a2;
-        }
+        if (p.x + p.y > 1)
+            p = 1 - p;
 
-        auto p = mix(Vec2F(a1, a2), (Vec2F(0, 0) + Vec2F(1, 0) + Vec2F(0, 1)) / 3.f, 1.f / side_points);
+        p = mix(p, center, edge_dst);
 
         add_pt(p.x, p.y);
     }

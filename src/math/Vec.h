@@ -153,7 +153,7 @@ struct Vec: BaseVec<T, N> {
     }
 
     template <typename F>
-    static Vec<T, N> generate(F f) {
+    constexpr static Vec<T, N> generate(F f) {
         Vec<T, N> v;
         for (size_t i = 0; i < N; ++i)
             v(i) = f(i);
