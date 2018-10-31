@@ -53,7 +53,7 @@ struct Triangle {
     /// 0 means the point is above or below the triangle, 
     /// 1 means the point is between sides a-b,
     /// 2 between b-c and 3 between c-a.
-    constexpr int sphere_classify(const Vec3<T>& p) {
+    constexpr int sphere_classify(const Vec3<T>& p) const {
         auto test = [&](const auto& x, const auto& y) {
             auto pn = cross(y, x);
             return std::signbit(dot(p, pn));

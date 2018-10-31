@@ -91,7 +91,7 @@ struct ChunkLocation {
     TriangleD corners;
 
     ChunkLocation(const Vec3D& p, size_t depth, double radius):
-        id(icosahedron::face_of(p), depth), corners(icosahedron::face(this->id.sector())) {
+        id(icosahedron::face_of(p), depth), corners(icosahedron::FACES[this->id.sector()]) {
 
         for (size_t i = 0; i < depth; ++i) {
             Vec3D ab = normalize(mix(this->corners.a, this->corners.b, 0.5f));
