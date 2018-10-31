@@ -81,9 +81,8 @@ ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius):
     });
 }
 
-void ChunkPatch::render() {
-    for (auto& chunk : chunks) {
-        chunk.vao.bind();
-        glDrawArrays(GL_TRIANGLES, 0, chunk.vertices);
+void ChunkPatch::render(const Camera& cam, Uniform model) {
+    for (auto& chunk : this->chunks) {
+        chunk.render(cam, model);
     }    
 }

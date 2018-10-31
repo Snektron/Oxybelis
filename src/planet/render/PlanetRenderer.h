@@ -4,7 +4,8 @@
 #include <vector>
 #include <cstddef>
 #include "math/Vec.h"
-#include "graphics/camera/FreeCam.h"
+#include "math/Mat.h"
+#include "graphics/camera/Camera.h"
 #include "graphics/shader/Program.h"
 
 struct Planet;
@@ -17,7 +18,7 @@ class PlanetRenderer {
     Planet& planet;
 public:
     PlanetRenderer(Planet& planet);
-    void render(const Mat4F& proj, const FreeCam& cam);
+    void render(const Mat4F& proj, const Camera& cam);
 };
 
 #endif

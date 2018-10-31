@@ -19,7 +19,7 @@ else
     LDFLAGS += -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor
 endif
 
-find = $(shell find $1 -type f -name $2 -print)
+find = $(shell find $1 -type f -name $2 -print 2>/dev/null)
 
 SRCS := $(call find, $(SRC)/, "*.cpp") $(call find, $(3RDPARTY)/, "*.cpp")
 

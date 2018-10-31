@@ -4,6 +4,7 @@
 #include <memory>
 
 #define internal_static extern
+#define MPE_POLY2TRI_USE_DOUBLE
 #include "MPE_fastpoly2tri.h"
 
 struct Free {

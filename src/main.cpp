@@ -15,7 +15,7 @@
 #include "graphics/Buffer.h"
 #include "graphics/shader/ProgramBuilder.h"
 #include "graphics/camera/Projection.h"
-#include "graphics/camera/FreeCam.h"
+#include "graphics/camera/Camera.h"
 #include "input/InputContext.h"
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
@@ -91,7 +91,7 @@ int main() {
 
     auto projection = Perspective(1.0, 1.17f, 0.01f, 5000.f);
 
-    auto cam = FreeCam(QuatF::identity(), Vec3F(0, 1, -2000));
+    auto cam = Camera(QuatD::identity(), Vec3D(0, 1, -2000));
 
     ctx.connect_axis(Input::Vertical, [&](double v){
         cam.rotate_pitch(v);

@@ -6,9 +6,9 @@
 #include <noise/noise.h>
 #include "fast-poly2tri/fastpoly2tri.h"
 
-std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, size_t points, float radius) {
+std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, size_t points, double radius) {
     auto gen = std::mt19937(loc.id.raw());
-    auto dist = std::uniform_real_distribution<float>(0.f, 1.f);
+    auto dist = std::uniform_real_distribution<double>(0., 1.);
 
     size_t max_pts = side_points * 3 + points;
     auto mem = MPE_PolyAllocateMem(max_pts);
@@ -16,40 +16,40 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
 
     MPE_PolyInitContext(&poly_ctx, mem.get(), max_pts);
 
-    auto add_edge_pt = [&](float x, float y) {
+    auto add_edge_pt = [&](double x, double y) {
         auto* pt = MPE_PolyPushPoint(&poly_ctx);
         pt->X = x;
         pt->Y = y;
     };
 
-    auto add_pt = [&](float x, float y) {
+    auto add_pt = [&](double x, double y) {
         auto* pt = MPE_PolyPushSteinerPoint(&poly_ctx);
         pt->X = x;
         pt->Y = y;
     };
 
     for (size_t i = 0; i < side_points; ++i) {
-        float x = float(i) / side_points;
+        double x = double(i) / side_points;
         add_edge_pt(x, 0);
     }
 
     for (size_t i = 0; i < side_points; ++i) {
-        float x = float(i) / side_points;
+        double x = double(i) / side_points;
         add_edge_pt(1 - x, x);
     }
 
     for (size_t i = 0; i < side_points; ++i) {
-        float x = float(i) / side_points;
+        double x = double(i) / side_points;
         add_edge_pt(0, 1.f - x);
     }
 
     MPE_PolyAddEdge(&poly_ctx);
 
-    constexpr auto center = (Vec2F(0, 0) + Vec2F(1, 0) + Vec2F(0, 1)) / 3.f;
-    float edge_dst = 1.f / side_points;
+    constexpr auto center = (Vec2D(0, 0) + Vec2D(1, 0) + Vec2D(0, 1)) / 3.f;
+    double edge_dst = 1.f / side_points;
 
     for (size_t i = 0; i < points; ++i) {
-        auto p = Vec2F(dist(gen), dist(gen));
+        auto p = Vec2D(dist(gen), dist(gen));
 
         if (p.x + p.y > 1)
             p = 1 - p;
@@ -70,11 +70,13 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
     perlin.SetOctaveCount(6);
     perlin.SetSeed(0);
 
-    auto get_vec = [&](float x, float y) {
+    auto chunk_center = loc.corners.center();
+
+    auto get_vec = [&](double x, double y) {
         auto v = normalize(x * ba + y * ca + loc.corners.a);
-        float h = perlin.GetValue(v.x, v.y, v.z);
+        double h = perlin.GetValue(v.x, v.y, v.z);
         h *= h * h * h;
-        h = h * 0.02f + 1.f;
+        h = h * 0.02 + 1.0;
         return v * radius * h;
     };
 
@@ -89,11 +91,11 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
         auto c = get_vec(tc->X, tc->Y);
 
         auto normal = normalize(cross(c - a, b - a));
-        vertices.push_back(a);
+        vertices.push_back(a - chunk_center);
         vertices.push_back(normal);
-        vertices.push_back(b);
+        vertices.push_back(b - chunk_center);
         vertices.push_back(normal);
-        vertices.push_back(c);
+        vertices.push_back(c - chunk_center);
         vertices.push_back(normal);
     }
 
@@ -101,7 +103,7 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
 }
 
 Chunk::Chunk(const ChunkLocation& loc, double radius):
-    loc(loc), vertices(3) {
+    loc(loc), vertices(3), center(loc.corners.center()) {
 
     this->vao.bind();
     this->terrain.bind(GL_ARRAY_BUFFER);
@@ -114,4 +116,14 @@ Chunk::Chunk(const ChunkLocation& loc, double radius):
     this->vao.enable_attrib(0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), (void*)(sizeof(Vec3F)));
     this->vao.enable_attrib(1);
+}
+
+void Chunk::render(const Camera& cam, Uniform model) {
+    auto view = cam.to_view_matrix();
+    view *= Mat4D::translation(this->center);
+
+    glUniformMatrix4fv(model, 1, GL_FALSE, static_cast<Mat4F>(view).data());
+
+    this->vao.bind();
+    glDrawArrays(GL_TRIANGLES, 0, this->vertices);
 }

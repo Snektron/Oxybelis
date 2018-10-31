@@ -71,8 +71,6 @@ public:
     }
 };
 
-std::ostream& operator<<(std::ostream& os, ChunkId id);
-
 constexpr inline bool operator==(ChunkId lhs, ChunkId rhs) {
     return lhs.raw() == rhs.raw();
 }

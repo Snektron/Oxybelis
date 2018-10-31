@@ -15,5 +15,5 @@ const float TAU = 2 * PI;
 void main() {
     gl_Position = uPerspective * uModel * vec4(aVertex, 1);
     vNormal = aNormal;
-    vHeight = aVertex.y;
+    vHeight = (length(aVertex) - 1000.0) / 10.0;
 }

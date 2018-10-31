@@ -4,6 +4,9 @@
 #include <cstddef>
 #include "graphics/VertexArray.h"
 #include "graphics/Buffer.h"
+#include "math/Mat.h"
+#include "graphics/camera/Camera.h"
+#include "graphics/shader/Program.h"
 #include "planet/ChunkId.h"
 
 class Chunk {
@@ -11,12 +14,11 @@ class Chunk {
     VertexArray vao;
     Buffer terrain;
     size_t vertices;
+    Vec3D center;
 
 public:
     Chunk(const ChunkLocation& loc, double radius);
-
-    friend class PlanetRenderer;
-    friend class ChunkPatch;
+    void render(const Camera& cam, Uniform model);
 };
 
 #endif

@@ -10,7 +10,9 @@
 #include "assets.h"
 
 size_t lod_from_alt(double alt_sq) {
-    if (alt_sq < 0.15)
+    if (alt_sq < 0.05)
+        return 4;
+    else if (alt_sq < 0.15)
         return 3;
     else if (alt_sq < 0.5)
         return 2;
@@ -33,7 +35,7 @@ PlanetRenderer::PlanetRenderer(Planet& planet):
     planet(planet) {
 }
 
-void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
+void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
     double dst = distance_sq(cam.translation, Vec3D(0)) - std::pow(this->planet.radius, 2.0);
     dst /= std::pow(this->planet.radius, 2.0);
     auto lod = lod_from_alt(dst);
@@ -43,8 +45,7 @@ void PlanetRenderer::render(const Mat4F& proj, const FreeCam& cam) {
         this->planet.patch = ChunkPatch(cam.translation, lod, this->planet.radius);
 
     this->shader.use();
-    glUniformMatrix4fv(this->model, 1, GL_FALSE, cam.to_view_matrix().data());
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
 
-    this->planet.patch.render();
+    this->planet.patch.render(cam, this->model);
 }

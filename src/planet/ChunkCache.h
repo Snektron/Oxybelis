@@ -5,7 +5,7 @@
 #include <cstddef>
 #include "planet/Chunk.h"
 
-class ChunkLocation;
+struct ChunkLocation;
 
 class ChunkCache {
     struct Entry {

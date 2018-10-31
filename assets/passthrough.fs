@@ -13,7 +13,7 @@ void main() {
     vec3 low = vec3(38. / 255., 89. / 255., 20. / 255.) * 0.8;
     vec3 hi = vec3(0.7);
 
-    fColor = vec4(vec3(dot(vNormal, l)), 1);
+    // fColor = vec4(vec3(dot(vNormal, l)), 1);
     // fColor = vec4(vNormal, 1);
-    // fColor = vec4(vec3(dot(vNormal, l)) * mix(low, hi, x) * 0.8 + 0.2, 1);
+    fColor = vec4(vec3(dot(vNormal, l)) * mix(low, hi, x) * 0.8 + 0.2, 1);
 }
