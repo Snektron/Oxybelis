@@ -19,6 +19,10 @@ class Chunk {
 public:
     Chunk(const ChunkLocation& loc, double radius);
     void render(const Camera& cam, Uniform model);
+
+    ChunkId id() const {
+        return this->loc.id;
+    }
 };
 
 #endif

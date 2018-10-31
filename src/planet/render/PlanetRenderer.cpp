@@ -32,7 +32,8 @@ PlanetRenderer::PlanetRenderer(Planet& planet):
     shader(another_load_shader()),
     perspective(this->shader.uniform("uPerspective")),
     model(this->shader.uniform("uModel")),
-    planet(planet) {
+    planet(planet),
+    patch(NONE) {
 }
 
 void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
@@ -41,11 +42,13 @@ void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
     auto lod = lod_from_alt(dst);
     auto loc = ChunkLocation(cam.translation, lod, this->planet.radius);
 
-    if (this->planet.patch.center.id != loc.id)
-        this->planet.patch = ChunkPatch(cam.translation, lod, this->planet.radius);
+    if (this->patch->center.id != loc.id || !this->patch) {
+        this->patch = ChunkPatch(cam.translation, lod, this->planet.radius, this->cache);
+        this->cache.collect_garbage();
+    }
 
     this->shader.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
 
-    this->planet.patch.render(cam, this->model);
+    this->patch->render(cam, this->model);
 }

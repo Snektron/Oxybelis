@@ -41,7 +41,7 @@ void generate_patch_part(std::vector<ChunkLocation>& chunks, size_t depth, doubl
     }
 }
 
-ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius):
+ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkCache& cache):
     center(p, depth, radius) {
 
     auto chunk_locs = std::vector<ChunkLocation>();
@@ -76,13 +76,19 @@ ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius):
 
     auto chunks = std::vector<Chunk>();
 
-    std::transform(chunk_locs.begin(), chunk_locs.end(), std::back_inserter(this->chunks), [radius](auto& loc) {
-        return Chunk(loc, radius);
+    std::transform(chunk_locs.begin(), chunk_locs.end(), std::back_inserter(this->chunks), [&, radius](const auto& loc) {
+        auto ptr = cache.get(loc.id);
+        if (!ptr) {
+            ptr = std::make_shared<Chunk>(loc, radius);
+            cache.insert(ptr);
+        }
+
+        return ptr;
     });
 }
 
 void ChunkPatch::render(const Camera& cam, Uniform model) {
     for (auto& chunk : this->chunks) {
-        chunk.render(cam, model);
+        chunk->render(cam, model);
     }    
 }

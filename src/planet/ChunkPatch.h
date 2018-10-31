@@ -8,13 +8,14 @@
 #include "graphics/shader/Program.h"
 #include "planet/ChunkId.h"
 #include "planet/Chunk.h"
+#include "planet/ChunkCache.h"
 
 class ChunkPatch {
     ChunkLocation center;
-    std::vector<Chunk> chunks;
+    std::vector<ChunkCache::ChunkPtr> chunks;
 
 public:
-    ChunkPatch(const Vec3D& p, unsigned depth, double radius);
+    ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkCache& cache);
     void render(const Camera& cam, Uniform model);
 
     friend class PlanetRenderer;

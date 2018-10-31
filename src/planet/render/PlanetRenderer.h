@@ -7,6 +7,9 @@
 #include "math/Mat.h"
 #include "graphics/camera/Camera.h"
 #include "graphics/shader/Program.h"
+#include "planet/ChunkCache.h"
+#include "planet/ChunkPatch.h"
+#include "utility/Option.h"
 
 struct Planet;
 
@@ -16,6 +19,8 @@ class PlanetRenderer {
     Uniform model;
 
     Planet& planet;
+    ChunkCache cache;
+    Option<ChunkPatch> patch;
 public:
     PlanetRenderer(Planet& planet);
     void render(const Mat4F& proj, const Camera& cam);

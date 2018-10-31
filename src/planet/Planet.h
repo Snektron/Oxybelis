@@ -5,7 +5,6 @@
 #include "planet/ChunkPatch.h"
 
 struct Planet {
-    ChunkPatch patch;
     Vec3D translation;
     double radius;
 

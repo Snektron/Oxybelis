@@ -142,7 +142,6 @@ int main() {
     });
 
     auto p = Planet {
-        ChunkPatch(Vec3D(0, 0, 0), 0, 1),
         Vec3D(0, 0, 0),
         1000.
     };

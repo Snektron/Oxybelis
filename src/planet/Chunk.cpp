@@ -55,7 +55,6 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
             p = 1 - p;
 
         p = mix(p, center, edge_dst);
-
         add_pt(p.x, p.y);
     }
 
@@ -67,16 +66,14 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
     auto ca = loc.corners.c - loc.corners.a;
 
     auto perlin = noise::module::Perlin();
-    perlin.SetOctaveCount(6);
+    perlin.SetOctaveCount(8);
     perlin.SetSeed(0);
 
     auto chunk_center = loc.corners.center();
 
     auto get_vec = [&](double x, double y) {
         auto v = normalize(x * ba + y * ca + loc.corners.a);
-        double h = perlin.GetValue(v.x, v.y, v.z);
-        h *= h * h * h;
-        h = h * 0.02 + 1.0;
+        double h = perlin.GetValue(v.x * 5.0, v.y * 5.0, v.z * 5.0) / 50.0 + 1.0;
         return v * radius * h;
     };
 
