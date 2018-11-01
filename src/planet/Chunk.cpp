@@ -92,8 +92,8 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
 
     auto get_vec = [&](double x, double y) {
         auto v = normalize(loc.corners.a + a_b * x + c_d * y);
-        double h = perlin.GetValue(v.x * 5.0, v.y * 5.0, v.z * 5.0) / 50.0 + 1.0;
-        return v * radius * h;
+        double h = perlin.GetValue(v.x * 5.0, v.y * 5.0, v.z * 5.0) * 10.0;
+        return v * (radius + h);
     };
 
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {

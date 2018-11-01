@@ -8,8 +8,8 @@
 #include "utility/utility.h"
 
 namespace icosahedron {
-    constexpr const double A = 0.525731112; // 1 / sqrt(1 + golden_ratio^2)
-    constexpr const double B = 0.850650808; // golden_ratio / sqrt(1 + golden_ratio^2)
+    constexpr const double A = 0.5257311121191336; // 1 / sqrt(1 + golden_ratio^2)
+    constexpr const double B = 0.8506508083520399; // golden_ratio / sqrt(1 + golden_ratio^2)
 
     struct Face {
         size_t a, b, c;

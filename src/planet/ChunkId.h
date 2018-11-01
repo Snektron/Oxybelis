@@ -93,36 +93,36 @@ struct ChunkLocation {
     ChunkLocation(const Vec3D& p, size_t depth, double radius):
         id(icosahedron::face_of(p), depth), corners(icosahedron::FACES[this->id.sector()]) {
 
-        for (size_t i = 0; i < depth; ++i) {
-            Vec3D ab = normalize(mix(this->corners.a, this->corners.b, 0.5f));
-            Vec3D bc = normalize(mix(this->corners.b, this->corners.c, 0.5f));
-            Vec3D ac = normalize(mix(this->corners.a, this->corners.c, 0.5f));
-
-            size_t quadrant = TriangleD(ac, ab, bc).sphere_classify(p);
-            this->id.set_quadrant(i + 1, quadrant);
-            switch (quadrant) {
-            case 0:
-                this->corners.a = bc;
-                this->corners.b = ac;
-                this->corners.c = ab;
-                break;
-            case 1:
-                this->corners.b = ab;
-                this->corners.c = ac;
-                break;
-            case 2:
-                this->corners.a = ab;
-                this->corners.c = bc;
-                break;
-            case 3:
-                this->corners.a = ac;
-                this->corners.b = bc;
-            };
-        }
-
         this->corners.a *= radius;
         this->corners.b *= radius;
         this->corners.c *= radius;
+
+        for (size_t i = 0; i < depth; ++i) {
+            Vec3D ab = mix(this->corners.a, this->corners.b, 0.5f);
+            Vec3D bc = mix(this->corners.b, this->corners.c, 0.5f);
+            Vec3D ca = mix(this->corners.c, this->corners.a, 0.5f);
+
+            size_t quadrant = TriangleD(ca, ab, bc).sphere_classify(p);
+            this->id.set_quadrant(i + 1, quadrant);
+            switch (quadrant) {
+            case 0:
+                this->corners.a = normalize(ab) * radius;
+                this->corners.b = normalize(bc) * radius;
+                this->corners.c = normalize(ca) * radius;
+                break;
+            case 1:
+                this->corners.b = normalize(ab) * radius;
+                this->corners.c = normalize(ca) * radius;
+                break;
+            case 2:
+                this->corners.a = normalize(ab) * radius;
+                this->corners.c = normalize(bc) * radius;
+                break;
+            case 3:
+                this->corners.a = normalize(ca) * radius;
+                this->corners.b = normalize(bc) * radius;
+            };
+        }
     } 
 };
 

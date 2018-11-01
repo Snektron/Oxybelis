@@ -1,5 +1,5 @@
 #include <iostream>
-#include <chrono>
+#include <iomanip>
 #include <cmath>
 #include <cstdint>
 #include <GLFW/glfw3.h>
@@ -36,6 +36,18 @@ enum class Input {
     ToggleCullFace
 };
 
+constexpr long double operator ""_Mm(long double val) {
+    return val * 1'000'000.0;
+}
+
+constexpr long double operator ""_km(long double val) {
+    return val * 1'000.0;
+}
+
+constexpr long double operator ""_m(long double val) {
+    return val;
+}
+
 int main() {
     if (glfwInit() != GLFW_TRUE) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -58,6 +70,7 @@ int main() {
     glClearColor(.97f, .97f, .97f, .97f);
 
     glEnable(GL_DEPTH_TEST);
+    // glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
     auto manager = InputManager<Input>();
 
@@ -89,9 +102,9 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto projection = Perspective(1.0, 1.17f, 0.01f, 5000.f);
+    auto projection = Perspective(1.0, 1.17f, 0.01f, 100.0_Mm);
 
-    auto cam = Camera(QuatD::identity(), Vec3D(0, 1, -2000));
+    auto cam = Camera(QuatD::identity(), Vec3D(0, 0, -10'000.0_km));
 
     ctx.connect_axis(Input::Vertical, [&](double v){
         cam.rotate_pitch(v);
@@ -105,7 +118,7 @@ int main() {
         cam.rotate_roll(v);
     });
 
-    constexpr double cam_speed = 1.0;
+    constexpr double cam_speed = 10.0_km;
 
     ctx.connect_axis(Input::Strafe, [&](double v){
         cam.strafe(cam_speed * v);
@@ -143,7 +156,7 @@ int main() {
 
     auto p = Planet {
         Vec3D(0, 0, 0),
-        1000.
+        6'371.0_km
     };
 
     auto pr = PlanetRenderer(p);

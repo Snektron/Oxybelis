@@ -3,6 +3,7 @@
 #include <array>
 #include <utility>
 #include <cmath>
+#include <iomanip>
 #include "glad/glad.h"
 #include "graphics/shader/ProgramBuilder.h"
 #include "planet/ChunkId.h"

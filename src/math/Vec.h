@@ -348,7 +348,8 @@ constexpr auto cross(const Vec<T, 3>& lhs, const Vec<U, 3>& rhs) {
 
 template <typename T, typename U, typename V, size_t N>
 constexpr auto mix(const Vec<T, N>& lhs, const Vec<U, N>& rhs, V t) {
-    return lhs + t * (rhs - lhs);
+    // return lhs + t * (rhs - lhs);
+    return lhs * (static_cast<V>(1) - t) + rhs * t;
 }
 
 template <typename T, typename U, size_t N>
