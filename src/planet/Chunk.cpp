@@ -9,7 +9,6 @@
 
 std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, size_t points, double radius) {
     auto gen = std::mt19937(loc.id.raw());
-    auto dist = std::uniform_real_distribution<double>(0., 1.);
 
     size_t max_pts = side_points * 3 + points;
     auto mem = MPE_PolyAllocateMem(max_pts);
@@ -18,6 +17,8 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
     MPE_PolyInitContext(&poly_ctx, mem.get(), max_pts);
 
     auto a_b = loc.corners.b - loc.corners.a;
+    auto c_d = -cross(loc.corners.face_normal(), a_b);
+
     double ab = length(a_b);
     double ad = dot(a_b, loc.corners.c - loc.corners.a) / ab;
     double db = ab - ad;
@@ -26,7 +27,6 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
     double adn = ad / ab;
     double dbn = db / ab;
     double cdn = cd / ab;
-    auto c_d = -cross(loc.corners.face_normal(), a_b);
 
     auto add_edge_pt = [&](double x, double y) {
         auto* pt = MPE_PolyPushPoint(&poly_ctx);
@@ -60,13 +60,16 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
     auto center = Vec2D(1 + adn, cdn) / 3.0;
     double edge_dst = 1.0 / side_points;
 
-    for (size_t i = 0; i < points; ++i) {
-        auto p = Vec2D(dist(gen), dist(gen) * cdn);
+    auto dist_x = std::uniform_real_distribution<double>(adn / 2.0, 1 - dbn / 2.0);
+    auto dist_y = std::uniform_real_distribution<double>(0, cdn);
 
-        if (p.y >= cdn / adn * p.x) {
+    for (size_t i = 0; i < points; ++i) {
+        auto p = Vec2D(dist_x(gen), dist_y(gen));
+
+        if (p.y * ad > cd * p.x) {
             p.y = cdn - p.y;
             p.x = adn - p.x;
-        } else if (p.y >= (1 - p.x) * cdn / dbn) {
+        } else if (p.y * db > (1 - p.x) * cd){
             p.y = cdn - p.y;
             p.x = 1 - p.x + adn;
         }
@@ -79,6 +82,7 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
     MPE_PolyTriangulate(&poly_ctx);
 
     auto vertices = std::vector<Vec3F>();
+    vertices.reserve(max_pts);
 
     auto perlin = noise::module::Perlin();
     perlin.SetOctaveCount(8);
