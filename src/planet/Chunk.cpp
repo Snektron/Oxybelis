@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include <random>
+#include <iostream>
 #include <cstddef>
 #include <noise/noise.h>
 #include "fast-poly2tri/fastpoly2tri.h"
@@ -15,6 +16,17 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
     MPEPolyContext poly_ctx;
 
     MPE_PolyInitContext(&poly_ctx, mem.get(), max_pts);
+
+    auto a_b = loc.corners.b - loc.corners.a;
+    double ab = length(a_b);
+    double ad = dot(a_b, loc.corners.c - loc.corners.a) / ab;
+    double db = ab - ad;
+    double cd = std::sqrt(distance_sq(loc.corners.a, loc.corners.c) - ad * ad);
+
+    double adn = ad / ab;
+    double dbn = db / ab;
+    double cdn = cd / ab;
+    auto c_d = -cross(loc.corners.face_normal(), a_b);
 
     auto add_edge_pt = [&](double x, double y) {
         auto* pt = MPE_PolyPushPoint(&poly_ctx);
@@ -35,35 +47,38 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
 
     for (size_t i = 0; i < side_points; ++i) {
         double x = double(i) / side_points;
-        add_edge_pt(1 - x, x);
+        add_edge_pt(1 - x * dbn, x * cdn);
     }
 
     for (size_t i = 0; i < side_points; ++i) {
         double x = double(i) / side_points;
-        add_edge_pt(0, 1.f - x);
+        add_edge_pt((1 - x) * adn, (1 - x) * cdn);
     }
 
     MPE_PolyAddEdge(&poly_ctx);
 
-    constexpr auto center = (Vec2D(0, 0) + Vec2D(1, 0) + Vec2D(0, 1)) / 3.f;
-    double edge_dst = 1.f / side_points;
+    auto center = Vec2D(1 + adn, cdn) / 3.0;
+    double edge_dst = 1.0 / side_points;
 
     for (size_t i = 0; i < points; ++i) {
-        auto p = Vec2D(dist(gen), dist(gen));
+        auto p = Vec2D(dist(gen), dist(gen) * cdn);
 
-        if (p.x + p.y > 1)
-            p = 1 - p;
+        if (p.y >= cdn / adn * p.x) {
+            p.y = cdn - p.y;
+            p.x = adn - p.x;
+        } else if (p.y >= (1 - p.x) * cdn / dbn) {
+            p.y = cdn - p.y;
+            p.x = 1 - p.x + adn;
+        }
 
         p = mix(p, center, edge_dst);
+
         add_pt(p.x, p.y);
     }
 
     MPE_PolyTriangulate(&poly_ctx);
 
     auto vertices = std::vector<Vec3F>();
-
-    auto ba = loc.corners.b - loc.corners.a;
-    auto ca = loc.corners.c - loc.corners.a;
 
     auto perlin = noise::module::Perlin();
     perlin.SetOctaveCount(8);
@@ -72,7 +87,7 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
     auto chunk_center = loc.corners.center();
 
     auto get_vec = [&](double x, double y) {
-        auto v = normalize(x * ba + y * ca + loc.corners.a);
+        auto v = normalize(loc.corners.a + a_b * x + c_d * y);
         double h = perlin.GetValue(v.x * 5.0, v.y * 5.0, v.z * 5.0) / 50.0 + 1.0;
         return v * radius * h;
     };
@@ -105,7 +120,7 @@ Chunk::Chunk(const ChunkLocation& loc, double radius):
     this->vao.bind();
     this->terrain.bind(GL_ARRAY_BUFFER);
 
-    auto v = generate_data(this->loc, 50, 1000, radius);
+    auto v = generate_data(this->loc, 40, 1000, radius);
     Buffer::upload_data(GL_ARRAY_BUFFER, GL_STATIC_DRAW, v);
     this->vertices = v.size() / 2;
 
