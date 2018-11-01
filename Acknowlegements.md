@@ -20,6 +20,9 @@ src/math/Vec.h, src/math/Mat.h:
     mat::look_at(): code taken from glm lookAt
     Some code inspired (but not copied) by armadillo, glm, eigen3
 
+assets/passthrough.fs:
+    Logarithmic depth calculation by https://www.gamedev.net/blogs/entry/2006307-tip-of-the-day-logarithmic-zbuffer-artifacts-fix/
+
 Other sources of info include
     - Unity 3D docs
     - Unreal Engine 4 docs and source

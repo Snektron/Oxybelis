@@ -9,15 +9,19 @@ uniform mat4 uModel;
 out vec3 vNormal;
 out float vHeight;
 
+out vec4 vClipPos;
+
 const float PI = 3.14159264;
 const float TAU = 2 * PI;
 const float C = 0.001;
-const float FAR = 100000000.0;
+const float FAR = 10000000.0;
 
 void main() {
-    vec4 v = uPerspective * uModel * vec4(aVertex, 1.0);
-    v.z = (2.0 * log(C * v.w + 1.0) / log(C * FAR + 1.0) - 1.0) * v.w;
-    gl_Position = v;
+    vec4 clipPos = uPerspective * uModel * vec4(aVertex, 1.0);
+    // clipPos.z = (2.0 * log(C * clipPos.w + 1.0) / log(C * FAR + 1.0) - 1.0) * clipPos.w;
+    gl_Position = clipPos;
+    vClipPos = clipPos;
+
     vNormal = aNormal;
     vHeight = (length(aVertex) - 6371000.0) / 10.0;
 }

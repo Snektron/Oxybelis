@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <cmath>
 #include <cstdint>
+#include <chrono>
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
 #include "core/Window.h"
@@ -33,7 +34,9 @@ enum class Input {
     Fly,
     Rotate,
     TogglePolygonMode,
-    ToggleCullFace
+    ToggleCullFace,
+    SpeedUp,
+    SpeedDown
 };
 
 constexpr long double operator ""_Mm(long double val) {
@@ -70,6 +73,7 @@ int main() {
     glClearColor(.97f, .97f, .97f, .97f);
 
     glEnable(GL_DEPTH_TEST);
+    // glDepthFunc(GL_ALWAYS);
     // glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
     auto manager = InputManager<Input>();
@@ -86,6 +90,8 @@ int main() {
     kb.bind_axis(Input::Fly, GLFW_KEY_LEFT_SHIFT, -1.0);
     kb.bind_axis(Input::Rotate, GLFW_KEY_Q, 0.01);
     kb.bind_axis(Input::Rotate, GLFW_KEY_E, -0.01);
+    kb.bind_action(Input::SpeedUp, GLFW_KEY_UP);
+    kb.bind_action(Input::SpeedDown, GLFW_KEY_DOWN);
 
     auto mouse = Mouse<Input>(manager, window);
     mouse.bind_axis(Input::Horizontal, MouseAxis::Horizontal, 0.01);
@@ -102,7 +108,7 @@ int main() {
 
     manager.switch_context(ctx);
 
-    auto projection = Perspective(1.0, 1.17f, 0.01f, 100.0_Mm);
+    auto projection = Perspective(1.0, 1.17f, 0.01f, 10'000.0_km);
 
     auto cam = Camera(QuatD::identity(), Vec3D(0, 0, -10'000.0_km));
 
@@ -118,7 +124,16 @@ int main() {
         cam.rotate_roll(v);
     });
 
-    constexpr double cam_speed = 10.0_km;
+    constexpr double cam_base_speed = 10.0_km;
+    double cam_speed = 0;
+    int speed = 0;
+
+    auto update_speed = [&]() {
+        cam_speed = cam_base_speed * std::pow(10, speed);
+        std::cout << "Cam speed: " << (cam_speed * 144) << " m/s" << std::endl;
+    };
+
+    update_speed();
 
     ctx.connect_axis(Input::Strafe, [&](double v){
         cam.strafe(cam_speed * v);
@@ -130,6 +145,20 @@ int main() {
 
     ctx.connect_axis(Input::Forward, [&](double v){
         cam.forward(cam_speed * v);
+    });
+
+    ctx.connect_action(Input::SpeedUp, [&](Action a) {
+        if (a == Action::Press) {
+            ++speed;
+            update_speed();
+        }
+    });
+
+    ctx.connect_action(Input::SpeedDown, [&](Action a) {
+        if (a == Action::Press) {
+            --speed;
+            update_speed();
+        }
     });
 
     GLenum polymode = GL_FILL;
@@ -161,6 +190,9 @@ int main() {
 
     auto pr = PlanetRenderer(p);
 
+    auto start = std::chrono::high_resolution_clock::now();
+    size_t frames = 0;
+
     while (!window.should_close() && !esc) {
         auto dim = window.dimensions();
         glViewport(0, 0, dim.x, dim.y);
@@ -174,6 +206,17 @@ int main() {
         assert_gl();
         glfwPollEvents();
         manager.update();
+
+        auto now = std::chrono::high_resolution_clock::now();
+        auto dur = std::chrono::duration_cast<std::chrono::seconds>(now - start);
+
+        if (dur.count() > 1.0) {
+            std::cout << "Fps: " << frames / dur.count() << std::endl;
+            frames = 0;
+            start = now;
+        }
+
+        ++frames;
     }
 
     return 0;

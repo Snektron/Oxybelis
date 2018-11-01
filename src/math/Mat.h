@@ -298,13 +298,13 @@ constexpr auto transpose(const Mat<T, M, N>& m) {
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::translation(const Vec3<T>& translation) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 translation matrix");
     return Mat<T, M, N>::translation(translation.x, translation.y, translation.z);
 }
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::translation(const T& x, const T& y, const T& z) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 translation matrix");
     auto result = Mat4<T>::identity();
     result(0, 3) = x;
     result(1, 3) = y;
@@ -314,13 +314,13 @@ constexpr auto Mat<T, M, N>::translation(const T& x, const T& y, const T& z) {
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::scaling(const Vec3<T>& scaling) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 scaling matrix");
     return Mat<T, M, N>::scaling(scaling.x, scaling.y, scaling.z);
 }
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::scaling(const T& x, const T& y, const T& z) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 scaling matrix");
     Mat4<T> result;
     result(0, 0) = x;
     result(1, 1) = y;
@@ -331,13 +331,13 @@ constexpr auto Mat<T, M, N>::scaling(const T& x, const T& y, const T& z) {
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::axis_angle(const Vec3<T>& axis, const T& angle) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 rotation matrix");
     return Mat<T, M, N>::axis_angle(axis.x, axis.y, axis.z, angle);
 }
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::axis_angle(const T& x, const T& y, const T& z, const T& angle) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 rotation matrix");
     Mat4<T> result;
     auto c = std::cos(angle);
     auto ci = 1 - c;
@@ -361,7 +361,7 @@ constexpr auto Mat<T, M, N>::axis_angle(const T& x, const T& y, const T& z, cons
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 orthographic projection matrix");
     Mat4<T> result;
 
     auto rl = right - left;
@@ -381,7 +381,7 @@ constexpr auto Mat<T, M, N>::orthographic(const T& left, const T& right, const T
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T& near, const T& far) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 perspective projection matrix");
     Mat4<T> result;
 
     auto nf = near - far;
@@ -398,7 +398,7 @@ constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T&
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 view matrix");
     auto s = normalize(cross(dir, up));
     auto u = cross(s, dir);
 
@@ -422,7 +422,7 @@ constexpr auto Mat<T, M, N>::look(const Vec3<T>& eye, const Vec3<T>& dir, const 
 
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::look_at(const Vec3<T>& eye, const Vec3<T>& target, const Vec3<T>& up) {
-    static_assert(M == 4 && N == 4);
+    static_assert(M == 4 && N == 4, "Can only create a 4x4 view matrix");
     return look(eye, normalize(target - eye), up);
 }
 
