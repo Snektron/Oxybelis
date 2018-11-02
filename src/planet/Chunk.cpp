@@ -124,7 +124,7 @@ Chunk::Chunk(const ChunkLocation& loc, double radius):
     this->vao.bind();
     this->terrain.bind(GL_ARRAY_BUFFER);
 
-    auto v = generate_data(this->loc, 40, 1000, radius);
+    auto v = generate_data(this->loc, 100, 10000, radius);
     Buffer::upload_data(GL_ARRAY_BUFFER, GL_STATIC_DRAW, v);
     this->vertices = v.size() / 2;
 

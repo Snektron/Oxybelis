@@ -11,7 +11,9 @@
 #include "assets.h"
 
 size_t lod_from_alt(double alt_sq) {
-    if (alt_sq < 0.05)
+    if (alt_sq < 0.01)
+        return 5;
+    else if (alt_sq < 0.05)
         return 4;
     else if (alt_sq < 0.15)
         return 3;

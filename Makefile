@@ -7,7 +7,7 @@ ASSETS := assets
 3RDPARTY := 3rdparty
 PKGS := glfw3
 CXXFLAGS := -flto -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -I/usr/include/noisepp/threadpp \
-	-g -std=c++17 -Wall -Wextra -O0 -march=native \
+	-g -std=c++14 -Wall -Wextra -O3 -march=native \
 	-DGLFW_INCLUDE_NONE \
 	`pkg-config --cflags $(PKGS)`
 LDFLAGS := -flto -g -ldl -lnoise `pkg-config --libs $(PKGS)` -pthread

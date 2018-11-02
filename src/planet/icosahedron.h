@@ -30,7 +30,7 @@ namespace icosahedron {
         Vec3D(0, A, B)
     };  
 
-    constexpr const std::array<Face, 20> INDICES = {
+    constexpr const std::array<Face, 20> FACES = {
         Face{1, 6, 2},
         Face{1, 2, 7},
         Face{3, 5, 4},
@@ -53,18 +53,41 @@ namespace icosahedron {
         Face{4, 0, 8}
     };
 
-    constexpr const std::array<TriangleD, 20> FACES = initialize_array<20>([](size_t i) {
-        const auto& face = INDICES[i];
+    constexpr TriangleD calculate_face(size_t i) {
+        const auto& face = FACES[i];
         return TriangleD(VERTICES[face.a], VERTICES[face.b], VERTICES[face.c]);
-    });
+    }
+
+    constexpr const std::array<TriangleD, 20> TRIANGLES = {
+        calculate_face(0),
+        calculate_face(1),
+        calculate_face(2),
+        calculate_face(3),
+        calculate_face(4),
+        calculate_face(5),
+        calculate_face(6),
+        calculate_face(7),
+        calculate_face(8),
+        calculate_face(9),
+        calculate_face(10),
+        calculate_face(11),
+        calculate_face(12),
+        calculate_face(13),
+        calculate_face(14),
+        calculate_face(15),
+        calculate_face(16),
+        calculate_face(17),
+        calculate_face(18),
+        calculate_face(19),
+    };
 
     constexpr size_t face_of(const Vec3D& p) {
-        for (size_t i = 0; i < FACES.size() - 1; ++i) {
-            if (FACES[i].sphere_classify(p) == 0)
+        for (size_t i = 0; i < TRIANGLES.size() - 1; ++i) {
+            if (TRIANGLES[i].sphere_classify(p) == 0)
                 return i;
         }
 
-        return FACES.size() - 1;
+        return TRIANGLES.size() - 1;
     }
 }
 

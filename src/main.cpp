@@ -130,7 +130,7 @@ int main() {
 
     auto update_speed = [&]() {
         cam_speed = cam_base_speed * std::pow(10, speed);
-        std::cout << "Cam speed: " << (cam_speed * 144) << " m/s" << std::endl;
+        std::cout << "Cam speed: " << (cam_speed * 60) << " m/s" << std::endl;
     };
 
     update_speed();
