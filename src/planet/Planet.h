@@ -2,7 +2,6 @@
 #define _OXYBELIS_PLANET_PLANET_H
 
 #include "math/Vec.h"
-#include "planet/ChunkPatch.h"
 
 struct Planet {
     Vec3D translation;

@@ -1,14 +1,14 @@
-#ifndef _OXYBELIS_PLANET_CHUNKPATCH_H
-#define _OXYBELIS_PLANET_CHUNKPATCH_H
+#ifndef _OXYBELIS_PLANET_CHUNK_CHUNKPATCH_H
+#define _OXYBELIS_PLANET_CHUNK_CHUNKPATCH_H
 
 #include <vector>
 #include "math/Vec.h"
 #include "math/Mat.h"
 #include "graphics/camera/Camera.h"
 #include "graphics/shader/Program.h"
-#include "planet/ChunkId.h"
-#include "planet/Chunk.h"
-#include "planet/ChunkCache.h"
+#include "planet/chunk/ChunkId.h"
+#include "planet/chunk/Chunk.h"
+#include "planet/chunk/ChunkCache.h"
 
 class ChunkPatch {
     ChunkLocation center;

@@ -7,8 +7,8 @@
 #include "math/Mat.h"
 #include "graphics/camera/Camera.h"
 #include "graphics/shader/Program.h"
-#include "planet/ChunkCache.h"
-#include "planet/ChunkPatch.h"
+#include "planet/chunk/ChunkCache.h"
+#include "planet/chunk/ChunkPatch.h"
 #include "utility/Option.h"
 
 struct Planet;

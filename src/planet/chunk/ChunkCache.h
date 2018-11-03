@@ -1,10 +1,10 @@
-#ifndef _OXYBELIS_PLANET_CHUNKCACHE_H
-#define _OXYBELIS_PLANET_CHUNKCACHE_H
+#ifndef _OXYBELIS_PLANET_CHUNK_CHUNKCACHE_H
+#define _OXYBELIS_PLANET_CHUNK_CHUNKCACHE_H
 
 #include <vector>
 #include <memory>
-#include "planet/ChunkId.h"
-#include "planet/Chunk.h"
+#include "planet/chunk/ChunkId.h"
+#include "planet/chunk/Chunk.h"
 
 struct ChunkLocation;
 

@@ -1,5 +1,5 @@
-#ifndef _OXYBELIS_PLANET_CHUNKID_H
-#define _OXYBELIS_PLANET_CHUNKID_H
+#ifndef _OXYBELIS_PLANET_CHUNK_CHUNKID_H
+#define _OXYBELIS_PLANET_CHUNK_CHUNKID_H
 
 #include <ostream>
 #include <iterator>

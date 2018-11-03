@@ -6,7 +6,7 @@
 #include <iomanip>
 #include "glad/glad.h"
 #include "graphics/shader/ProgramBuilder.h"
-#include "planet/ChunkId.h"
+#include "planet/chunk/ChunkId.h"
 #include "planet/Planet.h"
 #include "assets.h"
 
@@ -24,15 +24,34 @@ size_t lod_from_alt(double alt_sq) {
     return 0;
 }
 
-Program another_load_shader() {
+size_t lod_from_alt_2(double alt_sq) {
+    if (alt_sq <= std::pow(4'000.0, 2.0))
+        return 7;
+    else if (alt_sq <= std::pow(10'000.0, 2.0))
+        return 6;
+    else if (alt_sq <= std::pow(32'000.0, 2.0))
+        return 5;
+    else if (alt_sq <= std::pow(60'000.0, 2.0))
+        return 4;
+    else if (alt_sq <= std::pow(250'000.0, 2.0))
+        return 3;
+    else if (alt_sq <= std::pow(1'000'000.0, 2.0))
+        return 2;
+    else if (alt_sq <= std::pow(1'600'000.0, 2.0))
+        return 1;
+    else
+        return 0;
+}
+
+Program load_shader() {
     return ProgramBuilder()
-        .with(ShaderType::Vertex, assets::passthrough_vs)
-        .with(ShaderType::Fragment, assets::passthrough_fs)
+        .with(ShaderType::Vertex, assets::terrain_vs)
+        .with(ShaderType::Fragment, assets::terrain_fs)
         .link();
 }
 
 PlanetRenderer::PlanetRenderer(Planet& planet):
-    shader(another_load_shader()),
+    shader(load_shader()),
     perspective(this->shader.uniform("uPerspective")),
     model(this->shader.uniform("uModel")),
     planet(planet),
@@ -40,14 +59,16 @@ PlanetRenderer::PlanetRenderer(Planet& planet):
 }
 
 void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
-    double dst = distance_sq(cam.translation, Vec3D(0)) - std::pow(this->planet.radius, 2.0);
-    dst /= std::pow(this->planet.radius, 2.0);
-    auto lod = lod_from_alt(dst);
+    double dst = distance(cam.translation, planet.translation) - this->planet.radius;
+    // dst /= std::pow(this->planet.radius, 2.0);
+    // auto lod = lod_from_alt(dst);
+    auto lod = lod_from_alt_2(dst * dst);
+    // std::cout << dst << " " << lod << std::endl;
     auto loc = ChunkLocation(cam.translation, lod, this->planet.radius);
 
     if (this->patch->center.id != loc.id || !this->patch) {
         this->patch = ChunkPatch(cam.translation, lod, this->planet.radius, this->cache);
-        this->cache.collect_garbage();
+        // this->cache.collect_garbage();
     }
 
     this->shader.use();

@@ -1,5 +1,5 @@
-#ifndef _OXYBELIS_PLANET_CHUNK_H
-#define _OXYBELIS_PLANET_CHUNK_H
+#ifndef _OXYBELIS_PLANET_CHUNK_CHUNK_H
+#define _OXYBELIS_PLANET_CHUNK_CHUNK_H
 
 #include <cstddef>
 #include "graphics/VertexArray.h"
@@ -7,7 +7,7 @@
 #include "math/Mat.h"
 #include "graphics/camera/Camera.h"
 #include "graphics/shader/Program.h"
-#include "planet/ChunkId.h"
+#include "planet/chunk/ChunkId.h"
 
 class Chunk {
     ChunkLocation loc;

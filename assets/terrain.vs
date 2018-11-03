@@ -18,7 +18,6 @@ const float FAR = 10000000.0;
 
 void main() {
     vec4 clipPos = uPerspective * uModel * vec4(aVertex, 1.0);
-    // clipPos.z = (2.0 * log(C * clipPos.w + 1.0) / log(C * FAR + 1.0) - 1.0) * clipPos.w;
     gl_Position = clipPos;
     vClipPos = clipPos;
 
