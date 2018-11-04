@@ -7,6 +7,7 @@
 #include "math/Mat.h"
 #include "graphics/camera/Camera.h"
 #include "graphics/shader/Program.h"
+#include "graphics/VertexArray.h"
 #include "planet/terragen/TerrainGenerator.h"
 #include "planet/chunk/ChunkLoader.h"
 #include "planet/chunk/ChunkPatch.h"
@@ -18,6 +19,7 @@ class PlanetRenderer {
     Program shader;
     Uniform perspective;
     Uniform model;
+    VertexArray vao;
 
     Planet& planet;
     ChunkLoader loader;

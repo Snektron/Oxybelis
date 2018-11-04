@@ -10,6 +10,10 @@ const size_t CHUNK_PATCH_PATH[] = {
     PATH_END, PATH_LEFT, PATH_LEFT | PATH_RIGHT
 };
 
+// const size_t CHUNK_PATCH_PATH[] = {
+//     PATH_LEFT | PATH_RIGHT, PATH_END, PATH_RIGHT
+// };
+
 ChunkLocation neighbor(size_t depth, double radius, const ChunkLocation& loc, const Vec3D& c, size_t side) {
     auto mid = mix(loc.corners.points[side], loc.corners.points[(side + 1) % 3], 0.5f);
     auto v = mix(c, mid, 2.f);

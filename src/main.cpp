@@ -75,8 +75,14 @@ int main() {
     glClearColor(.97f, .97f, .97f, .97f);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEBUG_OUTPUT);
     // glDepthFunc(GL_ALWAYS);
     // glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
+    glDebugMessageCallback([](GLenum, GLenum, GLuint, GLenum, GLsizei length, const GLchar* message, const void*){
+        std::cout << "[OpenGL] ";
+        std::cout.write(message, length) << std::endl;
+    }, nullptr);
 
     auto manager = InputManager<Input>();
 
@@ -190,12 +196,9 @@ int main() {
         6'371.0_km
     };
 
-    ThreadPool pool(std::thread::hardware_concurrency());
+    ThreadPool pool(std::thread::hardware_concurrency() / 2);
     auto gen = TerrainGenerator(pool);
     auto pr = PlanetRenderer(gen, p);
-
-    auto start = std::chrono::high_resolution_clock::now();
-    size_t frames = 0;
 
     while (!window.should_close() && !esc) {
         auto dim = window.dimensions();
@@ -210,17 +213,6 @@ int main() {
         assert_gl();
         glfwPollEvents();
         manager.update();
-
-        auto now = std::chrono::high_resolution_clock::now();
-        auto dur = std::chrono::duration_cast<std::chrono::seconds>(now - start);
-
-        if (dur.count() > 1.0) {
-            std::cout << "Fps: " << frames / dur.count() << std::endl;
-            frames = 0;
-            start = now;
-        }
-
-        ++frames;
     }
 
     return 0;

@@ -2,7 +2,6 @@
 #define _OXYBELIS_PLANET_CHUNK_CHUNK_H
 
 #include <cstddef>
-#include "graphics/VertexArray.h"
 #include "graphics/Buffer.h"
 #include "math/Mat.h"
 #include "graphics/camera/Camera.h"
@@ -12,13 +11,11 @@
 
 class Chunk {
     ChunkLocation loc;
-    VertexArray vao;
     Buffer terrain;
     size_t vertices;
     Vec3D center;
 
 public:
-    Chunk(const ChunkLocation& loc, double radius);
     Chunk(const TerrainData& terrain);
 
     void render(const Camera& cam, Uniform model) const;

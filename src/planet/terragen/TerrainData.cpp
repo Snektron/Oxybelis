@@ -6,7 +6,7 @@
 TerrainData::TerrainData(const ChunkLocation& loc, double radius):
     loc(loc) {
     size_t side_points = 100;
-    size_t points = 10'000;
+    size_t points = 20'000;
     size_t max_pts = side_points * 3 + points;
 
     auto gen = std::mt19937(loc.id.raw());

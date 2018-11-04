@@ -69,7 +69,7 @@ run: all
 	@$(BUILD)/target/$(TARGET)
 
 debug: all
-	@GALLIUM_HUD="fps+GPU-load+VRAM-usage" $(BUILD)/target/$(TARGET)
+	@GALLIUM_HUD="fps+GPU-load+VRAM-usage+cpu" $(BUILD)/target/$(TARGET)
 
 -include $(call find, $(BUILD)/, "*.d")
 

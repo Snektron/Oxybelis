@@ -58,6 +58,10 @@ PlanetRenderer::PlanetRenderer(TerrainGenerator& gen, Planet& planet):
     loader(gen),
     patch(NONE),
     pending_patch(NONE) {
+
+    this->vao.bind();
+    this->vao.enable_attrib(0);
+    this->vao.enable_attrib(1);
 }
 
 void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
@@ -68,12 +72,14 @@ void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
 
     if ((!this->patch || this->patch->center.id != loc.id) && !this->pending_patch) {
         this->pending_patch = ChunkPatch(cam.translation, lod, this->planet.radius, this->loader);
-        // this->loader.collect_garbage();
     }
+
+    this->vao.bind();
 
     if (this->pending_patch && this->pending_patch->is_ready()) {
         this->patch = std::move(this->pending_patch);
         this->pending_patch = NONE;
+        this->loader.collect_garbage();
     }
 
     if (this->patch) {
@@ -81,5 +87,10 @@ void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
         glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
 
         this->patch->render(cam, this->model);
+    } else if (this->pending_patch) {
+        this->shader.use();
+        glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
+
+        this->pending_patch->render(cam, this->model);
     }
 }

@@ -1,5 +1,6 @@
 #include "planet/chunk/ChunkLoader.h"
 #include <chrono>
+#include <iostream>
 
 constexpr const std::chrono::seconds TERRAIN_FUTURE_TIMEOUT{0};
 
@@ -38,10 +39,14 @@ std::shared_ptr<CachedChunk> ChunkLoader::get_or_queue(const ChunkLocation& loc,
 
 void ChunkLoader::collect_garbage() {
     auto it = this->cache.begin();
+    size_t cleaned = 0;
     while (it != this->cache.end()) {
-        if (it->second.use_count() == 1)
+        if (it->second.use_count() == 1) {
+            ++cleaned;
             it = this->cache.erase(it);
-        else
+        } else
             ++it;
     }
+
+    std::cout << __PRETTY_FUNCTION__ << ": Collected " << cleaned << " chunks, " << this->cache.size() << " remaining" << std::endl;
 }

@@ -37,7 +37,7 @@ public:
         upload_data(target, usage, container);
     }
 
-    void bind(GLuint target) {
+    void bind(GLuint target) const {
         glBindBuffer(target, this->buffer);
     }
 
