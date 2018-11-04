@@ -7,6 +7,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <cstdint>
+#include <climits>
 #include <tuple>
 #include "utility/utility.h"
 
