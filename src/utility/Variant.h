@@ -105,21 +105,23 @@ public:
     }
 
     constexpr Variant(const Variant& other):
-        id(other.id) {
+        id(DISENGAGED) {
         this->invoke([&](auto& item) {
             using T = std::remove_reference_t<decltype(item)>;
             // &item is uninitialized at this point
             new (&item) T(other.get_unchecked<T>());
-        });
+        }, other.id);
+        this->id = other.id;
     }
 
     constexpr Variant(Variant&& other):
-        id(other.id) {
+        id(DISENGAGED) {
         this->invoke([&](auto& item) {
             using T = std::remove_reference_t<decltype(item)>;
             // &item is uninitialized at this point
             new (&item) T(std::move(other.get_unchecked<T>()));
-        });
+        }, other.id);
+        this->id = other.id;
     }
 
     ~Variant() {
@@ -128,24 +130,24 @@ public:
 
     constexpr Variant& operator=(const Variant& other) {
         this->clear();
-        this->id = other.id;
         this->invoke([&](auto& item) {
             using T = std::remove_reference_t<decltype(item)>;
             // &item is uninitialized at this point
             new (&item) T(other.get_unchecked<T>());
-        });
+        }, other.id);
+        this->id = other.id;
 
         return *this;
     }
 
     constexpr Variant& operator=(Variant&& other) {
         this->clear();
-        this->id = other.id;
         this->invoke([&](auto& item) {
             using T = std::remove_reference_t<decltype(item)>;
             // &item is uninitialized at this point
             new (&item) T(std::move(other.get_unchecked<T>()));
-        });
+        }, other.id);
+        this->id = other.id;
 
         return *this;
     }
@@ -204,20 +206,12 @@ public:
 
     template <typename F>
     constexpr bool invoke(F&& f) {
-        if (!this->has_value())
-            return false;
-
-        detail::VariantInvoke<1, Ts...>::invoke(std::forward<F>(f), data, this->id);
-        return true;
+        return this->invoke(std::forward<F>(f), this->id);
     }
 
     template <typename F>
     constexpr bool invoke(F&& f) const {
-        if (!this->has_value())
-            return false;
-
-        detail::VariantInvoke<1, Ts...>::invoke(std::forward<F>(f), data, this->id);
-        return true;
+        return this->invoke(std::forward<F>(f), this->id);
     }
 
     template <typename T>
@@ -231,6 +225,24 @@ public:
     }
 
 private:
+    template <typename F>
+    constexpr bool invoke(F&& f, detail::VariantId target) {
+        if (!this->has_value())
+            return false;
+
+        detail::VariantInvoke<1, Ts...>::invoke(std::forward<F>(f), data, target);
+        return true;
+    }
+
+    template <typename F>
+    constexpr bool invoke(F&& f, detail::VariantId target) const {
+        if (!this->has_value())
+            return false;
+
+        detail::VariantInvoke<1, Ts...>::invoke(std::forward<F>(f), data, target);
+        return true;
+    }
+
     template <typename T>
     constexpr detail::VariantId id_of() const {
         return detail::VariantIdOf<Variant, T>::id;
