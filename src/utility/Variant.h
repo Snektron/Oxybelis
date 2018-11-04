@@ -1,13 +1,12 @@
 #ifndef _OXYBELIS_UTILITY_VARIANT_H
 #define _OXYBELIS_UTILITY_VARIANT_H
 
-#include <iostream>
+#include <ostream>
 #include <type_traits>
 #include <utility>
 #include <ostream>
 #include <stdexcept>
 #include <cstdint>
-#include <climits>
 #include <tuple>
 #include "utility/utility.h"
 
@@ -101,7 +100,7 @@ class Variant {
 
 public:
     template <typename T>
-    constexpr static auto make(T&& item) {
+    constexpr static Variant make(T&& item) {
         Variant v;
         v = std::forward<T>(item);
         return v;
