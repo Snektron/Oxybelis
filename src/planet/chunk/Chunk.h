@@ -8,6 +8,7 @@
 #include "graphics/camera/Camera.h"
 #include "graphics/shader/Program.h"
 #include "planet/chunk/ChunkId.h"
+#include "planet/terragen/TerrainData.h"
 
 class Chunk {
     ChunkLocation loc;
@@ -18,7 +19,9 @@ class Chunk {
 
 public:
     Chunk(const ChunkLocation& loc, double radius);
-    void render(const Camera& cam, Uniform model);
+    Chunk(const TerrainData& terrain);
+
+    void render(const Camera& cam, Uniform model) const;
 
     ChunkId id() const {
         return this->loc.id;

@@ -50,29 +50,36 @@ Program load_shader() {
         .link();
 }
 
-PlanetRenderer::PlanetRenderer(Planet& planet):
+PlanetRenderer::PlanetRenderer(TerrainGenerator& gen, Planet& planet):
     shader(load_shader()),
     perspective(this->shader.uniform("uPerspective")),
     model(this->shader.uniform("uModel")),
     planet(planet),
-    patch(NONE) {
+    loader(gen),
+    patch(NONE),
+    pending_patch(NONE) {
 }
 
 void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
     double dst = distance(cam.translation, planet.translation) - this->planet.radius;
-    // dst /= std::pow(this->planet.radius, 2.0);
-    // auto lod = lod_from_alt(dst);
     auto lod = lod_from_alt_2(dst * dst);
-    // std::cout << dst << " " << lod << std::endl;
+    // std::cout << (dst / 1'000.0) << " " << lod << std::endl;
     auto loc = ChunkLocation(cam.translation, lod, this->planet.radius);
 
-    if (this->patch->center.id != loc.id || !this->patch) {
-        this->patch = ChunkPatch(cam.translation, lod, this->planet.radius, this->cache);
-        // this->cache.collect_garbage();
+    if ((!this->patch || this->patch->center.id != loc.id) && !this->pending_patch) {
+        this->pending_patch = ChunkPatch(cam.translation, lod, this->planet.radius, this->loader);
+        // this->loader.collect_garbage();
     }
 
-    this->shader.use();
-    glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
+    if (this->pending_patch && this->pending_patch->is_ready()) {
+        this->patch = std::move(this->pending_patch);
+        this->pending_patch = NONE;
+    }
 
-    this->patch->render(cam, this->model);
+    if (this->patch) {
+        this->shader.use();
+        glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
+
+        this->patch->render(cam, this->model);
+    }
 }

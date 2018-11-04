@@ -22,15 +22,15 @@ public:
         vao(gen_id()) {
     }
 
-    void bind() {
+    void bind() const {
         glBindVertexArray(this->vao);
     }
 
-    void enable_attrib(GLuint index) {
+    void enable_attrib(GLuint index) const {
         glEnableVertexArrayAttrib(this->vao, index);
     }
 
-    void disable_attrib(GLuint index) {
+    void disable_attrib(GLuint index) const {
         glDisableVertexArrayAttrib(this->vao, index);
     }
 };

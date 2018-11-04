@@ -7,7 +7,8 @@
 #include "math/Mat.h"
 #include "graphics/camera/Camera.h"
 #include "graphics/shader/Program.h"
-#include "planet/chunk/ChunkCache.h"
+#include "planet/terragen/TerrainGenerator.h"
+#include "planet/chunk/ChunkLoader.h"
 #include "planet/chunk/ChunkPatch.h"
 #include "utility/Option.h"
 
@@ -19,10 +20,11 @@ class PlanetRenderer {
     Uniform model;
 
     Planet& planet;
-    ChunkCache cache;
+    ChunkLoader loader;
     Option<ChunkPatch> patch;
+    Option<ChunkPatch> pending_patch;
 public:
-    PlanetRenderer(Planet& planet);
+    PlanetRenderer(TerrainGenerator& gen, Planet& planet);
     void render(const Mat4F& proj, const Camera& cam);
 };
 

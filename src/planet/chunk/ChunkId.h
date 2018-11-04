@@ -81,7 +81,10 @@ constexpr inline bool operator!=(ChunkId lhs, ChunkId rhs) {
 
 template<>
 struct std::hash<ChunkId> {
-    size_t operator()(ChunkId id) {
+    using result_type = size_t;
+    using argument_type = ChunkId;
+
+    size_t operator()(const ChunkId& id) const {
         return static_cast<size_t>(id.raw());
     }
 };

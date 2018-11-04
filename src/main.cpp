@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <chrono>
+#include <thread>
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
 #include "core/Window.h"
@@ -21,9 +22,10 @@
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
 #include "input/device/Keyboard.h"
+#include "planet/terragen/TerrainGenerator.h"
 #include "planet/render/PlanetRenderer.h"
 #include "planet/Planet.h"
-#include "assets.h"
+#include "utility/ThreadPool.h"
 
 enum class Input {
     Quit,
@@ -188,7 +190,9 @@ int main() {
         6'371.0_km
     };
 
-    auto pr = PlanetRenderer(p);
+    ThreadPool pool(std::thread::hardware_concurrency());
+    auto gen = TerrainGenerator(pool);
+    auto pr = PlanetRenderer(gen, p);
 
     auto start = std::chrono::high_resolution_clock::now();
     size_t frames = 0;

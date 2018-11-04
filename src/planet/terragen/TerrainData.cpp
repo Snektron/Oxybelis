@@ -1,15 +1,16 @@
-#include "planet/chunk/Chunk.h"
-#include <vector>
+#include "planet/terragen/TerrainData.h"
 #include <random>
-#include <cstddef>
-#include <cmath>
 #include <noise/noise.h>
 #include "fast-poly2tri/fastpoly2tri.h"
 
-std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, size_t points, double radius) {
+TerrainData::TerrainData(const ChunkLocation& loc, double radius):
+    loc(loc) {
+    size_t side_points = 100;
+    size_t points = 10'000;
+    size_t max_pts = side_points * 3 + points;
+
     auto gen = std::mt19937(loc.id.raw());
 
-    size_t max_pts = side_points * 3 + points;
     auto mem = MPE_PolyAllocateMem(max_pts);
     MPEPolyContext poly_ctx;
 
@@ -80,8 +81,7 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
 
     MPE_PolyTriangulate(&poly_ctx);
 
-    auto vertices = std::vector<Vec3F>();
-    vertices.reserve(max_pts);
+    this->terrain_data.reserve(poly_ctx.TriangleCount * 3);
 
     auto perlin = noise::module::Perlin();
     perlin.SetOctaveCount(8);
@@ -91,8 +91,9 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
 
     auto get_vec = [&](double x, double y) {
         auto v = normalize(loc.corners.a + a_b * x + c_d * y);
-        double h = std::min(perlin.GetValue(v.x * 50.0, v.y * 50.0, v.z * 50.0), 1.0);
+        double h = perlin.GetValue(v.x * 50.0, v.y * 50.0, v.z * 50.0) - 0.5;
         h *= h;
+        h += 0.5;
         h *= 5'000.0;
         return v * (radius + h);
     };
@@ -108,51 +109,9 @@ std::vector<Vec3F> generate_data(const ChunkLocation& loc, size_t side_points, s
         auto c = get_vec(tc->X, tc->Y);
 
         auto normal = normalize(cross(c - a, b - a));
-        vertices.push_back(a - chunk_center);
-        vertices.push_back(normal);
-        vertices.push_back(b - chunk_center);
-        vertices.push_back(normal);
-        vertices.push_back(c - chunk_center);
-        vertices.push_back(normal);
+
+        this->terrain_data.emplace_back(a - chunk_center, normal);
+        this->terrain_data.emplace_back(b - chunk_center, normal);
+        this->terrain_data.emplace_back(c - chunk_center, normal);
     }
-
-    return vertices;
-}
-
-Chunk::Chunk(const ChunkLocation& loc, double radius):
-    loc(loc), vertices(3), center(loc.corners.center()) {
-
-    this->vao.bind();
-    this->terrain.bind(GL_ARRAY_BUFFER);
-
-    auto v = generate_data(this->loc, 100, 10000, radius);
-    Buffer::upload_data(GL_ARRAY_BUFFER, GL_STATIC_DRAW, v);
-    this->vertices = v.size() / 2;
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), 0);
-    this->vao.enable_attrib(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), (void*)(sizeof(Vec3F)));
-    this->vao.enable_attrib(1);
-}
-
-Chunk::Chunk(const TerrainData& terrain):
-    loc(terrain.loc), vertices(terrain.terrain_data.size()), center(loc.corners.center()) {
-    this->vao.bind();
-    this->terrain.bind(GL_ARRAY_BUFFER);
-    Buffer::upload_data(GL_ARRAY_BUFFER, GL_STATIC_DRAW, terrain.terrain_data);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), 0);
-    this->vao.enable_attrib(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), (void*)(sizeof(Vec3F)));
-    this->vao.enable_attrib(1);
-}
-
-void Chunk::render(const Camera& cam, Uniform model) const {
-    auto view = cam.to_view_matrix();
-    view *= Mat4D::translation(this->center);
-
-    glUniformMatrix4fv(model, 1, GL_FALSE, static_cast<Mat4F>(view).data());
-
-    this->vao.bind();
-    glDrawArrays(GL_TRIANGLES, 0, this->vertices);
 }

@@ -41,7 +41,7 @@ void generate_patch_part(std::vector<ChunkLocation>& chunks, size_t depth, doubl
     }
 }
 
-ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkCache& cache):
+ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoader& loader):
     center(p, depth, radius) {
 
     auto chunk_locs = std::vector<ChunkLocation>();
@@ -77,18 +77,22 @@ ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkCache
     auto chunks = std::vector<Chunk>();
 
     std::transform(chunk_locs.begin(), chunk_locs.end(), std::back_inserter(this->chunks), [&, radius](const auto& loc) {
-        auto ptr = cache.get(loc.id);
-        if (!ptr) {
-            ptr = std::make_shared<Chunk>(loc, radius);
-            cache.insert(ptr);
-        }
-
-        return ptr;
+        return loader.get_or_queue(loc, radius);
     });
 }
 
+bool ChunkPatch::is_ready() {
+    for (auto& chunk_ref : this->chunks) {
+        if (chunk_ref->update() != CachedChunk::Status::Ready)
+            return false;
+    }
+    return true;
+}
+
 void ChunkPatch::render(const Camera& cam, Uniform model) {
-    for (auto& chunk : this->chunks) {
-        chunk->render(cam, model);
+    for (auto& chunk_ref : this->chunks) {
+        if (chunk_ref->update() == CachedChunk::Status::Ready) {
+            chunk_ref->chunk().render(cam, model);
+        }
     }    
 }
