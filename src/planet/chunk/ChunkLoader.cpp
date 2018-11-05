@@ -23,18 +23,14 @@ const Chunk& CachedChunk::chunk() const {
     return this->data.get<Chunk>();
 }
 
-bool ChunkLoader::contains(ChunkId id) const {
-    return this->cache.find(id) != this->cache.end();
-}
-
-std::shared_ptr<CachedChunk> ChunkLoader::get_or_queue(const ChunkLocation& loc, double radius) {
-    auto it = this->cache.find(loc.id);
+std::shared_ptr<CachedChunk> ChunkLoader::get_or_queue(const TerrainGenerationParameters& param) {
+    auto it = this->cache.find(param);
     if (it != this->cache.end())
         return it->second;
 
-    auto fut = this->generator.generate(loc, radius);
+    auto fut = this->generator.generate(param);
     auto ptr = std::make_shared<CachedChunk>(std::move(fut));
-    return this->cache.emplace_hint(it, loc.id, std::move(ptr))->second;
+    return this->cache.emplace_hint(it, param, std::move(ptr))->second;
 }
 
 void ChunkLoader::collect_garbage() {

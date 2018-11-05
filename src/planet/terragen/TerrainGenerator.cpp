@@ -4,9 +4,9 @@ TerrainGenerator::TerrainGenerator(ThreadPool& pool):
     pool(pool) {
 }
 
-std::future<TerrainData> TerrainGenerator::generate(const ChunkLocation& loc, double radius) {
-    auto task = std::packaged_task<TerrainData()>([loc, radius](){
-        return TerrainData(loc, radius);
+std::future<TerrainData> TerrainGenerator::generate(const TerrainGenerationParameters& param) {
+    auto task = std::packaged_task<TerrainData()>([param](){
+        return TerrainData(param);
     });
 
     auto fut = task.get_future();

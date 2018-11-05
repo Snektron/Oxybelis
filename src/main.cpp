@@ -196,7 +196,7 @@ int main() {
         6'371.0_km
     };
 
-    ThreadPool pool(std::thread::hardware_concurrency() / 2);
+    ThreadPool pool(std::thread::hardware_concurrency() * 3 / 4);
     auto gen = TerrainGenerator(pool);
     auto pr = PlanetRenderer(gen, p);
 

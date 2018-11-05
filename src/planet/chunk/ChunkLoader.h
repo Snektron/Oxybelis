@@ -32,15 +32,14 @@ using SharedCachedChunk = std::shared_ptr<CachedChunk>;
 
 class ChunkLoader {
     TerrainGenerator& generator;
-    std::unordered_map<ChunkId, SharedCachedChunk> cache;
+    std::unordered_map<TerrainGenerationParameters, SharedCachedChunk> cache;
 
 public:
     ChunkLoader(TerrainGenerator& generator):
         generator(generator) {
     }
 
-    bool contains(ChunkId id) const;
-    std::shared_ptr<CachedChunk> get_or_queue(const ChunkLocation& loc, double radius);
+    std::shared_ptr<CachedChunk> get_or_queue(const TerrainGenerationParameters& param);
     void collect_garbage();
 };
 

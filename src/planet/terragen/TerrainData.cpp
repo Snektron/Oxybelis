@@ -1,82 +1,78 @@
 #include "planet/terragen/TerrainData.h"
 #include <random>
+#include <array>
+#include <utility>
 #include <noise/noise.h>
 #include "fast-poly2tri/fastpoly2tri.h"
 
-TerrainData::TerrainData(const ChunkLocation& loc, double radius):
-    loc(loc) {
-    size_t side_points = 100;
-    size_t points = 20'000;
-    size_t max_pts = side_points * 3 + points;
+TerrainData::TerrainData(const TerrainGenerationParameters& param):
+    loc(param.loc) {
+    size_t max_pts = param.side_points * 3 + param.inner_points;
 
-    auto gen = std::mt19937(loc.id.raw());
+    auto gen = std::mt19937(param.loc.id.raw());
 
     auto mem = MPE_PolyAllocateMem(max_pts);
     MPEPolyContext poly_ctx;
 
     MPE_PolyInitContext(&poly_ctx, mem.get(), max_pts);
 
-    auto a_b = loc.corners.b - loc.corners.a;
-    auto c_d = -cross(loc.corners.face_normal(), a_b);
+    const auto& corners = param.loc.corners;
+
+    auto a_b = corners.b - corners.a;
+    auto c_d = -cross(corners.face_normal(), a_b);
 
     double ab = length(a_b);
-    double ad = dot(a_b, loc.corners.c - loc.corners.a) / ab;
+    double ad = dot(a_b, corners.c - corners.a) / ab;
     double db = ab - ad;
-    double cd = std::sqrt(distance_sq(loc.corners.a, loc.corners.c) - ad * ad);
+    double cd = std::sqrt(distance_sq(corners.a, corners.c) - ad * ad);
 
     double adn = ad / ab;
     double dbn = db / ab;
     double cdn = cd / ab;
 
-    auto add_edge_pt = [&](double x, double y) {
-        auto* pt = MPE_PolyPushPoint(&poly_ctx);
-        pt->X = x;
-        pt->Y = y;
+    const auto sides = std::array<Vec2D, 3>{
+        Vec2D(0),
+        Vec2D(1, 0),
+        Vec2D(adn, cdn)
     };
 
-    auto add_pt = [&](double x, double y) {
-        auto* pt = MPE_PolyPushSteinerPoint(&poly_ctx);
-        pt->X = x;
-        pt->Y = y;
-    };
+    for (size_t i = 0; i < sides.size(); ++i) {
+        const auto& begin = sides[i];
+        const auto& end = sides[(i + 1) % sides.size()];
 
-    for (size_t i = 0; i < side_points; ++i) {
-        double x = double(i) / side_points;
-        add_edge_pt(x, 0);
-    }
-
-    for (size_t i = 0; i < side_points; ++i) {
-        double x = double(i) / side_points;
-        add_edge_pt(1 - x * dbn, x * cdn);
-    }
-
-    for (size_t i = 0; i < side_points; ++i) {
-        double x = double(i) / side_points;
-        add_edge_pt((1 - x) * adn, (1 - x) * cdn);
+        for (size_t j = 0; j < param.side_points; ++j) {
+            double k = static_cast<double>(j) / param.side_points;
+            auto pt = mix(begin, end, k);
+            auto* mpe_pt = MPE_PolyPushPoint(&poly_ctx);
+            mpe_pt->X = pt.x;
+            mpe_pt->Y = pt.y;
+        }
     }
 
     MPE_PolyAddEdge(&poly_ctx);
 
     auto center = Vec2D(1 + adn, cdn) / 3.0;
-    double edge_dst = 1.0 / side_points;
+    double edge_dst = 1.0 / param.side_points;
 
     auto dist_x = std::uniform_real_distribution<double>(adn / 2.0, 1 - dbn / 2.0);
     auto dist_y = std::uniform_real_distribution<double>(0, cdn);
 
-    for (size_t i = 0; i < points; ++i) {
-        auto p = Vec2D(dist_x(gen), dist_y(gen));
+    for (size_t i = 0; i < param.inner_points; ++i) {
+        auto pt = Vec2D(dist_x(gen), dist_y(gen));
 
-        if (p.y * ad > cd * p.x) {
-            p.y = cdn - p.y;
-            p.x = adn - p.x;
-        } else if (p.y * db > (1 - p.x) * cd){
-            p.y = cdn - p.y;
-            p.x = 1 - p.x + adn;
+        if (pt.y * ad > cd * pt.x) {
+            pt.y = cdn - pt.y;
+            pt.x = adn - pt.x;
+        } else if (pt.y * db > (1 - pt.x) * cd){
+            pt.y = cdn - pt.y;
+            pt.x = 1 - pt.x + adn;
         }
 
-        p = mix(p, center, edge_dst);
+        pt.mix(center, edge_dst);
 
-        add_pt(p.x, p.y);
+        auto* mpe_pt = MPE_PolyPushSteinerPoint(&poly_ctx);
+        mpe_pt->X = pt.x;
+        mpe_pt->Y = pt.y;
     }
 
     MPE_PolyTriangulate(&poly_ctx);
@@ -87,15 +83,15 @@ TerrainData::TerrainData(const ChunkLocation& loc, double radius):
     perlin.SetOctaveCount(8);
     perlin.SetSeed(0);
 
-    auto chunk_center = loc.corners.center();
+    auto chunk_center = corners.center();
 
     auto get_vec = [&](double x, double y) {
-        auto v = normalize(loc.corners.a + a_b * x + c_d * y);
+        auto v = normalize(corners.a + a_b * x + c_d * y);
         double h = perlin.GetValue(v.x * 50.0, v.y * 50.0, v.z * 50.0) - 0.5;
         h *= h;
         h += 0.5;
         h *= 5'000.0;
-        return v * (radius + h);
+        return v * (param.radius + h);
     };
 
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {

@@ -11,7 +11,7 @@ class TerrainGenerator {
 
 public:
     TerrainGenerator(ThreadPool& pool);
-    std::future<TerrainData> generate(const ChunkLocation& loc, double radius);
+    std::future<TerrainData> generate(const TerrainGenerationParameters& param);
 };
 
 #endif
