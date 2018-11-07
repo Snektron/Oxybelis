@@ -52,7 +52,7 @@ public:
 
     constexpr void set_quadrant(size_t depth, uint64_t quadrant) {
         assert(depth != 0 && depth <= this->depth());
-        assert(quadrant >= 0 && quadrant <= 3);
+        assert(quadrant <= 3);
         this->id &= ~(QUADRANT_MASK << (depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH));
         this->id |= quadrant << (depth * QUADRANT_WIDTH + DEPTH_WIDTH + SECTOR_WIDTH);
     }
@@ -64,7 +64,7 @@ public:
     }
 
     constexpr ChunkId child(uint8_t quadrant) const {
-        assert(quadrant >= 0 && quadrant <= 3);
+        assert(quadrant <= 3);
         auto id = ChunkId(this->sector(), this->depth() + 1);
         id.set_quadrant(this->depth() + 1, quadrant);
         return id;

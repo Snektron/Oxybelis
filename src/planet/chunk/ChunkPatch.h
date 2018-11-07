@@ -19,7 +19,7 @@ public:
     bool is_ready();
     void render(const Camera& cam, Uniform model);
 
-    friend class PlanetRenderer;
+    friend class TerrainRenderer;
 };
 
 #endif

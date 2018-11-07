@@ -1,7 +1,7 @@
 #version 430
 
-in vec3 gNormal;
-in vec4 gClipPos;
+in vec3 vNormal;
+in vec4 vClipPos;
 
 out vec4 fColor;
 
@@ -13,6 +13,6 @@ const float OFFSET = 1.0;
 void main() {
     vec3 ground = vec3(38. / 255., 89. / 255., 20. / 255.) * 0.8 * 0.8;
 
-    fColor = vec4(vec3(dot(gNormal, l)) * ground + 0.2, 1);
-    gl_FragDepth = log(C * gClipPos.z + OFFSET) / log(C * FAR + OFFSET);
+    fColor = vec4(vec3(dot(vNormal, l)) * ground + 0.2, 1);
+    gl_FragDepth = log(C * vClipPos.z + OFFSET) / log(C * FAR + OFFSET);
 }

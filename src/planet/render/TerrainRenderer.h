@@ -14,7 +14,7 @@
 
 struct Planet;
 
-class PlanetRenderer {
+class TerrainRenderer {
     Program shader;
     Uniform perspective;
     Uniform model;
@@ -24,7 +24,7 @@ class PlanetRenderer {
     Option<ChunkPatch> patch;
     Option<ChunkPatch> pending_patch;
 public:
-    PlanetRenderer(TerrainGenerator& gen, Planet& planet);
+    TerrainRenderer(TerrainGenerator& gen, Planet& planet);
     void update_viewpoint(const Camera& cam);
     void render(const Mat4F& proj, const Camera& cam);
 };

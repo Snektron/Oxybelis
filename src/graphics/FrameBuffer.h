@@ -16,9 +16,18 @@ class FrameBuffer {
     }
 
     GlObject<destroy_id> fbo;
+
+    FrameBuffer(GLuint id):
+        fbo(id) {
+    }
+
 public:
     FrameBuffer():
         fbo(gen_id()) {
+    }
+
+    static FrameBuffer screen() {
+        return FrameBuffer(0);
     }
 
     void bind(GLuint target = GL_FRAMEBUFFER) const {

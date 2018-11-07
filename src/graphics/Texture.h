@@ -21,8 +21,8 @@ public:
         id(gen_id()) {
     }
 
-    void bind(GLuint target = GL_TEXTURE_2D) {
-        glBindBuffer(target, this->id);
+    void bind(GLuint target = GL_TEXTURE_2D) const {
+        glBindTexture(target, this->id);
     }
 
     operator GLuint() const {

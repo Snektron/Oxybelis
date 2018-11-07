@@ -1,4 +1,4 @@
-#include "planet/render/PlanetRenderer.h"
+#include "planet/render/TerrainRenderer.h"
 #include <iostream>
 #include <array>
 #include <utility>
@@ -30,15 +30,14 @@ size_t lod_from_alt(double alt_sq) {
         return 0;
 }
 
-Program load_shader() {
+static Program load_shader() {
     return ProgramBuilder()
         .with(ShaderType::Vertex, assets::terrain_vs)
-        .with(ShaderType::Geometry, assets::terrain_gs)
         .with(ShaderType::Fragment, assets::terrain_fs)
         .link();
 }
 
-PlanetRenderer::PlanetRenderer(TerrainGenerator& gen, Planet& planet):
+TerrainRenderer::TerrainRenderer(TerrainGenerator& gen, Planet& planet):
     shader(load_shader()),
     perspective(this->shader.uniform("uPerspective")),
     model(this->shader.uniform("uModel")),
@@ -48,7 +47,7 @@ PlanetRenderer::PlanetRenderer(TerrainGenerator& gen, Planet& planet):
     pending_patch(NONE) {
 }
 
-void PlanetRenderer::update_viewpoint(const Camera& cam) {
+void TerrainRenderer::update_viewpoint(const Camera& cam) {
     double dst = distance(cam.translation, planet.translation) - this->planet.radius;
     auto lod = lod_from_alt(dst * dst);
     auto loc = ChunkLocation(cam.translation, lod, this->planet.radius);
@@ -65,7 +64,7 @@ void PlanetRenderer::update_viewpoint(const Camera& cam) {
     }
 }
 
-void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
+void TerrainRenderer::render(const Mat4F& proj, const Camera& cam) {
     this->shader.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
     if (this->patch) {

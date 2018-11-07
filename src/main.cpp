@@ -14,12 +14,16 @@
 #include "graphics/FrameBuffer.h"
 #include "graphics/camera/Camera.h"
 #include "graphics/camera/Projection.h"
+#include "graphics/FrameBuffer.h"
+#include "graphics/RenderBuffer.h"
+#include "graphics/Texture.h"
 #include "input/InputContext.h"
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
 #include "input/device/Keyboard.h"
 #include "planet/terragen/TerrainGenerator.h"
-#include "planet/render/PlanetRenderer.h"
+#include "planet/render/TerrainRenderer.h"
+#include "planet/render/AtmosphereRenderer.h"
 #include "planet/Planet.h"
 #include "utility/ThreadPool.h"
 
@@ -70,17 +74,15 @@ int main() {
 
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
     
-    glClearColor(0, 0, 0, 1);
-
-    glEnable(GL_DEPTH_TEST);
-    // glDepthFunc(GL_ALWAYS);
-    // glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback([](GLenum, GLenum, GLuint, GLenum, GLsizei length, const GLchar* message, const void*){
         std::cout << "[OpenGL] ";
         std::cout.write(message, length) << std::endl;
     }, nullptr);
+
+    glClearColor(0, 0, 0, 1);
+    glEnable(GL_DEPTH_TEST);
 
     auto manager = InputManager<Input>();
 
@@ -168,14 +170,12 @@ int main() {
     });
 
     GLenum polymode = GL_FILL;
-    glPolygonMode(GL_FRONT_AND_BACK, polymode);
     ctx.connect_action(Input::TogglePolygonMode, [&](Action a) {
         if (a == Action::Press) {
             if (polymode == GL_LINE)
                 polymode = GL_FILL;
             else
                 polymode = GL_LINE;
-            glPolygonMode(GL_FRONT_AND_BACK, polymode);
         }
     });
 
@@ -196,17 +196,60 @@ int main() {
 
     ThreadPool pool(std::thread::hardware_concurrency() * 3 / 4);
     auto gen = TerrainGenerator(pool);
-    auto pr = PlanetRenderer(gen, p);
+    auto tr = TerrainRenderer(gen, p);
+
+    auto atmos = AtmosphereRenderer(p);
+
+    auto screen = FrameBuffer::screen();
+
+    struct FrameBufferState {
+        FrameBuffer fb;
+        Texture color;
+        RenderBuffer depth;
+    } fb_state;
+
+    auto current_dim = Vec2I(window.dimensions());
+    auto resize = [&] {
+        projection.resize(current_dim);
+        fb_state.fb = FrameBuffer();
+        fb_state.fb.bind();
+        fb_state.color = Texture();
+        fb_state.color.bind();
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, current_dim.x, current_dim.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb_state.color, 0);  
+
+        fb_state.depth = RenderBuffer(GL_DEPTH_COMPONENT32, current_dim.x, current_dim.y);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb_state.depth);
+        screen.bind();
+    };
+
+    resize();
 
     while (!window.should_close() && !esc) {
-        auto dim = window.dimensions();
+        auto dim = Vec2I(window.dimensions());
+        if (dim.x != current_dim .x || dim.y != current_dim.y) {
+            current_dim = dim;
+            resize();
+        }
+
         glViewport(0, 0, dim.x, dim.y);
-        projection.resize(dim);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        auto proj = projection.to_matrix();
 
-        pr.update_viewpoint(cam);
-        pr.render(projection.to_matrix(), cam);
+        fb_state.fb.bind();     
+        glPolygonMode(GL_FRONT_AND_BACK, polymode);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        tr.update_viewpoint(cam);
+        tr.render(proj, cam);
+
+        screen.bind();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        fb_state.color.bind();
+        atmos.render(proj, cam);
 
         window.swap_buffers();
         assert_gl();
