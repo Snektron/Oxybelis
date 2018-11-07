@@ -107,10 +107,10 @@ ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoade
         param_template.loc = info.loc;
         switch (info.lod) {
             case Lod::Low:
-                param_template.inner_points = 500;
+                param_template.inner_points = 1'000;
                 break;
             case Lod::High:
-                param_template.inner_points = 10'000;
+                param_template.inner_points = 30'000;
                 break;
         }
 

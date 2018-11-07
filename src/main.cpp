@@ -8,16 +8,12 @@
 #include "glad/glad.h"
 #include "core/Window.h"
 #include "math/Vec.h"
-#include "math/Mat.h"
 #include "math/Quat.h"
 #include "math/Transform.h"
 #include "graphics/Error.h"
-#include "graphics/GlObject.h"
-#include "graphics/VertexArray.h"
-#include "graphics/Buffer.h"
-#include "graphics/shader/ProgramBuilder.h"
-#include "graphics/camera/Projection.h"
+#include "graphics/FrameBuffer.h"
 #include "graphics/camera/Camera.h"
+#include "graphics/camera/Projection.h"
 #include "input/InputContext.h"
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
@@ -65,6 +61,7 @@ int main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     auto window = Window(1280, 800, "Oxybelis");
@@ -72,13 +69,13 @@ int main() {
 
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
     
-    glClearColor(.97f, .97f, .97f, .97f);
+    glClearColor(0, 0, 0, 1);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_DEBUG_OUTPUT);
     // glDepthFunc(GL_ALWAYS);
     // glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
+    glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback([](GLenum, GLenum, GLuint, GLenum, GLsizei length, const GLchar* message, const void*){
         std::cout << "[OpenGL] ";
         std::cout.write(message, length) << std::endl;

@@ -33,6 +33,10 @@ public:
     void disable_attrib(GLuint index) const {
         glDisableVertexArrayAttrib(this->vao, index);
     }
+
+    operator GLuint() const {
+        return this->vao;
+    }
 };
 
 #endif

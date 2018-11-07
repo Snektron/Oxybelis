@@ -87,10 +87,9 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
 
     auto get_vec = [&](double x, double y) {
         auto v = normalize(corners.a + a_b * x + c_d * y);
-        double h = perlin.GetValue(v.x * 50.0, v.y * 50.0, v.z * 50.0) - 0.5;
+        double h = perlin.GetValue(v.x * 500.0, v.y * 500.0, v.z * 500.0) / 1.5;
         h *= h;
-        h += 0.5;
-        h *= 5'000.0;
+        h *= 2'000.0;
         return v * (param.radius + h);
     };
 
