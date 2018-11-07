@@ -10,21 +10,8 @@
 #include "planet/Planet.h"
 #include "assets.h"
 
+// Height constants taken from VoxelStorm planet renderer.
 size_t lod_from_alt(double alt_sq) {
-    if (alt_sq < 0.01)
-        return 5;
-    else if (alt_sq < 0.05)
-        return 4;
-    else if (alt_sq < 0.15)
-        return 3;
-    else if (alt_sq < 0.5)
-        return 2;
-    else if (alt_sq < 5.0)
-        return 1;
-    return 0;
-}
-
-size_t lod_from_alt_2(double alt_sq) {
     if (alt_sq <= std::pow(4'000.0, 2.0))
         return 7;
     else if (alt_sq <= std::pow(10'000.0, 2.0))
@@ -46,6 +33,7 @@ size_t lod_from_alt_2(double alt_sq) {
 Program load_shader() {
     return ProgramBuilder()
         .with(ShaderType::Vertex, assets::terrain_vs)
+        .with(ShaderType::Geometry, assets::terrain_gs)
         .with(ShaderType::Fragment, assets::terrain_fs)
         .link();
 }
@@ -60,10 +48,9 @@ PlanetRenderer::PlanetRenderer(TerrainGenerator& gen, Planet& planet):
     pending_patch(NONE) {
 }
 
-void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
+void PlanetRenderer::update_viewpoint(const Camera& cam) {
     double dst = distance(cam.translation, planet.translation) - this->planet.radius;
-    auto lod = lod_from_alt_2(dst * dst);
-    // std::cout << (dst / 1'000.0) << " " << lod << std::endl;
+    auto lod = lod_from_alt(dst * dst);
     auto loc = ChunkLocation(cam.translation, lod, this->planet.radius);
 
     if (((!this->patch || this->patch->center.id != loc.id) && !this->pending_patch) ||
@@ -76,7 +63,9 @@ void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
         this->pending_patch = NONE;
         this->loader.collect_garbage();
     }
+}
 
+void PlanetRenderer::render(const Mat4F& proj, const Camera& cam) {
     this->shader.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
     if (this->patch) {

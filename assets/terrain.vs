@@ -1,14 +1,13 @@
-#version 400
+#version 430
 
-layout(location = 0) in vec3 aVertex;
-layout(location = 1) in vec3 aNormal;
+in vec3 aVertex;
+in vec3 aNormal;
 
 uniform mat4 uPerspective;
 uniform mat4 uModel;
 
+out vec3 vVertex;
 out vec3 vNormal;
-out float vHeight;
-
 out vec4 vClipPos;
 
 const float PI = 3.14159264;
@@ -21,6 +20,6 @@ void main() {
     gl_Position = clipPos;
     vClipPos = clipPos;
 
+    vVertex = aVertex;
     vNormal = aNormal;
-    vHeight = (length(aVertex) - 6371000.0) / 10.0;
 }

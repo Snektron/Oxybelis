@@ -25,6 +25,7 @@ class PlanetRenderer {
     Option<ChunkPatch> pending_patch;
 public:
     PlanetRenderer(TerrainGenerator& gen, Planet& planet);
+    void update_viewpoint(const Camera& cam);
     void render(const Mat4F& proj, const Camera& cam);
 };
 
