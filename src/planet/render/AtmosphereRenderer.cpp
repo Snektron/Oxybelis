@@ -37,6 +37,8 @@ AtmosphereRenderer::AtmosphereRenderer(const Planet& planet):
 void AtmosphereRenderer::render(const Mat4F& proj, const Camera& cam) {
     this->shader.use();
     glUniformMatrix4fv(shader.uniform("uProjection"), 1, GL_FALSE, proj.data());
+    glUniformMatrix4fv(shader.uniform("uModel"), 1, GL_FALSE, static_cast<Mat4F>(cam.to_view_matrix()).data());
+    glUniform3fv(shader.uniform("uRayOrigin"), 1, static_cast<Vec3F>(cam.translation).data());
 
     this->vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
