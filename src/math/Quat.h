@@ -86,6 +86,12 @@ struct Quat {
     template <typename U>
     constexpr Quat<T>& smix(const Quat<U>& other);
 
+    constexpr Vec3<T> forward() const;
+
+    constexpr Vec3<T> up() const;
+
+    constexpr Vec3<T> right() const;
+
     constexpr Mat4<T> to_matrix() const;
 };
 
@@ -304,6 +310,62 @@ constexpr Quat<T>& Quat<T>::smix(const Quat<U>& other) {
 }
 
 template <typename T>
+constexpr auto dbl(const T& x) {
+    return x + x;
+}
+
+template <typename T>
+constexpr Vec3<T> Quat<T>::forward() const {
+    // this->rotation.to_matrix().column(2).xyz
+    auto one = static_cast<T>(1);
+
+    auto qr = this->w;
+    auto qi = this->x;
+    auto qj = this->y;
+    auto qk = this->z;
+
+    return Vec3<T>(
+        dbl(qr * qj + qi * qk),
+        dbl(qj * qk - qr * qi),
+        one - dbl(qi * qi + qj * qj)
+    );
+}
+
+template <typename T>
+constexpr Vec3<T> Quat<T>::up() const {
+    // this->rotation.to_matrix().column(1).xyz
+    auto one = static_cast<T>(1);
+
+    auto qr = this->w;
+    auto qi = this->x;
+    auto qj = this->y;
+    auto qk = this->z;
+
+    return Vec3<T>(
+        dbl(qi * qj - qr * qk),
+        one - dbl(qi * qi + qk * qk),
+        dbl(qr * qi + qj * qk)
+    );
+}
+
+template <typename T>
+constexpr Vec3<T> Quat<T>::right() const {
+    // this->rotation.to_matrix().column(0).xyz
+    auto one = static_cast<T>(1);
+
+    auto qr = this->w;
+    auto qi = this->x;
+    auto qj = this->y;
+    auto qk = this->z;
+
+    return Vec3<T>(
+        one - dbl(qj * qj + qk * qk),
+        dbl(qi * qj + qr * qk),
+        dbl(qi * qk - qr * qj)
+    );
+}
+
+template <typename T>
 constexpr Mat4<T> Quat<T>::to_matrix() const {
     Mat4<T> result;
 
@@ -313,7 +375,6 @@ constexpr Mat4<T> Quat<T>::to_matrix() const {
     auto qk = this->z;
 
     auto one = static_cast<T>(1);
-    auto dbl = [](auto x){ return x + x; };
 
     result(0, 0) = one - dbl(qj * qj + qk * qk);
     result(1, 1) = one - dbl(qi * qi + qk * qk);

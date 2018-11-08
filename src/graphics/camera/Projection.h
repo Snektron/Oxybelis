@@ -28,6 +28,8 @@ struct Perspective {
     }
 
     constexpr Mat4F to_matrix() const;
+
+    constexpr Mat4F to_inverse_matrix() const;
 };
 
 struct Orthographic {
@@ -45,6 +47,22 @@ struct Orthographic {
 
 constexpr Mat4F Perspective::to_matrix() const {
     return Mat4F::perspective(this->aspect, this->fov, this->near, this->far);
+}
+
+constexpr Mat4F Perspective::to_inverse_matrix() const {
+    Mat4F result;
+
+    float nf = this->near - this->far;
+    float tan_fov_2 = std::tan(this->fov / 2.f);
+    float nf2 = 2 * this->near * this->far;
+
+    result(0, 0) = this->aspect * tan_fov_2;
+    result(1, 1) = tan_fov_2;
+    result(2, 3) = 1;
+    result(3, 2) = nf / nf2;
+    result(3, 3) = (near + far) / nf2;
+
+    return result;
 }
 
 constexpr Mat4F Orthographic::to_matrix() const {

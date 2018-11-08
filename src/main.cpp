@@ -81,9 +81,6 @@ int main() {
         std::cout.write(message, length) << std::endl;
     }, nullptr);
 
-    glClearColor(0, 0, 0, 1);
-    glEnable(GL_DEPTH_TEST);
-
     auto manager = InputManager<Input>();
 
     auto kb = Keyboard<Input>(manager, window);
@@ -198,31 +195,46 @@ int main() {
     auto gen = TerrainGenerator(pool);
     auto tr = TerrainRenderer(gen, p);
 
-    auto atmos = AtmosphereRenderer(p);
+    auto atmos = AtmosphereRenderer();
 
     auto screen = FrameBuffer::screen();
 
     struct FrameBufferState {
         FrameBuffer fb;
-        Texture color;
+        Texture color, distance;
         RenderBuffer depth;
     } fb_state;
 
     auto current_dim = Vec2I(window.dimensions());
     auto resize = [&] {
+        glViewport(0, 0, current_dim.x, current_dim.y);
+
         projection.resize(current_dim);
         fb_state.fb = FrameBuffer();
         fb_state.fb.bind();
+
+        glActiveTexture(GL_TEXTURE0);
         fb_state.color = Texture();
         fb_state.color.bind();
-
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, current_dim.x, current_dim.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb_state.color, 0);  
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fb_state.color, 0);  
+
+        glActiveTexture(GL_TEXTURE1);
+        fb_state.distance = Texture();
+        fb_state.distance.bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, current_dim.x, current_dim.y, 0, GL_RED, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fb_state.distance, 0);
 
         fb_state.depth = RenderBuffer(GL_DEPTH_COMPONENT32, current_dim.x, current_dim.y);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb_state.depth);
+
+        GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        glDrawBuffers(2, buffers);
+
         screen.bind();
     };
 
@@ -235,21 +247,22 @@ int main() {
             resize();
         }
 
-        glViewport(0, 0, dim.x, dim.y);
-
-        auto proj = projection.to_matrix();
-
         fb_state.fb.bind();     
+        glEnable(GL_DEPTH_TEST);
         glPolygonMode(GL_FRONT_AND_BACK, polymode);
+
+        glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         tr.update_viewpoint(cam);
-        tr.render(proj, cam);
+        tr.render(projection.to_matrix(), cam);
 
         screen.bind();
+        glDisable(GL_DEPTH_TEST);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        fb_state.color.bind();
-        atmos.render(proj, cam);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        atmos.render(projection.to_inverse_matrix(), cam);
 
         window.swap_buffers();
         assert_gl();

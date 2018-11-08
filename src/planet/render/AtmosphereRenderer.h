@@ -9,16 +9,19 @@
 #include "math/Mat.h"
 
 class AtmosphereRenderer {
-    const Planet& planet;
-
     VertexArray vao;
     Buffer quad;
 
     Program shader;
+    Uniform inv_proj;
+    Uniform model;
+    Uniform camera_origin;
+    Uniform camera_up;
+    Uniform camera_dir;
 
 public:
-    AtmosphereRenderer(const Planet& planet);
-    void render(const Mat4F& proj, const Camera& cam);
+    AtmosphereRenderer();
+    void render(const Mat4F& inv_proj, const Camera& cam);
 };
 
 #endif

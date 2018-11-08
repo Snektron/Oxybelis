@@ -18,6 +18,7 @@ class TerrainRenderer {
     Program shader;
     Uniform perspective;
     Uniform model;
+    Uniform camera_origin;
 
     Planet& planet;
     ChunkLoader loader;

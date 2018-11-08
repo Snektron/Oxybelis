@@ -126,10 +126,10 @@ bool ChunkPatch::is_ready() {
     return true;
 }
 
-void ChunkPatch::render(const Camera& cam, Uniform model) {
+void ChunkPatch::render(const Camera& cam, Uniform model, Uniform camera_origin) {
     for (auto& chunk_ref : this->chunks) {
         if (chunk_ref->update() == CachedChunk::Status::Ready) {
-            chunk_ref->chunk().render(cam, model);
+            chunk_ref->chunk().render(cam, model, camera_origin);
         }
     }    
 }

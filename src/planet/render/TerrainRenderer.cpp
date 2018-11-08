@@ -41,6 +41,7 @@ TerrainRenderer::TerrainRenderer(TerrainGenerator& gen, Planet& planet):
     shader(load_shader()),
     perspective(this->shader.uniform("uPerspective")),
     model(this->shader.uniform("uModel")),
+    camera_origin(this->shader.uniform("uCameraOrigin")),
     planet(planet),
     loader(gen),
     patch(NONE),
@@ -67,9 +68,10 @@ void TerrainRenderer::update_viewpoint(const Camera& cam) {
 void TerrainRenderer::render(const Mat4F& proj, const Camera& cam) {
     this->shader.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
+
     if (this->patch) {
-        this->patch->render(cam, this->model);
+        this->patch->render(cam, this->model, this->camera_origin);
     } else if (this->pending_patch) {
-        this->pending_patch->render(cam, this->model);
+        this->pending_patch->render(cam, this->model, this->camera_origin);
     }
 }

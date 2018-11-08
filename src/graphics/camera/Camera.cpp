@@ -20,15 +20,15 @@ void Camera::rotate_roll(double amount) {
 }
 
 void Camera::forward(double amount) {
-    this->translation += this->rotation.to_matrix().column(2).xyz * amount;
+    this->translation += this->rotation.forward() * amount;
 }
 
 void Camera::strafe(double amount) {
-    this->translation += this->rotation.to_matrix().column(0).xyz * amount;
+    this->translation += this->rotation.right() * amount;
 }
 
 void Camera::fly(double amount) {
-    this->translation += this->rotation.to_matrix().column(1).xyz * amount;
+    this->translation += this->rotation.up() * amount;
 }
 
 Mat4D Camera::to_view_matrix() const {

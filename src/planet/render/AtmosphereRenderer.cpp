@@ -1,6 +1,7 @@
 #include "planet/render/AtmosphereRenderer.h"
 #include <iostream>
 #include "graphics/shader/ProgramBuilder.h"
+#include "graphics/camera/Projection.h"
 #include "assets.h"
 
 const GLfloat QUAD_DATA[] = {
@@ -20,8 +21,7 @@ static Program load_shader() {
         .link();
 }
 
-AtmosphereRenderer::AtmosphereRenderer(const Planet& planet):
-    planet(planet),
+AtmosphereRenderer::AtmosphereRenderer():
     shader(load_shader()) {
     this->vao.bind();
     this->quad.bind(GL_ARRAY_BUFFER);
@@ -32,13 +32,25 @@ AtmosphereRenderer::AtmosphereRenderer(const Planet& planet):
 
     this->shader.use();
     glUniform1i(shader.uniform("uTerrain"), 0);
+    glUniform1i(shader.uniform("uDistance"), 1);
+
+    this->inv_proj = shader.uniform("uInvProjection");
+    this->model = shader.uniform("uModel");
+    this->camera_origin = shader.uniform("uCameraOrigin");
+    this->camera_up = shader.uniform("uCameraUp");
+    this->camera_dir = shader.uniform("uCameraDir");
 }
 
-void AtmosphereRenderer::render(const Mat4F& proj, const Camera& cam) {
+void AtmosphereRenderer::render(const Mat4F& inv_proj, const Camera& cam) {
+    auto model = static_cast<Mat4F>(cam.to_view_matrix());
+
     this->shader.use();
-    glUniformMatrix4fv(shader.uniform("uProjection"), 1, GL_FALSE, proj.data());
-    glUniformMatrix4fv(shader.uniform("uModel"), 1, GL_FALSE, static_cast<Mat4F>(cam.to_view_matrix()).data());
-    glUniform3fv(shader.uniform("uRayOrigin"), 1, static_cast<Vec3F>(cam.translation).data());
+    glUniformMatrix4fv(this->inv_proj, 1, GL_FALSE, inv_proj.data());
+    glUniformMatrix4fv(this->model, 1, GL_FALSE, model.data());
+
+    glUniform3fv(this->camera_origin, 1, static_cast<Vec3F>(cam.translation).data());
+    glUniform3fv(this->camera_up, 1, static_cast<Vec3F>(cam.rotation.up()).data());
+    glUniform3fv(this->camera_dir, 1, static_cast<Vec3F>(cam.rotation.forward()).data());
 
     this->vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);

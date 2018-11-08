@@ -18,11 +18,12 @@ Chunk::Chunk(const TerrainData& terrain):
     this->vao.enable_attrib(1);
 }
 
-void Chunk::render(const Camera& cam, Uniform model) const {
+void Chunk::render(const Camera& cam, Uniform model, Uniform camera_origin) const {
     auto view = cam.to_view_matrix();
     view *= Mat4D::translation(this->center);
 
     glUniformMatrix4fv(model, 1, GL_FALSE, static_cast<Mat4F>(view).data());
+    glUniform3fv(camera_origin, 1, static_cast<Vec3F>(cam.translation - this->center).data());
 
     this->vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, this->vertices);

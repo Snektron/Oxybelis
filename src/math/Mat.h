@@ -83,7 +83,7 @@ struct BaseMat<T, 1, N> {
 
 template <typename T, size_t M, size_t N>
 struct Mat: BaseMat<T, M, N> {
-    static_assert(N > 1, "Cannot create column matrix, use a vector instead");
+    // static_assert(N > 1, "Cannot create column matrix, use a vector instead");
 
     constexpr const static size_t Rows = M;
     constexpr const static size_t Cols = N;
@@ -385,7 +385,7 @@ constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T&
     Mat4<T> result;
 
     auto nf = near - far;
-    auto tan_fov_2 = tan(fov / 2);
+    auto tan_fov_2 = std::tan(fov / 2);
 
     result(0, 0) = 1 / (aspect * tan_fov_2);
     result(1, 1) = 1 / tan_fov_2;
