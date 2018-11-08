@@ -1,6 +1,6 @@
 #version 430
 
-layout(location = 0) in vec2 aVertex;
+in vec2 aVertex;
 
 out vec2 vFragCoord;
 out vec3 vRayDir;

@@ -3,21 +3,21 @@
 
 #include "planet/Planet.h"
 #include "graphics/camera/Camera.h"
+#include "graphics/models/Quad.h"
 #include "graphics/VertexArray.h"
 #include "graphics/shader/Program.h"
 #include "graphics/Buffer.h"
 #include "math/Mat.h"
 
 class AtmosphereRenderer {
-    VertexArray vao;
-    Buffer quad;
-
     Program shader;
-    Uniform inv_proj;
-    Uniform model;
+    Uniform inv_proj_mat;
+    Uniform model_mat;
     Uniform camera_origin;
     Uniform camera_up;
     Uniform camera_dir;
+
+    Quad quad;
 
 public:
     AtmosphereRenderer();

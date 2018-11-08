@@ -24,6 +24,7 @@
 #include "planet/terragen/TerrainGenerator.h"
 #include "planet/render/TerrainRenderer.h"
 #include "planet/render/AtmosphereRenderer.h"
+#include "planet/render/PrecomputedAtmosphereRenderer.h"
 #include "planet/Planet.h"
 #include "utility/ThreadPool.h"
 
@@ -195,7 +196,7 @@ int main() {
     auto gen = TerrainGenerator(pool);
     auto tr = TerrainRenderer(gen, p);
 
-    auto atmos = AtmosphereRenderer();
+    auto atmos = PrecomputedAtmosphereRenderer(p.radius, p.radius * 1.0094);
 
     auto screen = FrameBuffer::screen();
 

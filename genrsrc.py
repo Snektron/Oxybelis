@@ -7,6 +7,7 @@ incbin_template = """\
     .align {align}
 {name}:
     .incbin "{file}"
+    .byte 0
 """
 
 header_template = """\

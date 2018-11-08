@@ -20,7 +20,7 @@ class ProgramBuilder {
     std::vector<GLuint> attached_shaders;
 
 public:
-    auto with(const Shader& shader) {
+    auto with(GLuint shader) {
         glAttachShader(this->program, shader);
         attached_shaders.push_back(shader);
         return std::forward<ProgramBuilder>(*this);
