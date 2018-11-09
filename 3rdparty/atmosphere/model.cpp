@@ -49,6 +49,7 @@ of the following C++ code.
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <sstream>
 
 #include "atmosphere/constants.h"
 #include "assets.h"
@@ -690,58 +691,61 @@ Model::Model(
   // functions, specialized for the given atmosphere parameters and for the 3
   // wavelengths in 'lambdas'.
   glsl_header_factory_ = [=](const vec3& lambdas) {
-    return
-      "#version 330\n"
+    std::stringstream ss;
+
+      ss << "#version 330\n"
       "#define IN(x) const in x\n"
       "#define OUT(x) out x\n"
       "#define TEMPLATE(x)\n"
       "#define TEMPLATE_ARGUMENT(x)\n"
       "#define assert(x)\n"
-      "const int TRANSMITTANCE_TEXTURE_WIDTH = " +
-          std::to_string(TRANSMITTANCE_TEXTURE_WIDTH) + ";\n" +
-      "const int TRANSMITTANCE_TEXTURE_HEIGHT = " +
-          std::to_string(TRANSMITTANCE_TEXTURE_HEIGHT) + ";\n" +
-      "const int SCATTERING_TEXTURE_R_SIZE = " +
-          std::to_string(SCATTERING_TEXTURE_R_SIZE) + ";\n" +
-      "const int SCATTERING_TEXTURE_MU_SIZE = " +
-          std::to_string(SCATTERING_TEXTURE_MU_SIZE) + ";\n" +
-      "const int SCATTERING_TEXTURE_MU_S_SIZE = " +
-          std::to_string(SCATTERING_TEXTURE_MU_S_SIZE) + ";\n" +
-      "const int SCATTERING_TEXTURE_NU_SIZE = " +
-          std::to_string(SCATTERING_TEXTURE_NU_SIZE) + ";\n" +
-      "const int IRRADIANCE_TEXTURE_WIDTH = " +
-          std::to_string(IRRADIANCE_TEXTURE_WIDTH) + ";\n" +
-      "const int IRRADIANCE_TEXTURE_HEIGHT = " +
-          std::to_string(IRRADIANCE_TEXTURE_HEIGHT) + ";\n" +
+      "const int TRANSMITTANCE_TEXTURE_WIDTH = " <<
+          std::to_string(TRANSMITTANCE_TEXTURE_WIDTH) << ";\n" <<
+      "const int TRANSMITTANCE_TEXTURE_HEIGHT = " <<
+          std::to_string(TRANSMITTANCE_TEXTURE_HEIGHT) << ";\n" <<
+      "const int SCATTERING_TEXTURE_R_SIZE = " <<
+          std::to_string(SCATTERING_TEXTURE_R_SIZE) << ";\n" <<
+      "const int SCATTERING_TEXTURE_MU_SIZE = " <<
+          std::to_string(SCATTERING_TEXTURE_MU_SIZE) << ";\n" <<
+      "const int SCATTERING_TEXTURE_MU_S_SIZE = " <<
+          std::to_string(SCATTERING_TEXTURE_MU_S_SIZE) << ";\n" <<
+      "const int SCATTERING_TEXTURE_NU_SIZE = " <<
+          std::to_string(SCATTERING_TEXTURE_NU_SIZE) << ";\n" <<
+      "const int IRRADIANCE_TEXTURE_WIDTH = " <<
+          std::to_string(IRRADIANCE_TEXTURE_WIDTH) << ";\n" <<
+      "const int IRRADIANCE_TEXTURE_HEIGHT = " <<
+          std::to_string(IRRADIANCE_TEXTURE_HEIGHT) << ";\n" <<
       (combine_scattering_textures ?
-          "#define COMBINED_SCATTERING_TEXTURES\n" : "") +
-      assets::atmosphere::definitions_glsl.data() +
-      "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" +
-          to_string(solar_irradiance, lambdas, 1.0) + ",\n" +
-          std::to_string(sun_angular_radius) + ",\n" +
-          std::to_string(bottom_radius / length_unit_in_meters) + ",\n" +
-          std::to_string(top_radius / length_unit_in_meters) + ",\n" +
-          density_profile(rayleigh_density) + ",\n" +
+          "#define COMBINED_SCATTERING_TEXTURES\n" : "") <<
+      assets::atmosphere::definitions_glsl <<
+      "const AtmosphereParameters ATMOSPHERE = AtmosphereParameters(\n" <<
+          to_string(solar_irradiance, lambdas, 1.0) << ",\n" <<
+          std::to_string(sun_angular_radius) << ",\n" <<
+          std::to_string(bottom_radius / length_unit_in_meters) << ",\n" <<
+          std::to_string(top_radius / length_unit_in_meters) << ",\n" <<
+          density_profile(rayleigh_density) << ",\n" <<
           to_string(
-              rayleigh_scattering, lambdas, length_unit_in_meters) + ",\n" +
-          density_profile(mie_density) + ",\n" +
-          to_string(mie_scattering, lambdas, length_unit_in_meters) + ",\n" +
-          to_string(mie_extinction, lambdas, length_unit_in_meters) + ",\n" +
-          std::to_string(mie_phase_function_g) + ",\n" +
-          density_profile(absorption_density) + ",\n" +
+              rayleigh_scattering, lambdas, length_unit_in_meters) << ",\n" <<
+          density_profile(mie_density) << ",\n" <<
+          to_string(mie_scattering, lambdas, length_unit_in_meters) << ",\n" <<
+          to_string(mie_extinction, lambdas, length_unit_in_meters) << ",\n" <<
+          std::to_string(mie_phase_function_g) << ",\n" <<
+          density_profile(absorption_density) << ",\n" <<
           to_string(
-              absorption_extinction, lambdas, length_unit_in_meters) + ",\n" +
-          to_string(ground_albedo, lambdas, 1.0) + ",\n" +
-          std::to_string(cos(max_sun_zenith_angle)) + ");\n" +
-      "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" +
-          std::to_string(sky_k_r) + "," +
-          std::to_string(sky_k_g) + "," +
-          std::to_string(sky_k_b) + ");\n" +
-      "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" +
-          std::to_string(sun_k_r) + "," +
-          std::to_string(sun_k_g) + "," +
-          std::to_string(sun_k_b) + ");\n" +
-      assets::atmosphere::functions_glsl.data();
+              absorption_extinction, lambdas, length_unit_in_meters) << ",\n" <<
+          to_string(ground_albedo, lambdas, 1.0) << ",\n" <<
+          std::to_string(cos(max_sun_zenith_angle)) << ");\n" <<
+      "const vec3 SKY_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" <<
+          std::to_string(sky_k_r) << "," <<
+          std::to_string(sky_k_g) << "," <<
+          std::to_string(sky_k_b) << ");\n" <<
+      "const vec3 SUN_SPECTRAL_RADIANCE_TO_LUMINANCE = vec3(" <<
+          std::to_string(sun_k_r) << "," <<
+          std::to_string(sun_k_g) << "," <<
+          std::to_string(sun_k_b) << ");\n" <<
+      assets::atmosphere::functions_glsl;
+
+      return ss.str();
   };
 
   // Allocate the precomputed textures, but don't precompute them yet.

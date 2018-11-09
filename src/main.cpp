@@ -196,8 +196,8 @@ int main() {
     auto gen = TerrainGenerator(pool);
     auto tr = TerrainRenderer(gen, p);
 
-    // auto atmos = PrecomputedAtmosphereRenderer(p.radius, p.radius * 1.0094);
-    auto atmos = AtmosphereRenderer();
+    auto atmos = PrecomputedAtmosphereRenderer(p.radius, p.radius * 1.0094);
+    // auto atmos = AtmosphereRenderer();
 
     auto screen = FrameBuffer::screen();
 

@@ -9,7 +9,6 @@ uniform sampler2D uTerrain;
 uniform sampler2D uDistance;
 
 uniform vec3 uCameraOrigin;
-uniform vec3 uCameraUp;
 uniform vec3 uCameraDir;
 
 const float PI = 3.14159265;
@@ -117,5 +116,8 @@ vec3 scatter(in vec3 ro, in vec3 rd) {
 void main() {
     vec3 terrain = texture(uTerrain, vFragCoord).xyz;
     vec3 atmos_color = scatter(uCameraOrigin, normalize(vRayDir));
+    const float exposure = 0.5;
+    atmos_color = 1.0 - exp(-exposure * atmos_color);
+
     fColor = vec4(terrain + atmos_color, 1);
 }

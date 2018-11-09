@@ -28,6 +28,8 @@ PrecomputedAtmosphereRenderer::PrecomputedAtmosphereRenderer(double radius, doub
     this->camera_origin = shader.uniform("uCameraOrigin");
     this->camera_up = shader.uniform("uCameraUp");
     this->camera_dir = shader.uniform("uCameraDir");
+
+    this->model->SetProgramUniforms(this->shader, 2, 3, 4, 5);
 }
 
 void PrecomputedAtmosphereRenderer::render(const Mat4F& inv_proj, const Camera& cam) const {

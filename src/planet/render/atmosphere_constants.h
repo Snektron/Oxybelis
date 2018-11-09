@@ -43,8 +43,6 @@ namespace atmosphere_constants {
     constexpr const double MAX_OZONE_NUMBER_DENSITY = 300.0 * DOBSON_UNIT / 15000.0;
 
     constexpr double CONSTANT_SOLAR_IRRADIANCE = 1.5;
-    constexpr double EARTH_RADIUS = 6360000.0;
-    constexpr double EARTH_ATMOSPHERE_RADIUS = 6420000.0;
     constexpr double RAYLEIGH = 1.24062e-6;
     constexpr double RAYLEIGH_SCALE_HEIGHT = 8000.0;
     constexpr double MIE_SCALE_HEIGHT = 1200.0;

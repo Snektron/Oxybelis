@@ -2,6 +2,7 @@
 #define _OXYBELIS_CORE_RESOURCE_H
 
 #include <experimental/string_view>
+#include <ostream>
 
 class Resource {
     std::experimental::string_view resource;
@@ -23,5 +24,9 @@ public:
         return this->resource;
     }
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Resource& res) {
+    return os << res.view();
+}
 
 #endif
