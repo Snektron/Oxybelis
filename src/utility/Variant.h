@@ -53,30 +53,30 @@ namespace detail {
     template <typename... Ts>
     using VariantData = std::aligned_union_t<0, Ts...>;
 
-    template <VariantId Current, typename... Ts>
+    template <size_t Index, size_t Total, typename... Ts>
     struct VariantInvoke {
-        using Type = typename VariantElement<Variant<Ts...>, Current>::Type;
+        using Type = typename VariantElement<Variant<Ts...>, Index>::Type;
         using Data = VariantData<Ts...>;
 
         template <typename F>
         constexpr static void visit(F&& f, Data& data, VariantId target) {
-            if (Current == target)
+            if (Index == target)
                 f(*reinterpret_cast<Type*>(&data));
             else
-                VariantInvoke<Current + 1, Ts...>::visit(std::forward<F>(f), data, target);
+                VariantInvoke<Index + 1, Total, Ts...>::visit(std::forward<F>(f), data, target);
         }
 
         template <typename F>
         constexpr static void visit(F&& f, const Data& data, VariantId target) {
-            if (Current == target)
+            if (Index == target)
                 f(*reinterpret_cast<const Type*>(&data));
             else
-                VariantInvoke<Current + 1, Ts...>::visit(std::forward<F>(f), data, target);
+                VariantInvoke<Index + 1, Total, Ts...>::visit(std::forward<F>(f), data, target);
         }
     };
 
-    template <typename... Ts>
-    struct VariantInvoke<sizeof...(Ts) + 1, Ts...> {
+    template <size_t Total, typename... Ts>
+    struct VariantInvoke<Total, Total, Ts...> {
         using Data = VariantData<Ts...>;
 
         template <typename F>
@@ -245,7 +245,7 @@ private:
         if (target == DISENGAGED)
             return false;
 
-        detail::VariantInvoke<1, Ts...>::visit(std::forward<F>(f), data, target);
+        detail::VariantInvoke<1, sizeof...(Ts) + 1, Ts...>::visit(std::forward<F>(f), this->data, target);
         return true;
     }
 
@@ -254,7 +254,7 @@ private:
         if (target == DISENGAGED)
             return false;
 
-        detail::VariantInvoke<1, Ts...>::visit(std::forward<F>(f), data, target);
+        detail::VariantInvoke<1, sizeof...(Ts) + 1, Ts...>::visit(std::forward<F>(f), this->data, target);
         return true;
     }
 

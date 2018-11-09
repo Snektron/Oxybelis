@@ -4,11 +4,13 @@
 #include "graphics/camera/Projection.h"
 #include "assets.h"
 
-static Program load_shader() {
-    return ProgramBuilder()
-        .with(ShaderType::Vertex, assets::atmosphere_vs)
-        .with(ShaderType::Fragment, assets::atmosphere_fs)
-        .link();
+namespace {
+    Program load_shader() {
+        return ProgramBuilder()
+            .with(ShaderType::Vertex, assets::atmosphere_vs)
+            .with(ShaderType::Fragment, assets::atmosphere_fs)
+            .link();
+    }
 }
 
 AtmosphereRenderer::AtmosphereRenderer():
