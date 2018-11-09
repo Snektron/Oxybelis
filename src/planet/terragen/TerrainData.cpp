@@ -2,7 +2,7 @@
 #include <random>
 #include <array>
 #include <utility>
-#include <noise/noise.h>
+#include <libnoise/noise.h>
 #include "fast-poly2tri/fastpoly2tri.h"
 
 TerrainData::TerrainData(const TerrainGenerationParameters& param):

@@ -6,7 +6,7 @@ BUILD := build
 ASSETS := assets
 3RDPARTY := 3rdparty
 PKGS := glfw3
-CXXFLAGS := -flto -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -I/usr/include/noisepp/threadpp \
+CXXFLAGS := -flto -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -I/usr/include/libnoise/ \
 	-g -std=c++14 -Wall -Wextra -O3 -march=native \
 	-DGLFW_INCLUDE_NONE -D_USE_MATH_DEFINES \
 	`pkg-config --cflags $(PKGS)`

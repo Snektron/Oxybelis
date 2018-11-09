@@ -3,7 +3,7 @@
 #include <random>
 #include <cstddef>
 #include <cmath>
-#include <noise/noise.h>
+#include <libnoise/noise.h>
 #include "fast-poly2tri/fastpoly2tri.h"
 
 Chunk::Chunk(const TerrainData& terrain):
