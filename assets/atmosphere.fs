@@ -6,7 +6,7 @@ in vec2 vFragCoord;
 in vec3 vRayDir;
 
 uniform sampler2D uTerrain;
-uniform sampler2D uDistance;
+uniform sampler2D uNormalDistance;
 
 uniform vec3 uCameraOrigin;
 uniform vec3 uCameraDir;
@@ -106,7 +106,7 @@ vec3 scatter(in vec3 ro, in vec3 rd) {
 
     e.x = max(e.x, 0);
 
-    float dist = texture(uDistance, vFragCoord).x;
+    float dist = texture(uNormalDistance, vFragCoord).a;
     if (dist > 0)
         e.y = min(e.y, dist);
 

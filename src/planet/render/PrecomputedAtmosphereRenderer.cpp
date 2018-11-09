@@ -21,7 +21,7 @@ PrecomputedAtmosphereRenderer::PrecomputedAtmosphereRenderer(double radius, doub
     this->shader.use();
 
     glUniform1i(shader.uniform("uTerrain"), 0);
-    glUniform1i(shader.uniform("uDistance"), 1);
+    glUniform1i(shader.uniform("uNormalDistance"), 1);
 
     this->inv_proj_mat = shader.uniform("uInvProjection");
     this->model_mat = shader.uniform("uModel");

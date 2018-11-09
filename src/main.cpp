@@ -226,7 +226,7 @@ int main() {
         glActiveTexture(GL_TEXTURE1);
         fb_state.distance = Texture();
         fb_state.distance.bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, current_dim.x, current_dim.y, 0, GL_RED, GL_FLOAT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, current_dim.x, current_dim.y, 0, GL_RGBA, GL_FLOAT, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fb_state.distance, 0);
@@ -253,7 +253,7 @@ int main() {
         glEnable(GL_DEPTH_TEST);
         glPolygonMode(GL_FRONT_AND_BACK, polymode);
 
-        glClearColor(0, 0, 0, 1);
+        glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         tr.update_viewpoint(cam);
