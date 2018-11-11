@@ -110,9 +110,9 @@ struct Mat: BaseMat<T, M, N> {
 
     constexpr static auto axis_angle(const T& x, const T& y, const T& z, const T& angle);
 
-    constexpr static auto orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far);
+    constexpr static auto orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& znear, const T& zfar);
 
-    constexpr static auto perspective(const T& aspect, const T& fov, const T& near, const T& far);
+    constexpr static auto perspective(const T& aspect, const T& fov, const T& znear, const T& zfar);
 
     constexpr static auto look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up);
 
@@ -360,37 +360,37 @@ constexpr auto Mat<T, M, N>::axis_angle(const T& x, const T& y, const T& z, cons
 }
 
 template <typename T, size_t M, size_t N>
-constexpr auto Mat<T, M, N>::orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& near, const T& far) {
+constexpr auto Mat<T, M, N>::orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& znear, const T& zfar) {
     static_assert(M == 4 && N == 4, "Can only create a 4x4 orthographic projection matrix");
     Mat4<T> result;
 
     auto rl = right - left;
     auto tb = top - bottom;
-    auto nf = near - far;
+    auto nf = znear - zfar;
 
     result(0, 0) = 2 / rl;
     result(1, 1) = 2 / tb;
     result(2, 2) = 2 / nf;
     result(0, 3) = -(right + left) / rl;
     result(1, 3) = -(top + bottom) / tb;
-    result(2, 3) = -(near + far) / nf;
+    result(2, 3) = -(znear + zfar) / nf;
     result(3, 3) = 1;
 
     return result;
 }
 
 template <typename T, size_t M, size_t N>
-constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T& near, const T& far) {
+constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T& znear, const T& zfar) {
     static_assert(M == 4 && N == 4, "Can only create a 4x4 perspective projection matrix");
     Mat4<T> result;
 
-    auto nf = near - far;
+    auto nf = znear - zfar;
     auto tan_fov_2 = std::tan(fov / 2);
 
     result(0, 0) = 1 / (aspect * tan_fov_2);
     result(1, 1) = 1 / tan_fov_2;
-    result(2, 2) = (-near - far) / nf;
-    result(2, 3) = (2 * far * near) / nf;
+    result(2, 2) = (-znear - zfar) / nf;
+    result(2, 3) = (2 * zfar * znear) / nf;
     result(3, 2) = 1;
 
     return result;
