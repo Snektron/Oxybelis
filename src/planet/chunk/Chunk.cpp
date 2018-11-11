@@ -26,5 +26,5 @@ void Chunk::render(const Camera& cam, Uniform model, Uniform camera_origin) cons
     glUniform3fv(camera_origin, 1, static_cast<Vec3F>(cam.translation - this->center).data());
 
     this->vao.bind();
-    glDrawArrays(GL_TRIANGLES, 0, this->vertices);
+    glDrawArrays(GL_TRIANGLES_ADJACENCY, 0, this->vertices);
 }

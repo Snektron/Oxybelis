@@ -2,11 +2,15 @@
 #include <random>
 #include <array>
 #include <utility>
+#include <iostream>
+#include <thread>
 #include <noise/noise.h>
 #include "fast-poly2tri/fastpoly2tri.h"
+#include "utility/Timer.h"
 
 TerrainData::TerrainData(const TerrainGenerationParameters& param):
     loc(param.loc) {
+    // auto timer = Timer("Chunk generation took ");
     size_t max_pts = param.side_points * 3 + param.inner_points;
 
     auto gen = std::mt19937(param.loc.id.raw());
@@ -77,7 +81,7 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
 
     MPE_PolyTriangulate(&poly_ctx);
 
-    this->terrain_data.reserve(poly_ctx.TriangleCount * 3);
+    this->terrain_data.reserve(poly_ctx.TriangleCount * 6);
 
     auto perlin = noise::module::Perlin();
     perlin.SetOctaveCount(8);
@@ -93,20 +97,56 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
         return v * (param.radius + h);
     };
 
+    auto find_opposite = [](const MPEPolyTriangle* tri, const MPEPolyPoint* a, const MPEPolyPoint* b) -> const MPEPolyPoint* {
+        if (tri == nullptr)
+            return nullptr;
+        else if (tri->Points[0] == a && tri->Points[1] == b)
+            return tri->Points[2];
+        else if (tri->Points[1] == a && tri->Points[2] == b)
+            return tri->Points[0];
+        else if (tri->Points[2] == a && tri->Points[0] == b)
+            return tri->Points[1];
+        else
+            std::abort();
+    };
+
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {
         const auto* t = poly_ctx.Triangles[i];
         const auto* ta = t->Points[0];
         const auto* tb = t->Points[1];
         const auto* tc = t->Points[2];
 
+        const auto* td = find_opposite(t->Neighbors[2], tb, ta);
+        const auto* te = find_opposite(t->Neighbors[0], tc, tb);
+        const auto* tf = find_opposite(t->Neighbors[1], ta, tc);
+
         auto a = get_vec(ta->X, ta->Y);
         auto b = get_vec(tb->X, tb->Y);
         auto c = get_vec(tc->X, tc->Y);
 
+        Vec3F nd, ne, nf;
         auto normal = normalize(cross(c - a, b - a));
 
+        if (td) {
+            auto d = get_vec(td->X, td->Y);
+            nd = normalize(cross(a - d, b - d));
+        }
+
+        if (te) {
+            auto e = get_vec(te->X, te->Y);
+            ne = normalize(cross(b - e, c - e));
+        }
+
+        if (tf) {
+            auto f = get_vec(tf->X, tf->Y);
+            nf = normalize(cross(c - f, a - f));
+        }
+
         this->terrain_data.emplace_back(a - chunk_center, normal);
+        this->terrain_data.emplace_back(Vec3F(), nd);
         this->terrain_data.emplace_back(b - chunk_center, normal);
+        this->terrain_data.emplace_back(Vec3F(), ne);
         this->terrain_data.emplace_back(c - chunk_center, normal);
+        this->terrain_data.emplace_back(Vec3F(), nf);
     }
 }

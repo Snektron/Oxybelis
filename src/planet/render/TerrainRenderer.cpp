@@ -33,6 +33,7 @@ size_t lod_from_alt(double alt_sq) {
 static Program load_shader() {
     return ProgramBuilder()
         .with(ShaderType::Vertex, assets::terrain_vs)
+        .with(ShaderType::Geometry, assets::terrain_gs)
         .with(ShaderType::Fragment, assets::terrain_fs)
         .link();
 }

@@ -1,22 +1,21 @@
-# Made by Robin Voetter (s1835130)
-
 TARGET := oxybelis
 SRC := src
 BUILD := build
 ASSETS := assets
 3RDPARTY := 3rdparty
-PKGS := glfw3
-CXXFLAGS := -flto -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -I/usr/include/noisepp/threadpp \
+GLFW ?= glfw3
+INCLUDES += -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS)
+CXXFLAGS += -flto $(INCLUDES) \
 	-g -std=c++14 -Wall -Wextra -O3 -march=native \
 	-DGLFW_INCLUDE_NONE -D_USE_MATH_DEFINES \
-	`pkg-config --cflags $(PKGS)`
-LDFLAGS := -flto -g -ldl -lnoise `pkg-config --libs $(PKGS)` -pthread
+	$(shell pkg-config --cflags $(GLFW))
+LDFLAGS := -flto -g -pthread -lnoise $(shell pkg-config --libs $(GLFW))
 RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Resource
 
 ifeq ($(OS),Windows_NT)
     LDFLAGS += -lopengl32 -lgdi32
 else
-    LDFLAGS += -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor
+    LDFLAGS += -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -ldl
 endif
 
 find = $(shell find $1 -type f -name $2 -print 2>/dev/null)
