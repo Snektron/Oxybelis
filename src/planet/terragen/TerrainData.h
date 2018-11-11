@@ -15,16 +15,18 @@ struct TerrainGenerationParameters {
     size_t inner_points;
 };
 
-template <>
-struct std::hash<TerrainGenerationParameters> {
-    size_t operator()(const TerrainGenerationParameters& param) const {
-        size_t hash = std::hash<ChunkId>{}(param.loc.id);
-        hash = hash_combine(hash, param.radius);
-        hash = hash_combine(hash, param.side_points);
-        hash = hash_combine(hash, param.inner_points);
-        return hash;
-    }
-};
+namespace std {
+    template <>
+    struct hash<TerrainGenerationParameters> {
+        size_t operator()(const TerrainGenerationParameters& param) const {
+            size_t hash = std::hash<ChunkId>{}(param.loc.id);
+            hash = hash_combine(hash, param.radius);
+            hash = hash_combine(hash, param.side_points);
+            hash = hash_combine(hash, param.inner_points);
+            return hash;
+        }
+    };
+}
 
 inline bool operator==(const TerrainGenerationParameters& a, const TerrainGenerationParameters& b) {
     return std::make_tuple(a.loc.id, a.radius, a.side_points, a.inner_points)

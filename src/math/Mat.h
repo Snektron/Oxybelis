@@ -9,11 +9,6 @@
 template <typename T, size_t M, size_t N>
 struct Mat;
 
-namespace detail {
-    template <size_t M, size_t N>
-    using EnableIfMat4 = std::enable_if_t<M == 4 && M == 4>;
-}
-
 template <typename T>
 using Mat2 = Mat<T, 2, 2>;
 using Mat2F = Mat2<float>;
@@ -90,6 +85,10 @@ struct Mat: BaseMat<T, M, N> {
 
     using Base = BaseMat<T, M, N>;
     using Base::Base;
+
+    constexpr Mat():
+        Base() {
+    }
 
     template <typename U>
     constexpr Mat(const Mat<U, M, N>& other) {
@@ -205,7 +204,7 @@ Os& operator<<(Os& os, const Mat<T, M, N>& mat) {
                 os << '\t';
         }
         if (i != M - 1)
-            os << std::endl;
+            os << '\n';
     }
 
     return os;

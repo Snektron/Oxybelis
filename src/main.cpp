@@ -1,9 +1,10 @@
 #include <iostream>
 #include <iomanip>
+#include <thread>
+#include <functional>
 #include <cmath>
 #include <cstdint>
 #include <chrono>
-#include <thread>
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
 #include "core/Window.h"
@@ -41,6 +42,15 @@ enum class Input {
     SpeedUp,
     SpeedDown
 };
+
+namespace std {
+    template <>
+    struct hash<Input> {
+        size_t operator()(Input i) const {
+            return static_cast<size_t>(i);
+        }
+    };
+}
 
 constexpr long double operator ""_Mm(long double val) {
     return val * 1'000'000.0;

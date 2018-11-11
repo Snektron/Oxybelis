@@ -133,8 +133,6 @@ struct BaseVec<T, 4> {
     }
 };
 
-#include <iostream>
-
 template <typename T, size_t N>
 struct Vec: BaseVec<T, N> {
     static_assert(N > 1, "Cannot create a vector of size 1");
@@ -144,6 +142,10 @@ struct Vec: BaseVec<T, N> {
 
     using Base = BaseVec<T, N>;
     using Base::Base;
+
+    constexpr Vec():
+        Base() {
+    }
 
     template <typename U>
     constexpr Vec(const Vec<U, N>& other) {

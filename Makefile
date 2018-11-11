@@ -5,7 +5,7 @@ SRC := src
 BUILD := build
 ASSETS := assets
 3RDPARTY := 3rdparty
-GLFW := glfw3
+GLFW ?= glfw3
 CXXFLAGS := -flto -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) \
 	-g -std=c++14 -Wall -Wextra -O3 -march=native \
 	-DGLFW_INCLUDE_NONE -D_USE_MATH_DEFINES \

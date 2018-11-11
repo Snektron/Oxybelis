@@ -79,15 +79,17 @@ constexpr inline bool operator!=(ChunkId lhs, ChunkId rhs) {
     return !(lhs == rhs);
 }
 
-template<>
-struct std::hash<ChunkId> {
-    using result_type = size_t;
-    using argument_type = ChunkId;
+namespace std {
+    template<>
+    struct hash<ChunkId> {
+        using result_type = size_t;
+        using argument_type = ChunkId;
 
-    size_t operator()(const ChunkId& id) const {
-        return static_cast<size_t>(id.raw());
-    }
-};
+        size_t operator()(const ChunkId& id) const {
+            return static_cast<size_t>(id.raw());
+        }
+    };
+}
 
 struct ChunkLocation {
     ChunkId id;

@@ -1,6 +1,7 @@
 #ifndef _OXYBELIS_INPUT_DEVICE_MOUSE_H
 #define _OXYBELIS_INPUT_DEVICE_MOUSE_H
 
+#include <functional>
 #include <GLFW/glfw3.h>
 #include "input/Action.h"
 #include "input/Input.h"
@@ -33,6 +34,22 @@ enum class MouseButton: int {
     Right = GLFW_MOUSE_BUTTON_RIGHT,
     Middle = GLFW_MOUSE_BUTTON_MIDDLE
 };
+
+namespace std {
+    template <>
+    struct hash<MouseAxis> {
+        size_t operator()(MouseAxis i) const {
+            return static_cast<size_t>(i);
+        }
+    };
+
+    template <>
+    struct hash<MouseButton> {
+        size_t operator()(MouseButton i) const {
+            return static_cast<size_t>(i);
+        }
+    };
+}
 
 template <typename I>
 class Mouse {
