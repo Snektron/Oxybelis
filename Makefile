@@ -5,12 +5,12 @@ SRC := src
 BUILD := build
 ASSETS := assets
 3RDPARTY := 3rdparty
-PKGS := glfw3
-CXXFLAGS := -flto -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) -I/usr/include/noisepp/threadpp \
+GLFW := glfw3
+CXXFLAGS := -flto -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) \
 	-g -std=c++14 -Wall -Wextra -O3 -march=native \
 	-DGLFW_INCLUDE_NONE -D_USE_MATH_DEFINES \
-	`pkg-config --cflags $(PKGS)`
-LDFLAGS := -flto -g -ldl -lnoise `pkg-config --libs $(PKGS)` -pthread
+	`pkg-config --cflags $(GLFW)`
+LDFLAGS := -flto -g -ldl -lnoise `pkg-config --libs $(GLFW)` -pthread
 RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Resource
 
 ifeq ($(OS),Windows_NT)

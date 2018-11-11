@@ -2,7 +2,7 @@
 #include <random>
 #include <array>
 #include <utility>
-#include <noise/noise.h>
+#include "noisepp/Noise.h"
 #include "fast-poly2tri/fastpoly2tri.h"
 
 TerrainData::TerrainData(const TerrainGenerationParameters& param):
@@ -79,17 +79,20 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
 
     this->terrain_data.reserve(poly_ctx.TriangleCount * 3);
 
-    auto perlin = noise::module::Perlin();
-    perlin.SetOctaveCount(8);
-    perlin.SetSeed(0);
+    auto module = noisepp::RidgedMultiModule();
+    module.setOctaveCount(8);
+    module.setSeed(0);
+    module.setFrequency(400);
+
+    auto pipeline = noisepp::Pipeline3D();
+    auto* noise = pipeline.getElement(module.addToPipe(pipeline));
+    auto* cache = pipeline.createCache();
 
     auto chunk_center = corners.center();
 
     auto get_vec = [&](double x, double y) {
         auto v = normalize(corners.a + a_b * x + c_d * y);
-        double h = perlin.GetValue(v.x * 500.0, v.y * 500.0, v.z * 500.0) / 1.5;
-        h *= h;
-        h *= 2'000.0;
+        double h = noise->getValue(v.x, v.y, v.z, cache) * 2'000.0 / 1.5;
         return v * (param.radius + h);
     };
 
@@ -109,4 +112,6 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
         this->terrain_data.emplace_back(b - chunk_center, normal);
         this->terrain_data.emplace_back(c - chunk_center, normal);
     }
+
+    pipeline.freeCache(cache);
 }
