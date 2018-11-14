@@ -1,5 +1,6 @@
 #include "planet/chunk/ChunkPatch.h"
 #include "planet/terragen/TerrainData.h"
+#include <iostream>
 
 const size_t PATH_LEFT = 0b01;
 const size_t PATH_RIGHT = 0b10;
@@ -110,7 +111,7 @@ ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoade
                 param_template.inner_points = 1'000;
                 break;
             case Lod::High:
-                param_template.inner_points = 30'000;
+                param_template.inner_points = 200'000;
                 break;
         }
 
@@ -123,6 +124,7 @@ bool ChunkPatch::is_ready() {
         if (chunk_ref->update() != CachedChunk::Status::Ready)
             return false;
     }
+    std::cout << "==Ready==" << std::endl;
     return true;
 }
 

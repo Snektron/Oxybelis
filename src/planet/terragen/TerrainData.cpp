@@ -2,6 +2,7 @@
 #include <random>
 #include <array>
 #include <utility>
+#include <iostream>
 #include "noisepp/Noise.h"
 #include "fast-poly2tri/fastpoly2tri.h"
 
@@ -95,6 +96,8 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
         double h = (noise->getValue(v.x, v.y, v.z, cache) + 1.0) * 2'000.0 / 1.5;
         return v * (param.radius + h);
     };
+
+    std::cout << "Terrain: Points = " << max_pts << " Triangles = " << poly_ctx.TriangleCount << std::endl;
 
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {
         const auto* t = poly_ctx.Triangles[i];

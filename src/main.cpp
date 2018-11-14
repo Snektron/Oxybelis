@@ -28,6 +28,7 @@
 #include "planet/render/PrecomputedAtmosphereRenderer.h"
 #include "planet/Planet.h"
 #include "utility/ThreadPool.h"
+#include "utility/Profiler.h"
 
 enum class Input {
     Quit,
@@ -272,6 +273,8 @@ int main() {
 
     resize();
 
+    Profiler render_time;
+
     while (!window.should_close() && !esc) {
         auto dim = Vec2I(window.dimensions());
         if (dim.x != current_dim .x || dim.y != current_dim.y) {
@@ -279,9 +282,11 @@ int main() {
             resize();
         }
 
+        render_time.start();
+
         fb_state.fb.bind();     
         glEnable(GL_DEPTH_TEST);
-        glPolygonMode(GL_FRONT_AND_BACK, polymode);
+        // glPolygonMode(GL_FRONT_AND_BACK, polymode);
 
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -291,16 +296,22 @@ int main() {
 
         screen.bind();
         glDisable(GL_DEPTH_TEST);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
         atmos.render(projection.to_inverse_matrix(), cam);
 
+        glFinish();
+        render_time.stop();
+
         window.swap_buffers();
+
         assert_gl();
         glfwPollEvents();
         manager.update();
     }
+
+    std::cout << "Render " << render_time.stats() << std::endl;
 
     return 0;
 }
