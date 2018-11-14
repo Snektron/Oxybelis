@@ -92,7 +92,7 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
 
     auto get_vec = [&](double x, double y) {
         auto v = normalize(corners.a + a_b * x + c_d * y);
-        double h = noise->getValue(v.x, v.y, v.z, cache) * 2'000.0 / 1.5;
+        double h = (noise->getValue(v.x, v.y, v.z, cache) + 1.0) * 2'000.0 / 1.5;
         return v * (param.radius + h);
     };
 

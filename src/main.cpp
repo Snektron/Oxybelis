@@ -40,7 +40,8 @@ enum class Input {
     TogglePolygonMode,
     ToggleCullFace,
     SpeedUp,
-    SpeedDown
+    SpeedDown,
+    ToggleMouse,
 };
 
 namespace std {
@@ -112,7 +113,14 @@ int main() {
     auto mouse = Mouse<Input>(manager, window);
     mouse.bind_axis(Input::Horizontal, MouseAxis::Horizontal, 0.01);
     mouse.bind_axis(Input::Vertical, MouseAxis::Vertical, 0.01);
-    mouse.disable_cursor();
+    mouse.bind_action(Input::ToggleMouse, MouseButton::Left);
+
+    bool captured = false;
+    auto toggle_cursor = [&] {
+        mouse.disable_cursor(captured ^= true);
+    };
+
+    toggle_cursor();
 
     auto ctx = InputContext<Input>();
 
@@ -129,15 +137,18 @@ int main() {
     auto cam = Camera(QuatD::identity(), Vec3D(0, 0, -10'000.0_km));
 
     ctx.connect_axis(Input::Vertical, [&](double v){
-        cam.rotate_pitch(v);
+        if (captured)
+            cam.rotate_pitch(v);
     });
 
     ctx.connect_axis(Input::Horizontal, [&](double v){
-        cam.rotate_yaw(v);
+        if (captured)
+            cam.rotate_yaw(v);
     });
 
     ctx.connect_axis(Input::Rotate, [&](double v){
-        cam.rotate_roll(v);
+        if (captured)
+            cam.rotate_roll(v);
     });
 
     constexpr double cam_base_speed = 10.0_km;
@@ -152,15 +163,18 @@ int main() {
     update_speed();
 
     ctx.connect_axis(Input::Strafe, [&](double v){
-        cam.strafe(cam_speed * v);
+        if (captured)
+            cam.strafe(cam_speed * v);
     });
 
     ctx.connect_axis(Input::Fly, [&](double v){
-        cam.fly(cam_speed * v);
+        if (captured)
+            cam.fly(cam_speed * v);
     });
 
     ctx.connect_axis(Input::Forward, [&](double v){
-        cam.forward(cam_speed * v);
+        if (captured)
+            cam.forward(cam_speed * v);
     });
 
     ctx.connect_action(Input::SpeedUp, [&](Action a) {
@@ -194,6 +208,12 @@ int main() {
                 glDisable(GL_CULL_FACE);
             else
                 glEnable(GL_CULL_FACE);
+        }
+    });
+
+    ctx.connect_action(Input::ToggleMouse, [&](Action a) {
+        if (a == Action::Press) {
+            toggle_cursor();
         }
     });
 
