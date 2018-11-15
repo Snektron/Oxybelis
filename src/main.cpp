@@ -86,7 +86,7 @@ int main() {
     window.make_context_current();
 
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback([](GLenum, GLenum, GLuint, GLenum, GLsizei length, const GLchar* message, const void*){

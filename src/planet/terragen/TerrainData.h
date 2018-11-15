@@ -37,9 +37,10 @@ struct TerrainData {
     struct VertexData {
         Vec3F vertex;
         Vec3F normal;
+        Vec3F color;
 
-        VertexData(const Vec3F& vertex, const Vec3F& normal):
-            vertex(vertex), normal(normal) {}
+        VertexData(const Vec3F& vertex, const Vec3F& normal, const Vec3F& color):
+            vertex(vertex), normal(normal), color(color) {}
     };
 
     ChunkLocation loc;

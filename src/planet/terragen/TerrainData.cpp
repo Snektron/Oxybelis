@@ -7,6 +7,11 @@
 #include "noisepp/Noise.h"
 #include "fast-poly2tri/fastpoly2tri.h"
 
+namespace {
+    const Vec3F GROUND_ALBEDO = Vec3F(0.15, 0.35, 0.08) * 0.2;
+    const Vec3F WATER_ALBEDO = Vec3F(0.06, 0.08, 0.35) * 0.2;
+}
+
 TerrainData::TerrainData(const TerrainGenerationParameters& param):
     loc(param.loc) {
     size_t max_pts = param.side_points * 3 + param.inner_points;
@@ -102,10 +107,18 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
         double y = pt->Y;
 
         auto v = normalize(corners.a + a_b * x + c_d * y);
-        double h = (noise->getValue(v.x, v.y, v.z, cache) + 1.0) * 2'000.0 / 1.5;
+        double h = noise->getValue(v.x, v.y, v.z, cache) * 2'000.0 / 1.5;
         v *= param.radius + h;
         map.emplace_hint(it, pt, v);
         return v;
+    };
+
+    auto emit_tri = [&](const Vec3D& a, const Vec3D& b, const Vec3D& c, const Vec3F& color) {
+        auto normal = normalize(cross(c - a, b - a));
+
+        this->terrain_data.emplace_back(a - chunk_center, normal, color);
+        this->terrain_data.emplace_back(b - chunk_center, normal, color);
+        this->terrain_data.emplace_back(c - chunk_center, normal, color);
     };
 
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {
@@ -118,11 +131,24 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
         auto b = get_vec(tb);
         auto c = get_vec(tc);
 
-        auto normal = normalize(cross(c - a, b - a));
+        bool sa = length(a) < param.radius;
+        bool sb = length(b) < param.radius;
+        bool sc = length(c) < param.radius;
 
-        this->terrain_data.emplace_back(a - chunk_center, normal);
-        this->terrain_data.emplace_back(b - chunk_center, normal);
-        this->terrain_data.emplace_back(c - chunk_center, normal);
+        size_t n_submerged = sa + sb + sc;
+
+        if (n_submerged > 0) {
+            Vec3F a1 = normalize(a) * param.radius;
+            Vec3F b1 = normalize(b) * param.radius;
+            Vec3F c1 = normalize(c) * param.radius;
+            emit_tri(a1, b1, c1, WATER_ALBEDO);
+
+            if (n_submerged < 3) {
+                emit_tri(a, b, c, GROUND_ALBEDO);
+            }
+        } else {
+            emit_tri(a, b, c, GROUND_ALBEDO);
+        }
     }
 
     pipeline.freeCache(cache);

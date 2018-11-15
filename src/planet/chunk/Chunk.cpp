@@ -6,10 +6,12 @@ Chunk::Chunk(const TerrainData& terrain):
     this->terrain.bind(GL_ARRAY_BUFFER);
     Buffer::upload_data(GL_ARRAY_BUFFER, GL_STATIC_DRAW, terrain.terrain_data);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(Vec3F), 0);
     this->vao.enable_attrib(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(Vec3F), (void*)sizeof(Vec3F));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(Vec3F), reinterpret_cast<void*>(sizeof(Vec3F)));
     this->vao.enable_attrib(1);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(Vec3F), reinterpret_cast<void*>(2 * sizeof(Vec3F)));
+    this->vao.enable_attrib(2);
 }
 
 void Chunk::render(const Camera& cam, Uniform model, Uniform camera_origin) const {
