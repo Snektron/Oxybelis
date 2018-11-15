@@ -3,6 +3,7 @@
 #include <array>
 #include <utility>
 #include <iostream>
+#include <unordered_map>
 #include "noisepp/Noise.h"
 #include "fast-poly2tri/fastpoly2tri.h"
 
@@ -79,6 +80,7 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
     MPE_PolyTriangulate(&poly_ctx);
 
     this->terrain_data.reserve(poly_ctx.TriangleCount * 3);
+    auto map = std::unordered_map<const MPEPolyPoint*, Vec3D>(max_pts);
 
     auto module = noisepp::RidgedMultiModule();
     module.setOctaveCount(8);
@@ -91,13 +93,20 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
 
     auto chunk_center = corners.center();
 
-    auto get_vec = [&](double x, double y) {
+    auto get_vec = [&](const MPEPolyPoint* pt) {
+        auto it = map.find(pt);
+        if (it != map.end())
+            return it->second;
+
+        double x = pt->X;
+        double y = pt->Y;
+
         auto v = normalize(corners.a + a_b * x + c_d * y);
         double h = (noise->getValue(v.x, v.y, v.z, cache) + 1.0) * 2'000.0 / 1.5;
-        return v * (param.radius + h);
+        v *= param.radius + h;
+        map.emplace_hint(it, pt, v);
+        return v;
     };
-
-    std::cout << "Terrain: Points = " << max_pts << " Triangles = " << poly_ctx.TriangleCount << std::endl;
 
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {
         const auto* t = poly_ctx.Triangles[i];
@@ -105,9 +114,9 @@ TerrainData::TerrainData(const TerrainGenerationParameters& param):
         const auto* tb = t->Points[1];
         const auto* tc = t->Points[2];
 
-        auto a = get_vec(ta->X, ta->Y);
-        auto b = get_vec(tb->X, tb->Y);
-        auto c = get_vec(tc->X, tc->Y);
+        auto a = get_vec(ta);
+        auto b = get_vec(tb);
+        auto c = get_vec(tc);
 
         auto normal = normalize(cross(c - a, b - a));
 
