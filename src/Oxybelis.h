@@ -11,7 +11,7 @@
 #include "math/Vec.h"
 #include "planet/Planet.h"
 #include "planet/terragen/TerrainGenerator.h"
-#include "planet/render/PrecomputedAtmosphereRenderer.h"
+#include "planet/render/AtmosphereRenderer.h"
 #include "planet/render/TerrainRenderer.h"
 #include "utility/ThreadPool.h"
 #include "OxybelisInput.h"
@@ -23,7 +23,6 @@ struct FrameBufferState {
 };
 
 class Oxybelis {
-public:
     ThreadPool thread_pool;
 
     InputContext<Input> input_ctx;
@@ -37,16 +36,19 @@ public:
     double camera_speed;
 
     Planet planet;
-    PrecomputedAtmosphereRenderer atmos;
+    AtmosphereRenderer atmos;
     TerrainGenerator terragen;
     TerrainRenderer terraren;
 
     FrameBufferState fb_state;
 
+public:
     Oxybelis(Mouse<Input>& mouse, const Vec2I& dim);
     bool update(double dt);
     void resize(const Vec2I& dim);
     void render();
+
+    InputContext<Input>& input_context();
 
 private:
     void toggle_cursor();

@@ -113,6 +113,10 @@ void Oxybelis::render() {
     this->atmos.render(this->projection.to_inverse_matrix(), this->camera);
 }
 
+InputContext<Input>& Oxybelis::input_context() {
+    return this->input_ctx;
+}
+
 void Oxybelis::toggle_cursor() {
     this->mouse.disable_cursor(this->cursor_captured ^= true);
 }

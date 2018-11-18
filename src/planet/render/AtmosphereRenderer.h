@@ -1,15 +1,16 @@
-#ifndef _OXYBELIS_PLANET_RENDER_ATMOSPHERE_H
-#define _OXYBELIS_PLANET_RENDER_ATMOSPHERE_H
+#ifndef _OXYBELIS_PLANET_RENDER_ATMOSPHERERENDERER_H
+#define _OXYBELIS_PLANET_RENDER_ATMOSPHERERENDERER_H
 
-#include "planet/Planet.h"
+#include <memory>
+#include "atmosphere/model.h"
+#include "graphics/shader/Program.h"
 #include "graphics/camera/Camera.h"
 #include "graphics/models/Quad.h"
-#include "graphics/VertexArray.h"
-#include "graphics/shader/Program.h"
-#include "graphics/Buffer.h"
 #include "math/Mat.h"
 
 class AtmosphereRenderer {
+    std::unique_ptr<atmosphere::Model> model;
+
     Program shader;
     Uniform inv_proj_mat;
     Uniform model_mat;
@@ -20,8 +21,8 @@ class AtmosphereRenderer {
     Quad quad;
 
 public:
-    AtmosphereRenderer();
-    void render(const Mat4F& inv_proj, const Camera& cam);
+    AtmosphereRenderer(double radius, double outer_radius);
+    void render(const Mat4F& inv_proj, const Camera& cam) const;
 };
 
 #endif

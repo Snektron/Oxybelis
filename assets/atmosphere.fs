@@ -1,4 +1,4 @@
-#version 430
+#version 400
 
 out vec4 fColor;
 
@@ -11,113 +11,53 @@ uniform sampler2D uNormalDistance;
 uniform vec3 uCameraOrigin;
 uniform vec3 uCameraDir;
 
-const float PI = 3.14159265;
-
-const vec2 MISS = vec2(1, -1);
-
-const float RADIUS = 6371000.0;
-
-const float ATMOS_RADIUS = RADIUS * 1.025;
-const float ATMOS_HEIGHT = ATMOS_RADIUS - RADIUS;
-const vec3 ATMOS_COLOR = vec3(0.3, 0.7, 1.0);
-const float ATMOS_AVG_DENSITY_HEIGHT = 0.25;
+const float PI = 3.141592654;
 
 const vec3 LIGHT_DIR = normalize(vec3(1, 2, -3));
 
-const float MIE_G = -0.85;
-const float MIE_G2 = MIE_G * MIE_G;
+#define USE_LUMINANCE
 
-const int IN_SCATTER_STEPS = 10;
-const int OUT_SCATTER_STEPS = 10;
+#ifdef USE_LUMINANCE
+#define GetSolarRadiance GetSolarLuminance
+#define GetSkyRadiance GetSkyLuminance
+#define GetSkyRadianceToPoint GetSkyLuminanceToPoint
+#define GetSunAndSkyIrradiance GetSunAndSkyIlluminance
+#endif
 
-const float K_R = 0.166;
-const float K_M = 0.025;
-const float INTENSITY = 14.3;
-
-vec2 ray_sphere_intersect(in vec3 ro, in vec3 rd, in float radius) {
-    float b = dot(ro, rd);
-    float c = dot(ro, ro) - radius * radius;
-
-    float d = b * b - c;
-    if (d < 0)
-        return MISS;
-
-    d = sqrt(d);
-    return vec2(-b - d, -b + d);
-}
-
-float phase_mie(in float x) {
-    float top = (1 - MIE_G2) * (1 + x * x);
-    float bot = 1 + MIE_G2 - 2 * MIE_G * x;
-    bot *= sqrt(bot);
-    bot *= 2 + MIE_G2;
-    return 1.5 * top / bot;
-}
-
-float phase_rayleigh(in float x) {
-    return 0.75 * (1 + x * x);
-}
-
-float density(in vec3 p) {
-    float h = (length(p) - RADIUS) / ATMOS_HEIGHT;
-    return exp(-h / ATMOS_AVG_DENSITY_HEIGHT);
-}
-
-float out_scatter(vec3 pa, vec3 pb) {
-    vec3 rs = (pb - pa) / float(OUT_SCATTER_STEPS);
-    vec3 p = pa + rs * 0.5;
-
-    float total = 0;
-    for (int i = 0; i < OUT_SCATTER_STEPS; ++i) {
-        total += density(p);
-        p += rs;
-    }
-
-    return total * length(rs) / ATMOS_HEIGHT;
-}
-
-vec3 in_scatter(in vec3 ro, in vec3 rd, vec2 t) {
-    float segment_length = (t.y - t.x) / float(IN_SCATTER_STEPS);
-    vec3 rs = rd * segment_length;
-    vec3 pa = ro + rd * t.x;
-    vec3 pb = ro + rd * t.y;
-
-    vec3 p = pa + 0.5 * rs;
-
-    vec3 total = vec3(0);
-    for (int i = 0; i < IN_SCATTER_STEPS; ++i) {
-        vec2 d = ray_sphere_intersect(p, LIGHT_DIR, ATMOS_RADIUS);
-        vec3 pc = p + LIGHT_DIR * d.y; // atmosphere intersection point
-        float x = -(out_scatter(pa, p) + out_scatter(p, pc)) * PI * 4;
-        total += density(p) * exp(x * (K_R * ATMOS_COLOR + K_M));
-        p += rs;
-    }
-
-    total *= segment_length / ATMOS_HEIGHT;
-    // return total;
-    float theta = dot(rd, -LIGHT_DIR);
-    return total * INTENSITY * (K_R * ATMOS_COLOR * phase_rayleigh(theta) + K_M * phase_mie(theta));
-}
-
-vec3 scatter(in vec3 ro, in vec3 rd) {
-    vec2 e = ray_sphere_intersect(ro, rd, ATMOS_RADIUS);
-    if (e.y < 0)
-        return vec3(0); // ray misses atmosphere
-
-    e.x = max(e.x, 0);
-
-    float dist = texture(uNormalDistance, vFragCoord).a;
-    if (dist > 0)
-        e.y = min(e.y, dist);
-
-    return in_scatter(ro, rd, e);
-}
+vec3 GetSolarRadiance();
+vec3 GetSkyRadiance(vec3 camera, vec3 view_ray, float shadow_length, vec3 sun_direction, out vec3 transmittance);
+vec3 GetSkyRadianceToPoint(vec3 camera, vec3 point, float shadow_length, vec3 sun_direction, out vec3 transmittance);
+vec3 GetSunAndSkyIrradiance(vec3 p, vec3 normal, vec3 sun_direction, out vec3 sky_irradiance);
 
 void main() {
-    vec3 terrain = texture(uTerrain, vFragCoord).xyz;
-    vec3 atmos_color = scatter(uCameraOrigin, normalize(vRayDir));
-    const float exposure = 0.5;
-    atmos_color = 1.0 - exp(-exposure * atmos_color);
+    vec3 terrain = texture(uTerrain, vFragCoord).rgb;
+    vec4 normal_dist = texture(uNormalDistance, vFragCoord);
 
-    fColor = vec4(terrain + atmos_color, 1);
+    vec3 rd = normalize(vRayDir);
+
+    vec3 ground_radiance = vec3(0);
+    float ground_alpha = 0;
+    // Radiance reflected by ground
+
+    if (normal_dist.a > 0) {
+        vec3 p = uCameraOrigin + rd * normal_dist.a;
+        vec3 n = normal_dist.xyz;
+
+        vec3 sky_irradiance;
+        vec3 sun_irradiance = GetSunAndSkyIrradiance(p, n, LIGHT_DIR, sky_irradiance);
+        ground_radiance = terrain * (1.0 / PI) * (sun_irradiance + sky_irradiance);
+        float shadow_length = 0;
+
+        vec3 transmittance;
+        vec3 in_scatter = GetSkyRadianceToPoint(uCameraOrigin, p, 0, LIGHT_DIR, transmittance);
+        ground_radiance = ground_radiance * transmittance + in_scatter;
+        ground_alpha = 1;
+    }
+
+    vec3 transmittance;
+    vec3 radiance = GetSkyRadiance(uCameraOrigin, rd, 0, LIGHT_DIR, transmittance);
+
+    radiance = mix(radiance, ground_radiance, ground_alpha);
+
+    fColor = vec4(pow(vec3(1) - exp(-radiance * 10.0 * 1e-5), vec3(1.0 / 2.2)), 1);
 }

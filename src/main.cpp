@@ -21,14 +21,6 @@
 #include "input/InputManager.h"
 #include "input/device/Mouse.h"
 #include "input/device/Keyboard.h"
-#include "planet/terragen/TerrainGenerator.h"
-#include "planet/render/TerrainRenderer.h"
-#include "planet/render/AtmosphereRenderer.h"
-#include "planet/render/PrecomputedAtmosphereRenderer.h"
-#include "planet/Planet.h"
-#include "utility/ThreadPool.h"
-#include "utility/units.h"
-#include "utility/utility.h"
 #include "Oxybelis.h"
 #include "OxybelisInput.h"
 
@@ -37,7 +29,7 @@ void run(Window& window, InputManager<Input>& manager, Mouse<Input>& mouse) {
 
     auto current_dim = Vec2I(window.dimensions());
     Oxybelis oxybelis(mouse, current_dim);
-    manager.switch_context(oxybelis.input_ctx);
+    manager.switch_context(oxybelis.input_context());
 
     auto start = high_resolution_clock::now();
     auto last_frame = start;
