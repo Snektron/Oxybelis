@@ -42,7 +42,7 @@ class Oxybelis {
     AtmosphereRenderer atmos;
     TerrainGenerator terragen;
     TerrainRenderer terraren;
-    // ShadowRenderer shadow;
+    ShadowRenderer shadow;
 
     FrameBufferState fb_state;
 
