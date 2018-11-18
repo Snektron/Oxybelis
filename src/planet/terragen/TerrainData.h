@@ -35,12 +35,12 @@ inline bool operator==(const TerrainGenerationParameters& a, const TerrainGenera
 
 struct TerrainData {
     struct VertexData {
-        Vec3F vertex;
-        Vec3F normal;
-        Vec3F color;
+        Vec4F vertex;
+        Vec4F normal;
+        Vec4F color;
 
         VertexData(const Vec3F& vertex, const Vec3F& normal, const Vec3F& color):
-            vertex(vertex), normal(normal), color(color) {}
+            vertex(vertex, 1), normal(normal, 1), color(color, 1) {}
     };
 
     ChunkLocation loc;

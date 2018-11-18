@@ -23,14 +23,14 @@ AtmosphereRenderer::AtmosphereRenderer(double radius, double outer_radius):
 
     this->shader.use();
 
-    glUniform1i(shader.uniform("uTerrain"), 0);
-    glUniform1i(shader.uniform("uNormalDistance"), 1);
+    glUniform1i(this->shader.uniform("uTerrain"), 0);
+    glUniform1i(this->shader.uniform("uNormalDistance"), 1);
 
-    this->inv_proj_mat = shader.uniform("uInvProjection");
-    this->model_mat = shader.uniform("uModel");
-    this->camera_origin = shader.uniform("uCameraOrigin");
-    this->camera_up = shader.uniform("uCameraUp");
-    this->camera_dir = shader.uniform("uCameraDir");
+    this->inv_proj_mat = this->shader.uniform("uInvProjection");
+    this->model_mat = this->shader.uniform("uModel");
+    this->camera_origin = this->shader.uniform("uCameraOrigin");
+    this->camera_up = this->shader.uniform("uCameraUp");
+    this->camera_dir = this->shader.uniform("uCameraDir");
 
     this->model->SetProgramUniforms(this->shader, 2, 3, 4, 5);
 }

@@ -20,7 +20,7 @@ CachedChunk::Status CachedChunk::update() {
 }
 
 bool CachedChunk::is_ready() const {
-    return this->data.has_type<TerrainFuture>();
+    return this->data.has_type<Chunk>();
 }
 
 const Chunk& CachedChunk::chunk() const {

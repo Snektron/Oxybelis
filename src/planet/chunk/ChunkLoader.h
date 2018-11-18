@@ -23,7 +23,6 @@ public:
         this->data = std::move(fut);
     }
 
-    // Must be called from the OpenGL thread
     Status update();
     bool is_ready() const;
     const Chunk& chunk() const;

@@ -61,7 +61,7 @@ void TerrainRenderer::update_viewpoint(const Camera& cam) {
     }
 
     if (this->pending_patch && this->pending_patch->is_ready()) {
-        // std::cout << "VRAM usage: " << double(this->loader->vram_usage()) / (1024 * 1024) << " MiB" << std::endl;
+        std::cout << "VRAM usage: " << double(this->loader.vram_usage()) / (1024 * 1024) << " MiB" << std::endl;
 
         this->patch = std::move(this->pending_patch);
         this->pending_patch = NONE;
@@ -78,4 +78,13 @@ void TerrainRenderer::render(const Mat4F& proj, const Camera& cam) {
     } else if (this->pending_patch) {
         this->pending_patch->render(cam, this->model, this->camera_origin);
     }
+}
+
+Option<std::reference_wrapper<ChunkPatch>> TerrainRenderer::current_patch() {
+    if (this->patch) {
+        return std::ref(this->patch.value());
+    } else if (this->pending_patch) {
+        return std::ref(this->pending_patch.value());
+    }
+    return NONE;
 }

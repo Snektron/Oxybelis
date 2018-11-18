@@ -66,4 +66,17 @@ constexpr long double operator ""_deg(long double deg) {
     return deg * M_PI / 180.0;
 }
 
+// see https://stackoverflow.com/questions/466204/rounding-up-to-next-power-of-2
+template <typename T>
+constexpr auto next_2pow(T x) {
+    --x;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    x |= x >> 32;
+    return x + 1;
+}
+
 #endif

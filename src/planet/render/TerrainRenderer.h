@@ -2,6 +2,7 @@
 #define _OXYBELIS_PLANET_RENDER_PLANETRENDERER_H
 
 #include <vector>
+#include <functional>
 #include <cstddef>
 #include "math/Vec.h"
 #include "math/Mat.h"
@@ -28,6 +29,7 @@ public:
     TerrainRenderer(TerrainGenerator& gen, Planet& planet);
     void update_viewpoint(const Camera& cam);
     void render(const Mat4F& proj, const Camera& cam);
+    Option<std::reference_wrapper<ChunkPatch>> current_patch();
 };
 
 #endif

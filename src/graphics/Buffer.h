@@ -41,6 +41,10 @@ public:
         glBindBuffer(target, this->buffer);
     }
 
+    operator GLuint() const {
+        return this->buffer;
+    }
+
     template <typename T, size_t N>
     static void upload_data(GLuint target, GLenum usage, T(&data)[N]) {
         glBufferData(target, N * sizeof(T), data, usage);

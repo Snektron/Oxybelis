@@ -27,6 +27,8 @@ public:
     ChunkId id() const {
         return this->loc.id;
     }
+
+    friend class ShadowRenderer;
 };
 
 #endif

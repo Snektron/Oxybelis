@@ -102,14 +102,31 @@ void Oxybelis::render() {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    auto proj = this->projection.to_matrix();
+
     this->terraren.update_viewpoint(this->camera);
-    this->terraren.render(this->projection.to_matrix(), this->camera);
+    this->terraren.render(proj, this->camera);
 
     FrameBuffer::screen().bind();
     glDisable(GL_DEPTH_TEST);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     this->atmos.render(this->projection.to_inverse_matrix(), this->camera);
+
+
+    auto opt_patch = this->terraren.current_patch();
+    if (opt_patch) {
+        this->shadow.begin();
+        auto patch = opt_patch.value();
+
+        for (auto& entry : patch.get().chunks) {
+            if (entry->is_ready()) {
+                this->shadow.dispatch(this->camera, entry->chunk());
+            }
+        }
+
+        this->shadow.end(proj, this->camera);
+    }
 }
 
 InputContext<Input>& Oxybelis::input_context() {
