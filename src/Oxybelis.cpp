@@ -17,18 +17,48 @@ namespace {
     constexpr const double PLANET_RADIUS = 6'371.0_km;
 
     constexpr const double ATMOSPHERE_RADIUS = PLANET_RADIUS * 1.0094;
-};
+}
+
+Oxybelis::FrameBufferState::FrameBufferState(const Vec2I& dim):
+    depth(GL_DEPTH_COMPONENT32, dim.x, dim.y) {
+    this->fb.bind();
+    glViewport(0, 0, dim.x, dim.y);
+
+    glActiveTexture(GL_TEXTURE0);
+    this->color.bind();
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dim.x, dim.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->color, 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    this->distance.bind();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, dim.x, dim.y, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, this->distance, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->depth);
+
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, buffers);
+
+    FrameBuffer::screen().bind();
+    glViewport(0, 0, dim.x, dim.y);
+}
 
 Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
     thread_pool(std::thread::hardware_concurrency() / 2),
     mouse(mouse), cursor_captured(false), quit(false),
-    projection(1.0, FIELD_OF_VIEW, NEAR, FAR),
+    projection(dim, FIELD_OF_VIEW, NEAR, FAR),
     camera(QuatD::identity(), CAMERA_START),
     camera_speed_modifier(2),
     planet{PLANET_LOCATION, PLANET_RADIUS},
     atmos(PLANET_RADIUS, ATMOSPHERE_RADIUS),
     terragen(this->thread_pool),
-    terraren(this->terragen, this->planet) {
+    terraren(this->terragen, this->planet),
+    fb_state(dim) {
 
     this->update_camera_speed();
 
@@ -54,8 +84,6 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
 
     this->connect_camera();
     this->toggle_cursor();
-
-    this->resize(dim);
 }
 
 bool Oxybelis::update([[maybe_unused]] double dt) {
@@ -64,36 +92,7 @@ bool Oxybelis::update([[maybe_unused]] double dt) {
 
 void Oxybelis::resize(const Vec2I& dim) {
     this->projection.resize(dim);
-
-    this->fb_state.fb = FrameBuffer();
-    this->fb_state.fb.bind();
-
-    glViewport(0, 0, dim.x, dim.y);
-
-    glActiveTexture(GL_TEXTURE0);
-    this->fb_state.color = Texture();
-    this->fb_state.color.bind();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dim.x, dim.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, fb_state.color, 0);  
-
-    glActiveTexture(GL_TEXTURE1);
-    this->fb_state.distance = Texture();
-    this->fb_state.distance.bind();
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, dim.x, dim.y, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, fb_state.distance, 0);
-
-    this->fb_state.depth = RenderBuffer(GL_DEPTH_COMPONENT32, dim.x, dim.y);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb_state.depth);
-
-    GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-    glDrawBuffers(2, buffers);
-
-    FrameBuffer::screen().bind();
-    glViewport(0, 0, dim.x, dim.y);
+    this->fb_state = FrameBufferState(dim);
 }
 
 void Oxybelis::render() {

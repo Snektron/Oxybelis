@@ -3,7 +3,7 @@
 
 namespace {
     constexpr const Vec2D MOUSE_SENSIVITY(0.008);
-    constexpr const double ROLL_SENSIVITY = 0.008;
+    constexpr const double ROLL_SENSIVITY = 0.005;
 }
 
 void initialize_input(Mouse<Input>& mouse, Keyboard<Input>& kb) {

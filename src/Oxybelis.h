@@ -16,13 +16,15 @@
 #include "utility/ThreadPool.h"
 #include "OxybelisInput.h"
 
-struct FrameBufferState {
-    FrameBuffer fb;
-    Texture color, distance;
-    RenderBuffer depth;
-};
-
 class Oxybelis {
+    struct FrameBufferState {
+        FrameBuffer fb;
+        Texture color, distance;
+        RenderBuffer depth;
+
+        FrameBufferState(const Vec2I& dim);
+    };
+
     ThreadPool thread_pool;
 
     InputContext<Input> input_ctx;
