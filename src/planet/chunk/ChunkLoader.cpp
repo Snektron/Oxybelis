@@ -19,6 +19,10 @@ CachedChunk::Status CachedChunk::update() {
     }
 }
 
+bool CachedChunk::is_ready() const {
+    return this->data.has_type<TerrainFuture>();
+}
+
 const Chunk& CachedChunk::chunk() const {
     return this->data.get<Chunk>();
 }
@@ -45,4 +49,13 @@ void ChunkLoader::collect_garbage() {
     }
 
     std::cout << __PRETTY_FUNCTION__ << ": Collected " << cleaned << " chunks, " << this->cache.size() << " remaining" << std::endl;
+}
+
+size_t ChunkLoader::vram_usage() const {
+    size_t total = 0;
+    for (const auto& it : this->cache) {
+        if (it.second->is_ready())
+            total += it.second->chunk().vram_usage;
+    }
+    return total;
 }

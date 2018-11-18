@@ -19,7 +19,6 @@ public:
     ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoader& cache);
     bool is_ready();
     void render(const Camera& cam, Uniform model, Uniform camera_origin);
-    size_t vram_usage();
 
     friend class TerrainRenderer;
 };

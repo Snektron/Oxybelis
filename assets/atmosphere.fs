@@ -37,7 +37,6 @@ void main() {
 
     vec3 ground_radiance = vec3(0);
     float ground_alpha = 0;
-    // Radiance reflected by ground
 
     if (normal_dist.a > 0) {
         vec3 p = uCameraOrigin + rd * normal_dist.a;

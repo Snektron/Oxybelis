@@ -10,31 +10,33 @@
 #include "planet/Planet.h"
 #include "assets.h"
 
-// Height constants taken from VoxelStorm planet renderer.
-size_t lod_from_alt(double alt_sq) {
-    if (alt_sq <= std::pow(4'000.0, 2.0))
-        return 7;
-    else if (alt_sq <= std::pow(10'000.0, 2.0))
-        return 6;
-    else if (alt_sq <= std::pow(32'000.0, 2.0))
-        return 5;
-    else if (alt_sq <= std::pow(60'000.0, 2.0))
-        return 4;
-    else if (alt_sq <= std::pow(250'000.0, 2.0))
-        return 3;
-    else if (alt_sq <= std::pow(1'000'000.0, 2.0))
-        return 2;
-    else if (alt_sq <= std::pow(1'600'000.0, 2.0))
-        return 1;
-    else
-        return 0;
-}
+namespace {
+    // Height constants taken from VoxelStorm planet renderer.
+    size_t lod_from_alt(double alt_sq) {
+        if (alt_sq <= std::pow(4'000.0, 2.0))
+            return 7;
+        else if (alt_sq <= std::pow(10'000.0, 2.0))
+            return 6;
+        else if (alt_sq <= std::pow(32'000.0, 2.0))
+            return 5;
+        else if (alt_sq <= std::pow(60'000.0, 2.0))
+            return 4;
+        else if (alt_sq <= std::pow(250'000.0, 2.0))
+            return 3;
+        else if (alt_sq <= std::pow(1'000'000.0, 2.0))
+            return 2;
+        else if (alt_sq <= std::pow(1'600'000.0, 2.0))
+            return 1;
+        else
+            return 0;
+    }
 
-static Program load_shader() {
-    return ProgramBuilder()
-        .with(ShaderType::Vertex, assets::terrain_vs)
-        .with(ShaderType::Fragment, assets::terrain_fs)
-        .link();
+    Program load_shader() {
+        return ProgramBuilder()
+            .with(ShaderType::Vertex, assets::terrain_vs)
+            .with(ShaderType::Fragment, assets::terrain_fs)
+            .link();
+    }
 }
 
 TerrainRenderer::TerrainRenderer(TerrainGenerator& gen, Planet& planet):
@@ -59,8 +61,7 @@ void TerrainRenderer::update_viewpoint(const Camera& cam) {
     }
 
     if (this->pending_patch && this->pending_patch->is_ready()) {
-        size_t a = this->patch ? this->patch->vram_usage() : 0;
-        std::cout << "VRAM usage: " << double(this->pending_patch->vram_usage() + a) / (1024 * 1024) << " MiB" << std::endl;
+        // std::cout << "VRAM usage: " << double(this->loader->vram_usage()) / (1024 * 1024) << " MiB" << std::endl;
 
         this->patch = std::move(this->pending_patch);
         this->pending_patch = NONE;

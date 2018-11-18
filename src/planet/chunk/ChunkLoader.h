@@ -25,6 +25,7 @@ public:
 
     // Must be called from the OpenGL thread
     Status update();
+    bool is_ready() const;
     const Chunk& chunk() const;
 };
 
@@ -41,6 +42,7 @@ public:
 
     std::shared_ptr<CachedChunk> get_or_queue(const TerrainGenerationParameters& param);
     void collect_garbage();
+    size_t vram_usage() const;
 };
 
 #endif

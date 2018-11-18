@@ -3,6 +3,9 @@
 #include "graphics/shader/ProgramBuilder.h"
 #include "assets.h"
 
+#include <thread>
+#include <chrono>
+
 namespace {
     Program load_shader(GLuint shader) {
         return ProgramBuilder()

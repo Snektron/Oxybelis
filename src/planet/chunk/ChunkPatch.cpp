@@ -145,16 +145,3 @@ void ChunkPatch::render(const Camera& cam, Uniform model, Uniform camera_origin)
         }
     }
 }
-
-size_t ChunkPatch::vram_usage() {
-    if (!this->ready)
-        return 0;
-
-    size_t total = 0;
-
-    for (auto& chunk_ref : this->chunks) {
-        total += chunk_ref->chunk().vram_usage;
-    }
-
-    return total;
-}
