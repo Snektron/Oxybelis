@@ -1,25 +1,12 @@
 #ifndef _OXYBELIS_UTILITY_UTILITY_H
 #define _OXYBELIS_UTILITY_UTILITY_H
 
-#include <memory>
 #include <utility>
 #include <tuple>
 #include <array>
 #include <cstddef>
+#include <cmath>
 #include "glad/glad.h"
-
-template <typename T>
-using DestroyFn = void(T*);
-
-template <typename T, DestroyFn<T> D>
-struct Deleter {
-    void operator()(T* ptr) {
-        D(ptr);
-    }
-};
-
-template <typename T, DestroyFn<T> D>
-using CPtr = std::unique_ptr<T, Deleter<T, D>>;
 
 template <typename F>
 struct Defer {
@@ -73,6 +60,10 @@ inline size_t hash_combine(size_t seed, const T& v) {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     return seed;
+}
+
+constexpr long double operator ""_deg(long double deg) {
+    return deg * M_PI / 180.0;
 }
 
 #endif

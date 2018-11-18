@@ -59,13 +59,13 @@ public:
             this->context->get().dispatch_action(input, action);
     }
 
-    void update() {
+    void update(double dt) {
         if (!this->context)
             return;
 
         for (auto& axis_input : this->axes) {
             double value = axis_input.update();
-            this->context->get().dispatch_axis(axis_input.input, value);
+            this->context->get().dispatch_axis(axis_input.input, value, dt);
         }
     }
 };

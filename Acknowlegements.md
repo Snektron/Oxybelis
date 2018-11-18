@@ -17,8 +17,9 @@ src/math/Quat.h:
     Quaternion smix code taken from https://en.wikipedia.org/wiki/Slerp
 
 src/math/Vec.h, src/math/Mat.h:
-    mat::look_at(): code taken from glm lookAt
+    Mat4F::look_at(): code taken from glm lookAt
     Some code inspired (but not copied) by armadillo, glm, eigen3
+    Mat4F::perspective by http://ogldev.atspace.co.uk/www/tutorial12/tutorial12.html
 
 assets/passthrough.fs:
     Logarithmic depth calculation by https://www.gamedev.net/blogs/entry/2006307-tip-of-the-day-logarithmic-zbuffer-artifacts-fix/

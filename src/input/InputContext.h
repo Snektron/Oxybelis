@@ -9,7 +9,7 @@
 #include "input/Action.h"
 
 using ActionCallback = std::function<void(Action)>;
-using AxisCallback = std::function<void(double)>;
+using AxisCallback = std::function<void(double, double)>;
 
 template <typename I>
 class InputContext {
@@ -21,8 +21,16 @@ public:
         this->actions.emplace(input, cbk);
     }
 
+    void connect_action(const I& input, std::function<void()> cbk) {
+        this->actions.emplace(input, std::bind(cbk));
+    }
+
     void connect_axis(const I& input, AxisCallback cbk) {
         this->axes.emplace(input, cbk);
+    }
+
+    void connect_axis(const I& input, std::function<void(double)> cbk) {
+        this->axes.emplace(input, std::bind(cbk, std::placeholders::_1));
     }
 
     void dispatch_action(const I& input, Action action) {
@@ -32,11 +40,11 @@ public:
             it->second(action);
     }
 
-    void dispatch_axis(const I& input, double value) {
+    void dispatch_axis(const I& input, double value, double dt) {
         auto it = this->axes.find(input);
         auto end = this->axes.end();
         if (it != end)
-            it->second(value);
+            it->second(value, dt);
     }
 };
 

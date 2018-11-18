@@ -2,8 +2,10 @@
 #define _OXYBELIS_INPUT_ACTIONMAP_H
 
 #include <unordered_map>
+#include <algorithm>
 #include "input/Action.h"
 #include "input/Input.h"
+#include "input/InputManager.h"
 
 template <typename I>
 class InputManager;

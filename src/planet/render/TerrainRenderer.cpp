@@ -59,6 +59,9 @@ void TerrainRenderer::update_viewpoint(const Camera& cam) {
     }
 
     if (this->pending_patch && this->pending_patch->is_ready()) {
+        size_t a = this->patch ? this->patch->vram_usage() : 0;
+        std::cout << "VRAM usage: " << double(this->pending_patch->vram_usage() + a) / (1024 * 1024) << " MiB" << std::endl;
+
         this->patch = std::move(this->pending_patch);
         this->pending_patch = NONE;
         this->loader.collect_garbage();

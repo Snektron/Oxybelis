@@ -12,6 +12,8 @@ Chunk::Chunk(const TerrainData& terrain):
     this->vao.enable_attrib(1);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(Vec3F), reinterpret_cast<void*>(2 * sizeof(Vec3F)));
     this->vao.enable_attrib(2);
+
+    this->vram_usage = terrain.terrain_data.size() * sizeof(TerrainData::VertexData);
 }
 
 void Chunk::render(const Camera& cam, Uniform model, Uniform camera_origin) const {

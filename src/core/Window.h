@@ -1,6 +1,7 @@
 #ifndef _OXYBELIS_CORE_WINDOW_H
 #define _OXYBELIS_CORE_WINDOW_H
 
+#include <memory>
 #include <functional>
 #include <GLFW/glfw3.h>
 #include "math/Vec.h"
@@ -11,8 +12,14 @@ using MouseCallback = std::function<void(double, double)>;
 using MouseButtonCallback = std::function<void(int, int, int)>;
 using ResizeCallback = std::function<void(int, int)>;
 
+struct DeleteGlfwWindow {
+    void operator()(GLFWwindow* win) {
+        glfwDestroyWindow(win);
+    }
+};
+
 class Window {
-    CPtr<GLFWwindow, glfwDestroyWindow> handle;
+    std::unique_ptr<GLFWwindow, DeleteGlfwWindow> handle;
 
 public:
     KeyCallback key_callback;

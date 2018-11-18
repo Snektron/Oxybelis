@@ -11,11 +11,7 @@ uniform sampler2D uNormalDistance;
 uniform vec3 uCameraOrigin;
 uniform vec3 uCameraDir;
 
-const float PI = 3.14159265;
-
-const vec2 MISS = vec2(1, -1);
-
-const float RADIUS = 6371000;
+const float PI = 3.141592654;
 
 const vec3 LIGHT_DIR = normalize(vec3(1, 2, -3));
 

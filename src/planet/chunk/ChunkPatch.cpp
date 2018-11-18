@@ -63,7 +63,7 @@ void generate_patch_part(std::vector<ChunkInfo>& chunks, size_t depth, double ra
 }
 
 ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoader& loader):
-    center(p, depth, radius) {
+    center(p, depth, radius), ready(false) {
 
     auto chunk_locs = std::vector<ChunkInfo>();
     chunk_locs.push_back(ChunkInfo{this->center, Lod::High});
@@ -120,18 +120,41 @@ ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoade
 }
 
 bool ChunkPatch::is_ready() {
+    if (this->ready)
+        return true;
+
     for (auto& chunk_ref : this->chunks) {
         if (chunk_ref->update() != CachedChunk::Status::Ready)
             return false;
     }
-    std::cout << "==Ready==" << std::endl;
+
+    this->ready = true;
     return true;
 }
 
 void ChunkPatch::render(const Camera& cam, Uniform model, Uniform camera_origin) {
-    for (auto& chunk_ref : this->chunks) {
-        if (chunk_ref->update() == CachedChunk::Status::Ready) {
+    if (this->ready) {
+        for (auto& chunk_ref : this->chunks) {
             chunk_ref->chunk().render(cam, model, camera_origin);
         }
-    }    
+    } else {
+        for (auto& chunk_ref : this->chunks) {
+            if (chunk_ref->update() == CachedChunk::Status::Ready) {
+                chunk_ref->chunk().render(cam, model, camera_origin);
+            }
+        }
+    }
+}
+
+size_t ChunkPatch::vram_usage() {
+    if (!this->ready)
+        return 0;
+
+    size_t total = 0;
+
+    for (auto& chunk_ref : this->chunks) {
+        total += chunk_ref->chunk().vram_usage;
+    }
+
+    return total;
 }

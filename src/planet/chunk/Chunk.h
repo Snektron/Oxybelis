@@ -18,6 +18,8 @@ class Chunk {
     Vec3D center;
 
 public:
+    size_t vram_usage;
+
     Chunk(const TerrainData& terrain);
 
     void render(const Camera& cam, Uniform model, Uniform camera_origin) const;
