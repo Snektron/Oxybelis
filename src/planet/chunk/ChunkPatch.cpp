@@ -6,10 +6,6 @@ const size_t PATH_LEFT = 0b01;
 const size_t PATH_RIGHT = 0b10;
 const size_t PATH_END = 0b00;
 
-enum class Lod {
-    High, Low
-};
-
 struct PathElement {
     size_t cmd;
     Lod lod;
@@ -100,20 +96,12 @@ ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoade
     TerrainGenerationParameters param_template{
         this->center, // Placeholder
         radius,
-        200,
-        0 // Placeholder
+        Lod::Low
     };
 
     std::transform(chunk_locs.begin(), chunk_locs.end(), std::back_inserter(this->chunks), [&](const auto& info) {
         param_template.loc = info.loc;
-        switch (info.lod) {
-            case Lod::Low:
-                param_template.inner_points = 1'000;
-                break;
-            case Lod::High:
-                param_template.inner_points = 20'000;
-                break;
-        }
+        param_template.lod = info.lod;
 
         return loader.get_or_queue(param_template);
     });
