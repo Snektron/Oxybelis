@@ -14,7 +14,7 @@ namespace {
     constexpr const GLint TERRAIN_BINDING = 0;
     constexpr const GLint SHADOW_VOLUMES_BINDING = 1;
     constexpr const GLint COUNTER_BINDING = 2;
-    constexpr const size_t LOCAL_GROUP_SIZE = 16;
+    constexpr const size_t LOCAL_GROUP_SIZE = 32;
 
     Program load_shader() {
         return ProgramBuilder()
@@ -47,8 +47,8 @@ void ShadowRenderer::begin() {
 
 void ShadowRenderer::dispatch(const Camera& cam, const Chunk& chunk) {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, TERRAIN_BINDING, chunk.terrain);
-    glUniform1ui(this->num_vertices, chunk.vertices);
-    auto group_size = (next_2pow(chunk.vertices) + LOCAL_GROUP_SIZE - 1) / LOCAL_GROUP_SIZE;
+    glUniform1ui(this->num_vertices, chunk.vertices / 3);
+    auto group_size = (next_2pow(chunk.vertices / 3) + LOCAL_GROUP_SIZE - 1) / LOCAL_GROUP_SIZE;
     glDispatchCompute(group_size, 1, 1);
 }
 
