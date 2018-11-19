@@ -4,6 +4,7 @@
 #include <utility>
 #include <unordered_map>
 #include <fast-poly2tri/fastpoly2tri.h>
+#include <noisepp/Noise.h>
 #include "math/Vec.h"
 
 namespace {
@@ -14,17 +15,44 @@ namespace {
     constexpr const size_t INNER_POINTS[] = {1'000, 20'000};
 
     struct PointGenerator {
+        size_t seed;
+        noisepp::Pipeline3D pipeline;
+        noisepp::Cache* cache;
+        noisepp::PipelineElement3D* noise;
 
-        PointGenerator() {
+        explicit PointGenerator(size_t seed):
+            seed(seed), cache(this->pipeline.createCache()) {
+            auto ridged_multi = noisepp::RidgedMultiModule();
+            ridged_multi.setSeed(seed);
+            ridged_multi.setOctaveCount(8);
+            ridged_multi.setFrequency(400);
 
+            this->noise = this->pipeline.getElement(ridged_multi.addToPipe(this->pipeline));
         }
 
-        PointProperties operator()(const Vec3D&) {
+        PointGenerator(PointGenerator&& other):
+            PointGenerator(other.seed) {
+        }
+
+        PointGenerator(const PointGenerator& other):
+            PointGenerator(other.seed) {
+        }
+
+        PointGenerator& operator=(PointGenerator&& other) = delete;
+        PointGenerator& operator=(const PointGenerator& other) = delete;
+
+        PointProperties operator()(const Vec3D& pos) {
+            this->pipeline.cleanCache(this->cache);
             return {
-                1,
+                this->noise->getValue(pos.x, pos.y, pos.z, this->cache) * 2'000,
                 0
             };
         };
+
+        ~PointGenerator() {
+            if (this->cache)
+                this->pipeline.freeCache(this->cache);
+        }
     };
 
     struct TriangleGenerator {
@@ -40,7 +68,7 @@ bool PointProperties::submerged() const {
 
 TerrainGenerator::TerrainGenerator(ThreadPool& pool):
     pool(pool),
-    point_callback(PointGenerator()),
+    point_callback(PointGenerator(0)),
     triangle_callback(TriangleGenerator{}) {
 }
 
@@ -169,7 +197,7 @@ TerrainData TerrainGenerator::generate_chunk_data(const TerrainGenerationParamet
             point_data[pc],
         };
 
-        const size_t num_submerged = tp.a.prop.submerged() + tp.a.prop.submerged() + tp.a.prop.submerged();
+        const size_t num_submerged = tp.a.prop.submerged() + tp.b.prop.submerged() + tp.c.prop.submerged();
 
         if (num_submerged < 3) {
             Vec3F a = tp.a.normal * (param.radius + tp.a.prop.land_height);
