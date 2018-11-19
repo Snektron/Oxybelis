@@ -2,7 +2,7 @@
 #define _OXYBELIS_GRAPHICS_BUFFER_H
 
 #include <cstddef>
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "graphics/GlObject.h"
 
 class Buffer {

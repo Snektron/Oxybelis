@@ -2,8 +2,8 @@
 #define _OXYBELIS_GRAPHICS_SHADER_PROGRAM_H
 
 #include <string>
-#include "glad/glad.h"
-#include "experimental/string_view"
+#include <glad/glad.h>
+#include <experimental/string_view>
 #include "graphics/GlObject.h"
 
 using Uniform = GLint;

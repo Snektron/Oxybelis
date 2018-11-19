@@ -1,6 +1,5 @@
 #include "planet/chunk/ChunkPatch.h"
 #include "planet/terragen/TerrainData.h"
-#include <iostream>
 
 const size_t PATH_LEFT = 0b01;
 const size_t PATH_RIGHT = 0b10;

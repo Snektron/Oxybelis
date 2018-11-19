@@ -4,7 +4,7 @@
 #include <utility>
 #include <cmath>
 #include <iomanip>
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "graphics/shader/ProgramBuilder.h"
 #include "planet/chunk/ChunkId.h"
 #include "planet/Planet.h"

@@ -1,7 +1,7 @@
 #ifndef _OXYBELIS_GRAPHICS_FRAMEBUFFER_H
 #define _OXYBELIS_GRAPHICS_FRAMEBUFFER_H
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "graphics/GlObject.h"
 
 class FrameBuffer {

@@ -57,7 +57,8 @@ public:
 
     void wait_for_all();
 
-    friend void worker(Context&);
+private:
+    void worker();
 };
 
 template <typename F>

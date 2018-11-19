@@ -2,11 +2,11 @@
 #define _OXYBELIS_PLANET_TERRAGEN_TERRAINDATA_H
 
 #include <vector>
+#include <functional>
 #include <utility>
 #include <cstddef>
 #include "math/Vec.h"
 #include "planet/chunk/ChunkId.h"
-#include "utility/utility.h"
 
 enum class Lod: size_t {
     Low,
@@ -41,17 +41,18 @@ struct TerrainData {
         Vec4F vertex;
         Vec4F normal;
         Vec4F color;
-        Vec4F opposite_neighbor_normal;
 
-        VertexData(const Vec3F& vertex, const Vec3F& normal, const Vec3F& color, const Vec3F& onn):
-            vertex(vertex, 1), normal(normal, 1), color(color, 1), opposite_neighbor_normal(onn, 1) {
+        VertexData(const Vec3F& vertex, const Vec3F& normal, const Vec3F& color):
+            vertex(vertex, 1), normal(normal, 1), color(color, 1) {
         }
     };
 
     ChunkLocation loc;
     std::vector<VertexData> terrain_data;
 
-    TerrainData(const TerrainGenerationParameters& param);
+    TerrainData(const ChunkLocation& loc, std::vector<VertexData>&& terrain_data):
+        loc(loc), terrain_data(std::move(terrain_data)) {
+    }
 };
 
 #endif

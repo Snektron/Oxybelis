@@ -1,7 +1,7 @@
 #ifndef _OXYBELIS_GRAPHICS_TEXTURE_H
 #define _OXYBELIS_GRAPHICS_TEXTURE_H
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include "graphics/GlObject.h"
 
 class Texture {
