@@ -29,7 +29,12 @@ struct TriangleProperties {
 using PointCallback = std::function<PointProperties(const Vec3D& pos)>;
 using TriangleCallback = std::function<Vec3F(const TriangleProperties& prop, bool submerged)>;
 
-class TerrainGenerator {
+struct TerrainGeneratorBase {
+    virtual std::future<TerrainData> generate(const TerrainGenerationParameters& param) = 0;
+    virtual ~TerrainGeneratorBase() = default;
+};
+
+class TerrainGenerator: public TerrainGeneratorBase {
     ThreadPool& pool;
     PointCallback point_callback;
     TriangleCallback triangle_callback;

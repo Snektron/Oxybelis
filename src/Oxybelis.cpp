@@ -57,7 +57,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
     planet{PLANET_LOCATION, PLANET_RADIUS},
     atmos(PLANET_RADIUS, ATMOSPHERE_RADIUS),
     terragen(this->thread_pool),
-    terraren(this->terragen, this->planet),
+    terrain(this->planet, this->terragen),
     fb_state(dim) {
 
     this->update_camera_speed();
@@ -104,8 +104,8 @@ void Oxybelis::render() {
 
     auto proj = this->projection.to_matrix();
 
-    this->terraren.update_viewpoint(this->camera);
-    this->terraren.render(proj, this->camera);
+    this->terrain.update(this->camera);
+    this->terraren.render(this->terrain, proj, this->camera);
 
     FrameBuffer::screen().bind();
     glDisable(GL_DEPTH_TEST);
@@ -113,20 +113,7 @@ void Oxybelis::render() {
     glClear(GL_COLOR_BUFFER_BIT);
     this->atmos.render(this->projection.to_inverse_matrix(), this->camera);
 
-
-    auto opt_patch = this->terraren.current_patch();
-    if (opt_patch) {
-        this->shadow.begin();
-        auto patch = opt_patch.value();
-
-        for (auto& entry : patch.get().chunks) {
-            if (entry->is_ready()) {
-                this->shadow.dispatch(this->camera, entry->chunk());
-            }
-        }
-
-        this->shadow.end(proj, this->camera);
-    }
+    // this->shadow.render(this->terrain, proj, this->camera);
 }
 
 InputContext<Input>& Oxybelis::input_context() {

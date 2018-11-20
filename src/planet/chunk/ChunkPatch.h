@@ -21,7 +21,8 @@ public:
     void render(const Camera& cam, Uniform model, Uniform camera_origin);
 
     friend class TerrainRenderer;
-    friend class Oxybelis;
+    friend class Terrain;
+    friend class ShadowRenderer;
 };
 
 #endif

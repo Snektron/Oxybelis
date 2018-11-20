@@ -14,6 +14,7 @@
 #include "planet/render/AtmosphereRenderer.h"
 #include "planet/render/TerrainRenderer.h"
 #include "planet/render/ShadowRenderer.h"
+#include "planet/render/Terrain.h"
 #include "utility/ThreadPool.h"
 #include "OxybelisInput.h"
 
@@ -40,7 +41,9 @@ class Oxybelis {
 
     Planet planet;
     AtmosphereRenderer atmos;
+
     TerrainGenerator terragen;
+    Terrain terrain;
     TerrainRenderer terraren;
     ShadowRenderer shadow;
 

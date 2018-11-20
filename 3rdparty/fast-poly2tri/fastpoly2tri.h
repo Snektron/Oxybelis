@@ -2,6 +2,7 @@
 #define _FASTPOLY2TRI_H
 
 #include <memory>
+#include <cstdint>
 
 #define internal_static extern
 #define MPE_POLY2TRI_USE_DOUBLE

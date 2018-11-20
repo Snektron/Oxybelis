@@ -31,11 +31,11 @@ public:
 using SharedCachedChunk = std::shared_ptr<CachedChunk>;
 
 class ChunkLoader {
-    TerrainGenerator& generator;
+    TerrainGeneratorBase& generator;
     std::unordered_map<TerrainGenerationParameters, SharedCachedChunk> cache;
 
 public:
-    ChunkLoader(TerrainGenerator& generator):
+    ChunkLoader(TerrainGeneratorBase& generator):
         generator(generator) {
     }
 

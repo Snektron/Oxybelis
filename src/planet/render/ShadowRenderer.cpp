@@ -1,8 +1,10 @@
 #include "planet/render/ShadowRenderer.h"
 #include <iostream>
-#include "planet/chunk/Chunk.h"
 #include "graphics/shader/ProgramBuilder.h"
+#include "graphics/camera/Camera.h"
 #include "math/Vec.h"
+#include "planet/chunk/Chunk.h"
+#include "planet/render/Terrain.h"
 #include "utility/utility.h"
 #include "assets.h"
 
@@ -60,6 +62,22 @@ void ShadowRenderer::end(const Mat4F& proj, const Camera& cam) {
     glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &counter);
 
     // std::cout << "Atomic counter value: " << counter << std::endl;
+}
+
+void ShadowRenderer::render(Terrain& terrain, const Mat4F& proj, const Camera& cam) {
+    auto opt_patch = terrain.current_patch();
+    if (opt_patch) {
+        this->begin();
+        auto patch = opt_patch.value();
+
+        for (auto& entry : patch.get().chunks) {
+            if (entry->is_ready()) {
+                this->dispatch(cam, entry->chunk());
+            }
+        }
+
+        this->end(proj, cam);
+    }
 }
 
 void ShadowRenderer::reset_counter() {

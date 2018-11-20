@@ -50,8 +50,7 @@ namespace {
         };
 
         ~PointGenerator() {
-            if (this->cache)
-                this->pipeline.freeCache(this->cache);
+            this->pipeline.freeCache(this->cache);
         }
     };
 
