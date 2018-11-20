@@ -5,7 +5,7 @@
 #include <memory>
 #include "planet/chunk/ChunkId.h"
 #include "planet/chunk/Chunk.h"
-#include "planet/terragen/TerrainGenerator.h"
+#include "planet/terragen/TerrainGeneratorBase.h"
 #include "planet/terragen/TerrainData.h"
 #include "utility/Variant.h"
 

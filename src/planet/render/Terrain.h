@@ -9,6 +9,7 @@
 #include "utility/Option.h"
 
 struct Planet;
+struct TerrainGeneratorBase;
 
 using ChunkPatchRef = std::reference_wrapper<ChunkPatch>;
 

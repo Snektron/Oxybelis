@@ -10,7 +10,7 @@
 #include "input/device/Mouse.h"
 #include "math/Vec.h"
 #include "planet/Planet.h"
-#include "planet/terragen/TerrainGenerator.h"
+#include "planet/terragen/EarthLike.h"
 #include "planet/render/AtmosphereRenderer.h"
 #include "planet/render/TerrainRenderer.h"
 #include "planet/render/ShadowRenderer.h"
@@ -42,7 +42,7 @@ class Oxybelis {
     Planet planet;
     AtmosphereRenderer atmos;
 
-    TerrainGenerator terragen;
+    earthlike::Generator terragen;
     Terrain terrain;
     TerrainRenderer terraren;
     ShadowRenderer shadow;

@@ -56,7 +56,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
     camera_speed_modifier(2),
     planet{PLANET_LOCATION, PLANET_RADIUS},
     atmos(PLANET_RADIUS, ATMOSPHERE_RADIUS),
-    terragen(this->thread_pool),
+    terragen(this->thread_pool, earthlike::PointGenerator(123), earthlike::TriangleGenerator{}),
     terrain(this->planet, this->terragen),
     fb_state(dim) {
 
