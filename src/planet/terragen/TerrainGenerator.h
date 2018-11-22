@@ -193,9 +193,9 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
             const auto color = this->triangle_generator(tp, false);
             const auto normal = normalize(cross(c - a, b - a));
 
-            mesh.emplace_back(a - center, normal, nd, nd);
-            mesh.emplace_back(b - center, normal, ne, ne);
-            mesh.emplace_back(c - center, normal, nf, nf);
+            mesh.emplace_back(a - center, normal, color, nd);
+            mesh.emplace_back(b - center, normal, color, ne);
+            mesh.emplace_back(c - center, normal, color, nf);
         }
 
         // Water triangle
@@ -211,9 +211,9 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
             const auto color = this->triangle_generator(tp, true);
             const auto normal = normalize(cross(c - a, b - a));
 
-            mesh.emplace_back(a - center, normal, nd, nd);
-            mesh.emplace_back(b - center, normal, ne, ne);
-            mesh.emplace_back(c - center, normal, nf, nf);
+            mesh.emplace_back(a - center, normal, color, nd);
+            mesh.emplace_back(b - center, normal, color, ne);
+            mesh.emplace_back(c - center, normal, color, nf);
         }
     }
 

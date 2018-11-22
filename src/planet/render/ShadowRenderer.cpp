@@ -38,7 +38,7 @@ namespace {
     };
 }
 
-ShadowRenderer::ShadowRenderer():
+ShadowRenderer::ShadowRenderer(GLuint normal_distance_texture):
     shadow_compute(load_compute_shader()),
     num_vertices(this->shadow_compute.uniform("uNumVertices")),
     center(this->shadow_compute.uniform("uCenter")),
@@ -60,6 +60,8 @@ ShadowRenderer::ShadowRenderer():
     glUniform1ui(this->shadow_compute.uniform("uMaxOutputs"), MAX_SHADOW_BUFFER_QUADS);
 
     this->shadow_draw.use();
+    glUniform1ui(this->shadow_draw.uniform("uNormalDistance"), normal_distance_texture);
+
 
     this->vao.bind();
     this->shadow_volumes.bind(GL_ARRAY_BUFFER);
@@ -93,7 +95,7 @@ void ShadowRenderer::end(const Mat4F& proj, const Camera& cam) {
     GLuint counter;
     glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &counter);
 
-    std::cout << "End quads: " << counter << std::endl;
+    // std::cout << "End quads: " << counter << std::endl;
     this->vao.bind();
     this->shadow_draw.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());

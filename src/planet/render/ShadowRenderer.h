@@ -29,7 +29,7 @@ class ShadowRenderer {
     Buffer counter;
 
 public:
-    ShadowRenderer();
+    ShadowRenderer(GLuint normal_distance_texture);
     void begin(const Camera& cam);
     void dispatch(const Chunk& chunk);
     void end(const Mat4F& proj, const Camera& cam);

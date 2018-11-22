@@ -80,13 +80,13 @@ void main() {
     vec3 nf = vertices[index + 2].nn.xyz;
 
     if (dot(normal, LIGHT_DIR) > 0) { // if this triangle is lit
-        if (dot(nd, LIGHT_DIR) <= 0)
+        if (dot(nd, LIGHT_DIR) < 0)
             emit_shadow(a, b);
 
-        if (dot(ne, LIGHT_DIR) <= 0)
+        if (dot(ne, LIGHT_DIR) < 0)
             emit_shadow(b, c);
 
-        if (dot(nf, LIGHT_DIR) <= 0)
+        if (dot(nf, LIGHT_DIR) < 0)
             emit_shadow(c, a);
     }
 }

@@ -20,9 +20,13 @@
 
 class Oxybelis {
     struct FrameBufferState {
-        FrameBuffer fb;
+        FrameBuffer terrain_fb;
         Texture color, distance;
         RenderBuffer depth;
+
+        FrameBuffer shadow_fb;
+        Texture dndz, zminmax;
+        RenderBuffer shadow_depth;
 
         FrameBufferState(const Vec2I& dim);
     };
