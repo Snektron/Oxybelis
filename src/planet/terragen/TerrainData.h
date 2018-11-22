@@ -41,9 +41,10 @@ struct TerrainData {
         Vec4F vertex;
         Vec4F normal;
         Vec4F color;
+        Vec4F nn;
 
-        VertexData(const Vec3F& vertex, const Vec3F& normal, const Vec3F& color):
-            vertex(vertex, 1), normal(normal, 1), color(color, 1) {
+        VertexData(const Vec3F& vertex, const Vec3F& normal, const Vec3F& color, const Vec3F& nn = Vec3F(0)):
+            vertex(vertex, 1), normal(normal, 1), color(color, 1), nn(nn, 1) {
         }
     };
 

@@ -1,4 +1,4 @@
-#include "planet/terragen/EarthLike.h"
+#include "planet/terragen/earthlike.h"
 
 namespace earthlike {
     const Vec3F GROUND_ALBEDO = Vec3F(0.15, 0.35, 0.08) * 0.2;
@@ -17,6 +17,7 @@ namespace earthlike {
     PointProperties PointGenerator::operator()(const Vec3D& pos) {
         this->pipeline.cleanCache(this->cache);
         return {
+            pos,
             this->noise->getValue(pos.x, pos.y, pos.z, this->cache) * 2'000,
             0
         };

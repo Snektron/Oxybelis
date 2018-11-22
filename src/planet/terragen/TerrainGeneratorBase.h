@@ -6,6 +6,7 @@
 #include "planet/terragen/TerrainData.h"
 
 struct PointProperties {
+    Vec3D normal;
     double land_height;
     double water_height;
 
@@ -14,15 +15,10 @@ struct PointProperties {
     }
 };
 
-struct PointData {
-    PointProperties prop;
-    Vec3D normal;
-};
-
 struct TriangleProperties {
-    PointData& a;
-    PointData& b;
-    PointData& c;
+    PointProperties& a;
+    PointProperties& b;
+    PointProperties& c;
 };
 
 struct TerrainGeneratorBase {

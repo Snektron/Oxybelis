@@ -10,7 +10,7 @@
 #include "input/device/Mouse.h"
 #include "math/Vec.h"
 #include "planet/Planet.h"
-#include "planet/terragen/EarthLike.h"
+#include "planet/terragen/earthlike.h"
 #include "planet/render/AtmosphereRenderer.h"
 #include "planet/render/TerrainRenderer.h"
 #include "planet/render/ShadowRenderer.h"

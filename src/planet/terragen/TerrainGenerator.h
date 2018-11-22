@@ -55,7 +55,7 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
     MPEPolyContext poly_ctx;
     MPE_PolyInitContext(&poly_ctx, mem.get(), total_points);
     
-    auto point_data = std::unordered_map<const MPEPolyPoint*, PointData>(total_points);
+    auto point_data = std::unordered_map<const MPEPolyPoint*, PointProperties>(total_points);
 
     const auto& corners = param.loc.corners;
 
@@ -83,10 +83,7 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
 
     auto add_pt = [&, this](const Vec2D& pt, MPEPolyPoint* point) {
         const auto surface_coord = normalize(corners.a + a_b * pt.x + c_d * pt.y);
-        point_data[point] = {
-            this->point_generator(surface_coord),
-            surface_coord
-        };
+        point_data[point] = this->point_generator(surface_coord);
         point->X = pt.x;
         point->Y = pt.y;
     };
@@ -152,33 +149,66 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
         mesh.emplace_back(c - center, normal, color);
     };
 
+    auto find_opposite = [](const MPEPolyTriangle* tri, const MPEPolyPoint* a, const MPEPolyPoint* b) -> const MPEPolyPoint* {
+        if (tri == nullptr)
+            return nullptr;
+        else if (tri->Points[0] == a && tri->Points[1] == b)
+            return tri->Points[2];
+        else if (tri->Points[1] == a && tri->Points[2] == b)
+            return tri->Points[0];
+        else
+            return tri->Points[1];
+    };
+
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {
         const auto* t = poly_ctx.Triangles[i];
         const auto* pa = t->Points[0];
         const auto* pb = t->Points[1];
         const auto* pc = t->Points[2];
-        
+
+        const auto* pd = find_opposite(t->Neighbors[2], pb, pa);
+        const auto* pe = find_opposite(t->Neighbors[0], pc, pb);
+        const auto* pf = find_opposite(t->Neighbors[1], pa, pc);
+
         TriangleProperties tp = {
             point_data[pa],
             point_data[pb],
             point_data[pc],
         };
 
-        const size_t num_submerged = tp.a.prop.submerged() + tp.b.prop.submerged() + tp.c.prop.submerged();
+        const size_t num_submerged = tp.a.submerged() + tp.b.submerged() + tp.c.submerged();
 
+        // Land triangle
         if (num_submerged < 3) {
-            Vec3F a = tp.a.normal * (param.radius + tp.a.prop.land_height);
-            Vec3F b = tp.b.normal * (param.radius + tp.b.prop.land_height);
-            Vec3F c = tp.c.normal * (param.radius + tp.c.prop.land_height);
+            Vec3F a = tp.a.normal * (param.radius + tp.a.land_height);
+            Vec3F b = tp.b.normal * (param.radius + tp.b.land_height);
+            Vec3F c = tp.c.normal * (param.radius + tp.c.land_height);
+
+            Vec3F d, e, f;
+            if (pd && !point_data[pd].submerged())
+                d = point_data[pd].normal * point_data[pd].land_height;
+            if (pe && !point_data[pe].submerged())
+                e = point_data[pe].normal * point_data[pe].land_height;
+            if (pf && !point_data[pf].submerged())
+                f = point_data[pf].normal * point_data[pf].land_height;
 
             const auto color = this->triangle_generator(tp, false);
             emit(a, b, c, color);
         }
 
+        // Water triangle
         if (num_submerged > 0) {
-            Vec3F a = tp.a.normal * (param.radius + tp.a.prop.water_height);
-            Vec3F b = tp.b.normal * (param.radius + tp.b.prop.water_height);
-            Vec3F c = tp.c.normal * (param.radius + tp.c.prop.water_height);
+            Vec3F a = tp.a.normal * (param.radius + tp.a.water_height);
+            Vec3F b = tp.b.normal * (param.radius + tp.b.water_height);
+            Vec3F c = tp.c.normal * (param.radius + tp.c.water_height);
+
+            Vec3F d, e, f;
+            if (pd && point_data[pd].submerged())
+                d = point_data[pd].normal * point_data[pd].land_height;
+            if (pe && point_data[pe].submerged())
+                e = point_data[pe].normal * point_data[pe].land_height;
+            if (pf && point_data[pf].submerged())
+                f = point_data[pf].normal * point_data[pf].land_height;
 
             const auto color = this->triangle_generator(tp, true);
             emit(a, b, c, color);
