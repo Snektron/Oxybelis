@@ -141,14 +141,6 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
     auto mesh = std::vector<TerrainData::VertexData>();
     const auto center = corners.center();
 
-    auto emit = [&](const Vec3D& a, const Vec3D& b, const Vec3D& c, const Vec3F& color) {
-        auto normal = normalize(cross(c - a, b - a));
-
-        mesh.emplace_back(a - center, normal, color);
-        mesh.emplace_back(b - center, normal, color);
-        mesh.emplace_back(c - center, normal, color);
-    };
-
     auto find_opposite = [](const MPEPolyTriangle* tri, const MPEPolyPoint* a, const MPEPolyPoint* b) -> const MPEPolyPoint* {
         if (tri == nullptr)
             return nullptr;
@@ -158,6 +150,16 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
             return tri->Points[0];
         else
             return tri->Points[1];
+    };
+
+    auto neighbor_normal = [&](const MPEPolyPoint* a, const Vec3D& b, const Vec3D& c, bool submerged) {
+        if (a && point_data[a].submerged() == submerged) {
+            auto height = submerged ? point_data[a].water_height : point_data[a].land_height;
+            auto pa = point_data[a].normal * (param.radius + height);
+            return normalize(cross(b - pa, c - pa));
+        } else {
+            return Vec3D(0);
+        }
     };
 
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {
@@ -180,38 +182,38 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
 
         // Land triangle
         if (num_submerged < 3) {
-            Vec3F a = tp.a.normal * (param.radius + tp.a.land_height);
-            Vec3F b = tp.b.normal * (param.radius + tp.b.land_height);
-            Vec3F c = tp.c.normal * (param.radius + tp.c.land_height);
+            Vec3D a = tp.a.normal * (param.radius + tp.a.land_height);
+            Vec3D b = tp.b.normal * (param.radius + tp.b.land_height);
+            Vec3D c = tp.c.normal * (param.radius + tp.c.land_height);
 
-            Vec3F d, e, f;
-            if (pd && !point_data[pd].submerged())
-                d = point_data[pd].normal * point_data[pd].land_height;
-            if (pe && !point_data[pe].submerged())
-                e = point_data[pe].normal * point_data[pe].land_height;
-            if (pf && !point_data[pf].submerged())
-                f = point_data[pf].normal * point_data[pf].land_height;
+            Vec3D nd = neighbor_normal(pd, a, b, false);
+            Vec3D ne = neighbor_normal(pe, b, c, false);
+            Vec3D nf = neighbor_normal(pf, c, a, false);
 
             const auto color = this->triangle_generator(tp, false);
-            emit(a, b, c, color);
+            const auto normal = normalize(cross(c - a, b - a));
+
+            mesh.emplace_back(a - center, normal, nd, nd);
+            mesh.emplace_back(b - center, normal, ne, ne);
+            mesh.emplace_back(c - center, normal, nf, nf);
         }
 
         // Water triangle
         if (num_submerged > 0) {
-            Vec3F a = tp.a.normal * (param.radius + tp.a.water_height);
-            Vec3F b = tp.b.normal * (param.radius + tp.b.water_height);
-            Vec3F c = tp.c.normal * (param.radius + tp.c.water_height);
+            Vec3D a = tp.a.normal * (param.radius + tp.a.water_height);
+            Vec3D b = tp.b.normal * (param.radius + tp.b.water_height);
+            Vec3D c = tp.c.normal * (param.radius + tp.c.water_height);
 
-            Vec3F d, e, f;
-            if (pd && point_data[pd].submerged())
-                d = point_data[pd].normal * point_data[pd].land_height;
-            if (pe && point_data[pe].submerged())
-                e = point_data[pe].normal * point_data[pe].land_height;
-            if (pf && point_data[pf].submerged())
-                f = point_data[pf].normal * point_data[pf].land_height;
+            Vec3D nd = neighbor_normal(pd, a, b, true);
+            Vec3D ne = neighbor_normal(pe, b, c, true);
+            Vec3D nf = neighbor_normal(pf, c, a, true);
 
             const auto color = this->triangle_generator(tp, true);
-            emit(a, b, c, color);
+            const auto normal = normalize(cross(c - a, b - a));
+
+            mesh.emplace_back(a - center, normal, nd, nd);
+            mesh.emplace_back(b - center, normal, ne, ne);
+            mesh.emplace_back(c - center, normal, nf, nf);
         }
     }
 

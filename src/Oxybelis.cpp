@@ -107,13 +107,14 @@ void Oxybelis::render() {
     this->terrain.update(this->camera);
     this->terraren.render(this->terrain, proj, this->camera);
 
+    this->shadow.render(this->terrain, proj, this->camera);
+
     FrameBuffer::screen().bind();
     glDisable(GL_DEPTH_TEST);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     this->atmos.render(this->projection.to_inverse_matrix(), this->camera);
 
-    // this->shadow.render(this->terrain, proj, this->camera);
 }
 
 InputContext<Input>& Oxybelis::input_context() {

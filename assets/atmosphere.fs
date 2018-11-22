@@ -58,5 +58,6 @@ void main() {
 
     radiance = mix(radiance, ground_radiance, ground_alpha);
 
-    fColor = vec4(pow(vec3(1) - exp(-radiance * 10.0 * 1e-5), vec3(1.0 / 2.2)), 1);
+    // fColor = vec4(pow(vec3(1) - exp(-radiance * 10.0 * 1e-5), vec3(1.0 / 2.2)), 1);
+    fColor = vec4(terrain, 1);
 }
