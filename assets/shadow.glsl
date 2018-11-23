@@ -31,7 +31,7 @@ uniform vec3 uCenter;
 uniform vec3 uCameraOrigin;
 
 const vec3 LIGHT_DIR = normalize(vec3(1, 2, -3));
-const float SHADOW_LENGTH = 10000;
+const float SHADOW_LENGTH = 50000;
 const float SHADOW_MIN_DST = 100000;
 
 ShadowVertex shadow_vertex(vec3 p, vec3 n) {

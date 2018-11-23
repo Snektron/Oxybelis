@@ -31,6 +31,10 @@ vec3 GetSkyRadiance(vec3 camera, vec3 view_ray, float shadow_length, vec3 sun_di
 vec3 GetSkyRadianceToPoint(vec3 camera, vec3 point, float shadow_length, vec3 sun_direction, out vec3 transmittance);
 vec3 GetSunAndSkyIrradiance(vec3 p, vec3 normal, vec3 sun_direction, out vec3 sky_irradiance);
 
+float clamp2(float x, float minv, float maxv) {
+    return max(min(x, maxv), minv);
+}
+
 void main() {
     vec3 terrain = texture(uTerrain, vFragCoord).rgb;
     vec4 normal_dist = texture(uNormalDistance, vFragCoord);
@@ -47,7 +51,7 @@ void main() {
         vec3 p = uCameraOrigin + rd * normal_dist.a;
         vec3 n = normal_dist.xyz;
 
-        float shadow_length = clamp(dndz.g - dndz.r * normal_dist.a, 0, normal_dist.a - zminmax.r);
+        float shadow_length = clamp2(dndz.g - dndz.r * normal_dist.a, 0, normal_dist.a - zminmax.r);
 
         vec3 sky_irradiance;
         vec3 sun_irradiance = GetSunAndSkyIrradiance(p, n, LIGHT_DIR, sky_irradiance);
@@ -59,7 +63,7 @@ void main() {
         ground_alpha = 1;
     }
 
-    float shadow_length = clamp(dndz.g, 0, zminmax.g);
+    float shadow_length = clamp2(dndz.g, 0, zminmax.g);
     vec3 transmittance;
     vec3 radiance = GetSkyRadiance(uCameraOrigin, rd, shadow_length, LIGHT_DIR, transmittance);
 
