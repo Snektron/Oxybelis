@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 #include <chrono>
+#include <experimental/string_view>
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
 #include "core/Window.h"
@@ -67,7 +68,15 @@ void run(Window& window, InputManager<Input>& manager, Mouse<Input>& mouse) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    bool quiet = false;
+
+    for (int i = 0; i < argc; ++i) {
+        auto arg = std::experimental::string_view(argv[i]);
+        if (arg == "-q" || arg == "--no-debug")
+            quiet = true;
+    }
+
     if (glfwInit() != GLFW_TRUE) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return 1;
@@ -89,11 +98,14 @@ int main() {
     glfwSwapInterval(0);
 
     glEnable(GL_CULL_FACE);
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback([](GLenum, GLenum, GLuint, GLenum, GLsizei length, const GLchar* message, const void*){
-        std::cout << "[OpenGL] ";
-        std::cout.write(message, length) << std::endl;
-    }, nullptr);
+
+    if (!quiet) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback([](GLenum, GLenum, GLuint, GLenum, GLsizei length, const GLchar* message, const void*){
+            std::cout << "[OpenGL] ";
+            std::cout.write(message, length) << std::endl;
+        }, nullptr);
+    }
 
     auto manager = InputManager<Input>();
 
