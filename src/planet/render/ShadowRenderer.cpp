@@ -46,7 +46,7 @@ ShadowRenderer::ShadowRenderer(GLuint normal_distance_texture):
     shadow_draw(load_draw_shader()),
     perspective(this->shadow_draw.uniform("uPerspective")),
     model(this->shadow_draw.uniform("uModel")),
-    camera_origin_draw(this->shadow_draw.uniform("ucameraOrigin")) {
+    camera_origin_draw(this->shadow_draw.uniform("uCameraOrigin")) {
 
     this->shadow_compute.use();
 
@@ -60,8 +60,7 @@ ShadowRenderer::ShadowRenderer(GLuint normal_distance_texture):
     glUniform1ui(this->shadow_compute.uniform("uMaxOutputs"), MAX_SHADOW_BUFFER_QUADS);
 
     this->shadow_draw.use();
-    glUniform1ui(this->shadow_draw.uniform("uNormalDistance"), normal_distance_texture);
-
+    // glUniform1ui(this->shadow_draw.uniform("uNormalDistance"), normal_distance_texture);
 
     this->vao.bind();
     this->shadow_volumes.bind(GL_ARRAY_BUFFER);
@@ -98,6 +97,7 @@ void ShadowRenderer::end(const Mat4F& proj, const Camera& cam) {
     // std::cout << "End quads: " << counter << std::endl;
     this->vao.bind();
     this->shadow_draw.use();
+    // glUniform1ui(this->shadow_draw.uniform("uNormalDistance"), 3);
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
     glUniformMatrix4fv(this->model, 1, GL_FALSE, static_cast<Mat4F>(cam.to_view_matrix()).data());
     glUniform3fv(this->camera_origin_draw, 1, static_cast<Vec3F>(cam.translation).data());

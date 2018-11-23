@@ -86,7 +86,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
     camera(QuatD::identity(), CAMERA_START),
     camera_speed_modifier(2),
     planet{PLANET_LOCATION, PLANET_RADIUS},
-    atmos(0, 1, PLANET_RADIUS, ATMOSPHERE_RADIUS), // GL_TEXTURE0 and GL_TEXTURE1
+    atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
     terragen(this->thread_pool, earthlike::PointGenerator(123), earthlike::TriangleGenerator{}),
     terrain(this->planet, this->terragen),
     shadow(1), // GL_TEXTURE1

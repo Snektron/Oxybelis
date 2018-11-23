@@ -16,7 +16,7 @@ namespace {
     }
 }
 
-AtmosphereRenderer::AtmosphereRenderer(GLuint color_tex, GLuint nd_tex, double radius, double outer_radius):
+AtmosphereRenderer::AtmosphereRenderer(GLuint color_tex, GLuint nd_tex, GLuint dndz_tex, GLuint zminmax_tex, double radius, double outer_radius):
     model(atmosphere_constants::load_earthlike_model(radius, outer_radius)),
     shader(load_shader(this->model->GetShader())),
     quad(0) {
@@ -25,6 +25,8 @@ AtmosphereRenderer::AtmosphereRenderer(GLuint color_tex, GLuint nd_tex, double r
 
     glUniform1i(this->shader.uniform("uTerrain"), color_tex);
     glUniform1i(this->shader.uniform("uNormalDistance"), nd_tex);
+    glUniform1i(this->shader.uniform("uDndz"), dndz_tex);
+    glUniform1i(this->shader.uniform("uZminmax"), zminmax_tex);
 
     this->inv_proj_mat = this->shader.uniform("uInvProjection");
     this->model_mat = this->shader.uniform("uModel");

@@ -7,6 +7,8 @@ in vec3 vRayDir;
 
 uniform sampler2D uTerrain;
 uniform sampler2D uNormalDistance;
+uniform sampler2D uDndz;
+uniform sampler2D uZminmax;
 
 uniform vec3 uCameraOrigin;
 uniform vec3 uCameraDir;
@@ -32,6 +34,9 @@ vec3 GetSunAndSkyIrradiance(vec3 p, vec3 normal, vec3 sun_direction, out vec3 sk
 void main() {
     vec3 terrain = texture(uTerrain, vFragCoord).rgb;
     vec4 normal_dist = texture(uNormalDistance, vFragCoord);
+    vec2 dndz = texture(uDndz, vFragCoord).rg;
+    vec2 zminmax = texture(uZminmax, vFragCoord).rg;
+    zminmax.r *= -1;
 
     vec3 rd = normalize(vRayDir);
 
@@ -42,19 +47,21 @@ void main() {
         vec3 p = uCameraOrigin + rd * normal_dist.a;
         vec3 n = normal_dist.xyz;
 
+        float shadow_length = clamp(dndz.g - dndz.r * normal_dist.a, 0, normal_dist.a - zminmax.r);
+
         vec3 sky_irradiance;
         vec3 sun_irradiance = GetSunAndSkyIrradiance(p, n, LIGHT_DIR, sky_irradiance);
         ground_radiance = terrain * (1.0 / PI) * (sun_irradiance + sky_irradiance);
-        float shadow_length = 0;
 
         vec3 transmittance;
-        vec3 in_scatter = GetSkyRadianceToPoint(uCameraOrigin, p, 0, LIGHT_DIR, transmittance);
+        vec3 in_scatter = GetSkyRadianceToPoint(uCameraOrigin, p, shadow_length, LIGHT_DIR, transmittance);
         ground_radiance = ground_radiance * transmittance + in_scatter;
         ground_alpha = 1;
     }
 
+    float shadow_length = clamp(dndz.g, 0, zminmax.g);
     vec3 transmittance;
-    vec3 radiance = GetSkyRadiance(uCameraOrigin, rd, 0, LIGHT_DIR, transmittance);
+    vec3 radiance = GetSkyRadiance(uCameraOrigin, rd, shadow_length, LIGHT_DIR, transmittance);
 
     radiance = mix(radiance, ground_radiance, ground_alpha);
 

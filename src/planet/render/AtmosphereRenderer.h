@@ -21,7 +21,7 @@ class AtmosphereRenderer {
     Quad quad;
 
 public:
-    AtmosphereRenderer(GLuint color_tex, GLuint nd_tex, double radius, double outer_radius);
+    AtmosphereRenderer(GLuint color_tex, GLuint nd_tex, GLuint dndz_tex, GLuint zminmax_tex, GLdouble radius, double outer_radius);
     void render(const Mat4F& inv_proj, const Camera& cam) const;
 };
 
