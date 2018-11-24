@@ -115,7 +115,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
     this->input_ctx.connect_action(Input::SpeedDown, filter_fn(Action::Press, std::bind(change_speed, -1)));
 
     this->connect_camera();
-    this->toggle_cursor();
+    // this->toggle_cursor();
 }
 
 bool Oxybelis::update([[maybe_unused]] double dt) {
