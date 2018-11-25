@@ -12,6 +12,7 @@
 
 class Chunk {
     ChunkLocation loc;
+    Lod lod;
     VertexArray vao;
     Buffer terrain;
     size_t vertices;

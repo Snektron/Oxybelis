@@ -152,6 +152,15 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
             return tri->Points[1];
     };
 
+    auto pt = [&](const MPEPolyPoint* a, bool submerged) {
+        if (a && point_data[a].submerged() == submerged) {
+            auto height = submerged ? point_data[a].water_height : point_data[a].land_height;
+            return point_data[a].normal * (param.radius + height);
+        } else {
+            return Vec3D(0);
+        }
+    };
+
     auto neighbor_normal = [&](const MPEPolyPoint* a, const Vec3D& b, const Vec3D& c, bool submerged) {
         if (a && point_data[a].submerged() == submerged) {
             auto height = submerged ? point_data[a].water_height : point_data[a].land_height;
@@ -161,6 +170,10 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
             return Vec3D(0);
         }
     };
+
+    size_t total_tris = 0;
+    size_t edges = 0;
+    size_t shadow_tris = 0;
 
     for (size_t i = 0; i < poly_ctx.TriangleCount; ++i) {
         const auto* t = poly_ctx.Triangles[i];
@@ -196,6 +209,22 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
             mesh.emplace_back(a - center, normal, color, nd);
             mesh.emplace_back(b - center, normal, color, ne);
             mesh.emplace_back(c - center, normal, color, nf);
+
+            ++total_tris;
+            size_t shadow_edges = 0;
+
+            if (pd && dot(normal, pt(pd, false) - a) > 0)
+                ++shadow_edges;
+
+            if (pe && dot(normal, pt(pe, false) - a) > 0)
+                ++shadow_edges;
+
+            if (pf && dot(normal, pt(pf, false) - a) > 0)
+                ++shadow_edges;
+
+            edges += shadow_edges;
+            if (shadow_edges > 0)
+                ++shadow_tris;
         }
 
         // Water triangle
@@ -214,10 +243,33 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
             mesh.emplace_back(a - center, normal, color, nd);
             mesh.emplace_back(b - center, normal, color, ne);
             mesh.emplace_back(c - center, normal, color, nf);
+
+            ++total_tris;
+            size_t shadow_edges = 0;
+
+            if (pd && dot(normal, pt(pd, true) - a) > 0)
+                ++shadow_edges;
+
+            if (pe && dot(normal, pt(pe, true) - a) > 0)
+                ++shadow_edges;
+
+            if (pf && dot(normal, pt(pf, true) - a) > 0)
+                ++shadow_edges;
+
+            edges += shadow_edges;
+            if (shadow_edges > 0)
+                ++shadow_tris;
         }
     }
 
-    return TerrainData(param.loc, std::move(mesh));
+    std::cout
+        << "total tris = " << total_tris
+        << ", edges = " << edges
+        << ", shadow tris = " << shadow_tris
+        << ", total estimated tris = " << (shadow_tris + edges)
+        << std::endl;
+
+    return TerrainData(param.loc, param.lod, std::move(mesh));
 }
 
 #endif

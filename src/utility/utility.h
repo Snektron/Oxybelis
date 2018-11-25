@@ -6,7 +6,8 @@
 #include <array>
 #include <cstddef>
 #include <cmath>
-#include "glad/glad.h"
+#include <glad/glad.h>
+#include "math/Vec.h"
 
 template <typename F>
 struct Defer {
@@ -65,6 +66,17 @@ inline size_t hash_combine(size_t seed, const T& v) {
 constexpr long double operator ""_deg(long double deg) {
     return deg * M_PI / 180.0;
 }
+
+inline constexpr size_t to_hex(char c) {
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    else if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    else if (c >= '0' && c <= '9')
+        return c - '0';
+    else
+        return 0;
+};
 
 // see https://stackoverflow.com/questions/466204/rounding-up-to-next-power-of-2
 template <typename T>

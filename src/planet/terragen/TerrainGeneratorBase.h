@@ -9,6 +9,7 @@ struct PointProperties {
     Vec3D normal;
     double land_height;
     double water_height;
+    double temperature;
 
     bool submerged() const {
         return this->water_height > this->land_height;

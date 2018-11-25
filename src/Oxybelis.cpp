@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 #include <limits>
+#include <random>
 #include "input/utility.h"
 #include "utility/units.h"
 #include "utility/utility.h"
@@ -16,8 +17,8 @@ namespace {
 
     constexpr const double ATMOSPHERE_RADIUS = PLANET_RADIUS * 1.0094;
 
-    constexpr const Vec3D CAMERA_START = Vec3D(0, 0, -PLANET_RADIUS - 10.0_km);
-    constexpr const double CAMERA_BASE_SPEED = 1.0_km;
+    constexpr const Vec3D CAMERA_START = Vec3D(0, 0, -10'000.0_km);
+    constexpr const double CAMERA_BASE_SPEED = 100.0_km;
 }
 
 Oxybelis::FrameBufferState::FrameBufferState(const Vec2I& dim):
@@ -87,7 +88,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
     camera_speed_modifier(2),
     planet{PLANET_LOCATION, PLANET_RADIUS},
     atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
-    terragen(this->thread_pool, earthlike::PointGenerator(123), earthlike::TriangleGenerator{}),
+    terragen(this->thread_pool, earthlike::PointGenerator(std::random_device{}()), earthlike::TriangleGenerator{}),
     terrain(this->planet, this->terragen),
     shadow(1), // GL_TEXTURE1
     fb_state(dim) {

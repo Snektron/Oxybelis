@@ -1,15 +1,16 @@
 #include "planet/render/ShadowRenderer.h"
 #include <iostream>
+#include "math/Vec.h"
 #include "graphics/shader/ProgramBuilder.h"
 #include "graphics/camera/Camera.h"
-#include "math/Vec.h"
 #include "planet/chunk/Chunk.h"
 #include "planet/render/Terrain.h"
+#include "planet/terragen/TerrainData.h"
 #include "utility/utility.h"
 #include "assets.h"
 
 namespace {
-    constexpr const size_t MAX_SHADOW_BUFFER_QUADS = 500'000;
+    constexpr const size_t MAX_SHADOW_BUFFER_QUADS = 800'000;
     constexpr const size_t SHADOW_VERTEX_SIZE = sizeof(Vec4F) * 2; // position and normal
     constexpr const size_t SHADOW_BUFFER_SIZE = MAX_SHADOW_BUFFER_QUADS * SHADOW_VERTEX_SIZE * 3 * 2; // 2 triangles for each shadow quad
 
@@ -111,7 +112,7 @@ void ShadowRenderer::render(Terrain& terrain, const Mat4F& proj, const Camera& c
         auto patch = opt_patch.value();
 
         for (auto& entry : patch.get().chunks) {
-            if (entry->is_ready()) {
+            if (entry->is_ready() && entry->chunk().lod == Lod::High) {
                 this->dispatch(entry->chunk());
             }
         }

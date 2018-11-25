@@ -1,7 +1,7 @@
 #include "planet/chunk/Chunk.h"
 
 Chunk::Chunk(const TerrainData& terrain):
-    loc(terrain.loc), vertices(terrain.terrain_data.size()), center(loc.corners.center()) {
+    loc(terrain.loc), lod(terrain.lod), vertices(terrain.terrain_data.size()), center(loc.corners.center()) {
     this->vao.bind();
     this->terrain.bind(GL_ARRAY_BUFFER);
     Buffer::upload_data(GL_ARRAY_BUFFER, GL_STATIC_DRAW, terrain.terrain_data);

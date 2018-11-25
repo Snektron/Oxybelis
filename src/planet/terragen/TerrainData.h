@@ -49,10 +49,11 @@ struct TerrainData {
     };
 
     ChunkLocation loc;
+    Lod lod;
     std::vector<VertexData> terrain_data;
 
-    TerrainData(const ChunkLocation& loc, std::vector<VertexData>&& terrain_data):
-        loc(loc), terrain_data(std::move(terrain_data)) {
+    TerrainData(const ChunkLocation& loc, Lod lod, std::vector<VertexData>&& terrain_data):
+        loc(loc), lod(lod), terrain_data(std::move(terrain_data)) {
     }
 };
 

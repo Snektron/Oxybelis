@@ -35,6 +35,7 @@
 #include "cylinders.h"
 #include "displace.h"
 #include "exponent.h"
+#include "function.h"
 #include "invert.h"
 #include "max.h"
 #include "min.h"
