@@ -51,6 +51,9 @@ void main() {
         vec3 p = uCameraOrigin + rd * normal_dist.a;
         vec3 n = normal_dist.xyz;
 
+        if (dndz.r < -0.5)
+            n = -LIGHT_DIR;
+
         float shadow_length = clamp2(dndz.g - dndz.r * normal_dist.a, 0, normal_dist.a - zminmax.r);
 
         vec3 sky_irradiance;

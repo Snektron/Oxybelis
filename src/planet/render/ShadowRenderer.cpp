@@ -10,7 +10,7 @@
 #include "assets.h"
 
 namespace {
-    constexpr const size_t MAX_SHADOW_BUFFER_QUADS = 800'000;
+    constexpr const size_t MAX_SHADOW_BUFFER_QUADS = 2'000'000;
     constexpr const size_t SHADOW_VERTEX_SIZE = sizeof(Vec4F) * 2; // position and normal
     constexpr const size_t SHADOW_BUFFER_SIZE = MAX_SHADOW_BUFFER_QUADS * SHADOW_VERTEX_SIZE * 3 * 2; // 2 triangles for each shadow quad
 
@@ -61,7 +61,7 @@ ShadowRenderer::ShadowRenderer(GLuint normal_distance_texture):
     glUniform1ui(this->shadow_compute.uniform("uMaxOutputs"), MAX_SHADOW_BUFFER_QUADS);
 
     this->shadow_draw.use();
-    // glUniform1ui(this->shadow_draw.uniform("uNormalDistance"), normal_distance_texture);
+    glUniform1i(this->shadow_draw.uniform("uNormalDistance"), normal_distance_texture);
 
     this->vao.bind();
     this->shadow_volumes.bind(GL_ARRAY_BUFFER);
@@ -95,10 +95,8 @@ void ShadowRenderer::end(const Mat4F& proj, const Camera& cam) {
     GLuint counter;
     glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &counter);
 
-    // std::cout << "End quads: " << counter << std::endl;
     this->vao.bind();
     this->shadow_draw.use();
-    // glUniform1ui(this->shadow_draw.uniform("uNormalDistance"), 3);
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
     glUniformMatrix4fv(this->model, 1, GL_FALSE, static_cast<Mat4F>(cam.to_view_matrix()).data());
     glUniform3fv(this->camera_origin_draw, 1, static_cast<Vec3F>(cam.translation).data());
