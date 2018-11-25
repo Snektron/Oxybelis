@@ -32,7 +32,20 @@ uniform vec3 uCameraOrigin;
 
 const vec3 LIGHT_DIR = normalize(vec3(1, 2, -3));
 const float SHADOW_LENGTH = 50000;
-const float SHADOW_MIN_DST = 50000;
+const float SHADOW_MIN_DST = 100000;
+const vec2 MISS = vec2(1, -1);
+
+// vec2 ray_sphere_intersect(vec3 p, vec3 dir, float r) {
+//     float b = dot(p, dir);
+//     float c = dot(p, p) - r * r;
+
+//     float d = b * b - c;
+//     if (d < 0.0)
+//         return MISS;
+//     d = sqrt(d);
+
+//     return vec2(-b - d, -b + d);
+// }
 
 ShadowVertex shadow_vertex(vec3 p, vec3 n) {
     return ShadowVertex(vec4(p, 1), vec4(n, 1));
@@ -80,13 +93,13 @@ void main() {
     vec3 nf = vertices[index + 2].nn.xyz;
 
     if (dot(normal, LIGHT_DIR) > 0) { // if this triangle is lit
-        if (dot(nd, LIGHT_DIR) < 0)
+        if (dot(nd, LIGHT_DIR) <= 0)
             emit_shadow(a, b);
 
-        if (dot(ne, LIGHT_DIR) < 0)
+        if (dot(ne, LIGHT_DIR) <= 0)
             emit_shadow(b, c);
 
-        if (dot(nf, LIGHT_DIR) < 0)
+        if (dot(nf, LIGHT_DIR) <= 0)
             emit_shadow(c, a);
     }
 }

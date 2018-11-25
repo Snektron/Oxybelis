@@ -19,7 +19,7 @@ void main() {
     float terrain_d = texelFetch(uNormalDistance, ivec2(gl_FragCoord.xy), 0).a;
     float d = distance(uCameraOrigin, vVertex);
 
-    if (terrain_d > 0 && d >= terrain_d)
+    if (terrain_d > 0 && round(d) >= round(terrain_d))
         discard;
 
     if (gl_FrontFacing) {
@@ -29,5 +29,4 @@ void main() {
     }
 
     zminmax = vec2(-d, d);
-    gl_FragDepth = log(C * vClipPos.z + OFFSET) / log(C * FAR + OFFSET);
 }

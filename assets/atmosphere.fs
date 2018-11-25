@@ -51,14 +51,13 @@ void main() {
         vec3 p = uCameraOrigin + rd * normal_dist.a;
         vec3 n = normal_dist.xyz;
 
-        if (dndz.r < -0.5)
-            n = -LIGHT_DIR;
-
         float shadow_length = clamp2(dndz.g - dndz.r * normal_dist.a, 0, normal_dist.a - zminmax.r);
+
+        float sun_visibility = 1.0 - smoothstep(0, 10, shadow_length);
 
         vec3 sky_irradiance;
         vec3 sun_irradiance = GetSunAndSkyIrradiance(p, n, LIGHT_DIR, sky_irradiance);
-        ground_radiance = terrain * (1.0 / PI) * (sun_irradiance + sky_irradiance);
+        ground_radiance = terrain * (1.0 / PI) * (sun_irradiance * sun_visibility + sky_irradiance);
 
         vec3 transmittance;
         vec3 in_scatter = GetSkyRadianceToPoint(uCameraOrigin, p, shadow_length, LIGHT_DIR, transmittance);
