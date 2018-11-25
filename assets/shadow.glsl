@@ -1,6 +1,6 @@
 #version 430
 
-layout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 32) in;
 
 // Keep in sync with src/planet/terragen/TerrainData TerrainData::VertexData
 struct Vertex {
@@ -23,36 +23,22 @@ layout(std430, binding = 1) buffer shadow {
     ShadowVertex shadow_vertices[];
 };
 
-layout(binding = 2) uniform atomic_uint uElementsWritten;
+layout(binding = 2) uniform atomic_uint uTrianglePtr;
 
 uniform uint uMaxOutputs;
 uniform uint uNumVertices;
 uniform vec3 uCenter;
-uniform vec3 uCameraOrigin;
 
 const vec3 LIGHT_DIR = normalize(vec3(1, 2, -3));
 const float SHADOW_LENGTH = 50000;
 const float SHADOW_MIN_DST = 100000;
-const vec2 MISS = vec2(1, -1);
-
-// vec2 ray_sphere_intersect(vec3 p, vec3 dir, float r) {
-//     float b = dot(p, dir);
-//     float c = dot(p, p) - r * r;
-
-//     float d = b * b - c;
-//     if (d < 0.0)
-//         return MISS;
-//     d = sqrt(d);
-
-//     return vec2(-b - d, -b + d);
-// }
 
 ShadowVertex shadow_vertex(vec3 p, vec3 n) {
     return ShadowVertex(vec4(p, 1), vec4(n, 1));
 }
 
 void emit_shadow(vec3 a, vec3 b) {
-    uint index = atomicCounterIncrement(uElementsWritten);
+    uint index = atomicCounterIncrement(uTrianglePtr);
     if (index >= uMaxOutputs)
         return;
 
@@ -85,7 +71,7 @@ void main() {
     vec3 b = vertices[index + 1].position.xyz + uCenter;
     vec3 c = vertices[index + 2].position.xyz + uCenter;
 
-    if (distance((a + b + c) / 3, uCameraOrigin) > SHADOW_MIN_DST)
+    if (length((a + b + c) / 3) > SHADOW_MIN_DST)
         return;
 
     vec3 nd = vertices[index + 0].nn.xyz;
@@ -101,5 +87,24 @@ void main() {
 
         if (dot(nf, LIGHT_DIR) <= 0)
             emit_shadow(c, a);
+    } else {
+        uint index = atomicCounterIncrement(uTrianglePtr);
+        if (index >= uMaxOutputs)
+            return;
+        uint address = index * 3 * 2;
+
+        vec3 d = a + SHADOW_LENGTH * -LIGHT_DIR;
+        vec3 e = b + SHADOW_LENGTH * -LIGHT_DIR;
+        vec3 f = c + SHADOW_LENGTH * -LIGHT_DIR;
+
+        vec3 n1 = -normal;
+
+        shadow_vertices[address + 0] = shadow_vertex(a, n1);
+        shadow_vertices[address + 1] = shadow_vertex(c, n1);
+        shadow_vertices[address + 2] = shadow_vertex(b, n1);
+
+        shadow_vertices[address + 3] = shadow_vertex(d, normal);
+        shadow_vertices[address + 4] = shadow_vertex(e, normal);
+        shadow_vertices[address + 5] = shadow_vertex(f, normal);
     }
 }

@@ -53,7 +53,9 @@ void main() {
 
         float shadow_length = clamp2(dndz.g - dndz.r * normal_dist.a, 0, normal_dist.a - zminmax.r);
 
-        float sun_visibility = 1.0 - smoothstep(0, 10, shadow_length);
+        float sun_visibility = 1.0;
+        if (dndz.r < -0.1)
+            sun_visibility = 1.0 - smoothstep(0, 10, shadow_length);
 
         vec3 sky_irradiance;
         vec3 sun_irradiance = GetSunAndSkyIrradiance(p, n, LIGHT_DIR, sky_irradiance);

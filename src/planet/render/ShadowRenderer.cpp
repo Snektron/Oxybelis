@@ -43,11 +43,9 @@ ShadowRenderer::ShadowRenderer(GLuint normal_distance_texture):
     shadow_compute(load_compute_shader()),
     num_vertices(this->shadow_compute.uniform("uNumVertices")),
     center(this->shadow_compute.uniform("uCenter")),
-    camera_origin_compute(this->shadow_compute.uniform("uCameraOrigin")),
     shadow_draw(load_draw_shader()),
     perspective(this->shadow_draw.uniform("uPerspective")),
-    model(this->shadow_draw.uniform("uModel")),
-    camera_origin_draw(this->shadow_draw.uniform("uCameraOrigin")) {
+    model(this->shadow_draw.uniform("uModel")) {
 
     this->shadow_compute.use();
 
@@ -73,17 +71,16 @@ ShadowRenderer::ShadowRenderer(GLuint normal_distance_texture):
     this->vao.enable_attrib(1);
 }
 
-void ShadowRenderer::begin(const Camera& cam) {
+void ShadowRenderer::begin() {
     this->shadow_compute.use();
     this->reset_counter();
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SHADOW_VOLUMES_BINDING, this->shadow_volumes);
-    glUniform3fv(this->camera_origin_compute, 1, static_cast<Vec3F>(cam.translation).data());
 }
 
-void ShadowRenderer::dispatch(const Chunk& chunk) {
+void ShadowRenderer::dispatch(const Chunk& chunk, const Camera& cam) {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, TERRAIN_BINDING, chunk.terrain);
     glUniform1ui(this->num_vertices, chunk.vertices / 3);
-    glUniform3fv(this->center, 1, static_cast<Vec3F>(chunk.center).data());
+    glUniform3fv(this->center, 1, static_cast<Vec3F>(chunk.center - cam.translation).data());
     auto group_size = (next_2pow(chunk.vertices / 3) + LOCAL_GROUP_SIZE - 1) / LOCAL_GROUP_SIZE;
     glDispatchCompute(group_size, 1, 1);
 }
@@ -98,20 +95,19 @@ void ShadowRenderer::end(const Mat4F& proj, const Camera& cam) {
     this->vao.bind();
     this->shadow_draw.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
-    glUniformMatrix4fv(this->model, 1, GL_FALSE, static_cast<Mat4F>(cam.to_view_matrix()).data());
-    glUniform3fv(this->camera_origin_draw, 1, static_cast<Vec3F>(cam.translation).data());
+    glUniformMatrix4fv(this->model, 1, GL_FALSE, static_cast<Mat4F>(cam.rotation.to_view_matrix()).data());
     glDrawArrays(GL_TRIANGLES, 0, counter * 3 * 2);
 }
 
 void ShadowRenderer::render(Terrain& terrain, const Mat4F& proj, const Camera& cam) {
     auto opt_patch = terrain.current_patch();
     if (opt_patch) {
-        this->begin(cam);
+        this->begin();
         auto patch = opt_patch.value();
 
         for (auto& entry : patch.get().chunks) {
             if (entry->is_ready() && entry->chunk().lod == Lod::High) {
-                this->dispatch(entry->chunk());
+                this->dispatch(entry->chunk(), cam);
             }
         }
 

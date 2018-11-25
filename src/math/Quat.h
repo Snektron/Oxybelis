@@ -93,6 +93,8 @@ struct Quat {
     constexpr Vec3<T> right() const;
 
     constexpr Mat4<T> to_matrix() const;
+
+    constexpr Mat4<T> to_view_matrix() const;
 };
 
 
@@ -391,6 +393,11 @@ constexpr Mat4<T> Quat<T>::to_matrix() const {
 
     result(3, 3) = one;
     return result;
+}
+
+template <typename T>
+constexpr Mat4<T> Quat<T>::to_view_matrix() const {
+    return ::normalize(*this).conjugate().to_matrix();
 }
 
 #endif

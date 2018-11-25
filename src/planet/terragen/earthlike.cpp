@@ -105,22 +105,20 @@ namespace earthlike {
     }
 
     Vec3F TriangleGenerator::operator()(const TriangleProperties& prop, bool submerged) {
-        auto avg_v = (prop.a.normal + prop.b.normal + prop.c.normal) / 3.0;
         auto avg_temp = (prop.a.temperature + prop.b.temperature + prop.c.temperature) / 3.0;
 
         if (submerged) {
             return avg_temp < 0 ? ICE : WATER;
-        } else {
-            return avg_temp < 0 ? SNOW : GROUND;
+        } else if (avg_temp < 0) {
+            return SNOW;
         }
 
-        // auto clamp = [](auto x, auto min_val, auto max_val) {
-        //     return std::min(std::max(x, min_val), max_val);
-        // };
+        auto clamp = [](auto x, auto min_val, auto max_val) {
+            return std::min(std::max(x, min_val), max_val);
+        };
 
-        // double avg_height = (prop.a.land_height + prop.b.land_height + prop.c.land_height) / 3.0;
-
-        // double scale_height = 1.0 - clamp(avg_height / TERRAIN_MAX_HEIGHT, 0.001, 1.0);
-        // return height_palette[size_t(palette_size * scale_height)] * 0.3;
+        double height = std::min({prop.a.land_height, prop.b.land_height, prop.c.land_height});
+        double scale_height = 1.0 - clamp(height / TERRAIN_MAX_HEIGHT, 0.001, 1.0);
+        return height_palette[size_t(palette_size * scale_height)] * 0.3;
     }
 }

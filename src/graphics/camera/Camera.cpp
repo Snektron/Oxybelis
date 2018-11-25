@@ -32,5 +32,5 @@ void Camera::fly(double amount) {
 }
 
 Mat4D Camera::to_view_matrix() const {
-    return normalize(this->rotation).conjugate().to_matrix() * Mat4D::translation(-this->translation);
+    return this->rotation.to_view_matrix() * Mat4D::translation(-this->translation);
 }

@@ -17,12 +17,10 @@ class ShadowRenderer {
     Program shadow_compute;
     Uniform num_vertices;
     Uniform center;
-    Uniform camera_origin_compute;
 
     Program shadow_draw;
     Uniform perspective;
     Uniform model;
-    Uniform camera_origin_draw;
 
     VertexArray vao;
     Buffer shadow_volumes;
@@ -30,8 +28,8 @@ class ShadowRenderer {
 
 public:
     ShadowRenderer(GLuint normal_distance_texture);
-    void begin(const Camera& cam);
-    void dispatch(const Chunk& chunk);
+    void begin();
+    void dispatch(const Chunk& chunk, const Camera& cam);
     void end(const Mat4F& proj, const Camera& cam);
 
     void render(Terrain& terrain, const Mat4F& proj, const Camera& cam);
