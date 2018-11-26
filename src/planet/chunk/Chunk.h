@@ -2,7 +2,6 @@
 #define _OXYBELIS_PLANET_CHUNK_CHUNK_H
 
 #include <cstddef>
-#include "math/Mat.h"
 #include "graphics/Buffer.h"
 #include "graphics/VertexArray.h"
 #include "graphics/camera/Camera.h"

@@ -10,10 +10,6 @@ out vec2 zminmax;
 
 uniform sampler2D uNormalDistance;
 
-const float C = 1.0;
-const float FAR = 100000000.0;
-const float OFFSET = 1.0;
-
 void main() {
     float terrain_d = texelFetch(uNormalDistance, ivec2(gl_FragCoord.xy), 0).a;
     float d = length(vVertex);

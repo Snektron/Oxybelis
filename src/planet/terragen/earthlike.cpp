@@ -22,13 +22,6 @@ namespace earthlike {
         "#698A17"_col,
         "#658609"_col,
         "#779319"_col,
-        "#89A027"_col,
-        "#97AC34"_col,
-        "#A6B741"_col,
-        "#B5C24E"_col,
-        "#C4CE5A"_col,
-        "#D3D967"_col,
-        "#E1E574"_col,
         "#EAEB7C"_col,
     };
 
@@ -59,9 +52,13 @@ namespace earthlike {
         elevation.SetScale(1);
         elevation.SetBias(-0.3);
 
+        auto& mountains_multiplied = this->add_module<noise::module::Multiply>();
+        mountains_multiplied.SetSourceModule(0, mountain_terrain);
+        mountains_multiplied.SetSourceModule(1, elevation);
+
         auto& terrain_selector = this->add_module<noise::module::Select>();
         terrain_selector.SetSourceModule(0, sea_bed);
-        terrain_selector.SetSourceModule(1, mountain_terrain);
+        terrain_selector.SetSourceModule(1, mountains_multiplied);
         terrain_selector.SetControlModule(elevation);
         terrain_selector.SetBounds(0.0, 1000.0);
         terrain_selector.SetEdgeFalloff(0.125);
