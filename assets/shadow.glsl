@@ -39,12 +39,12 @@ ShadowVertex shadow_vertex(vec3 p, vec3 n) {
 }
 
 void emit_shadow(vec3 a, vec3 b) {
-    uint index = atomicCounterIncrement(uTrianglePtr);
-    if (index >= uMaxOutputs)
+    uint count = atomicCounterIncrement(uTrianglePtr);
+    if (count >= uMaxOutputs)
         return;
 
-    // address = index * <vertices in triangle> * <triangles in shadow>
-    uint address = index * 3 * 2;
+    // address = count * <vertices in triangle> * <triangles in shadow>
+    uint address = count * 3 * 2;
 
     vec3 c = a + SHADOW_OFFSET;
     vec3 d = b + SHADOW_OFFSET;
@@ -60,6 +60,27 @@ void emit_shadow(vec3 a, vec3 b) {
     shadow_vertices[address + 5] = shadow_vertex(d, normal);
 }
 
+void emit_front_back(vec3 a, vec3 b, vec3 c, vec3 normal) {
+    uint count = atomicCounterIncrement(uTrianglePtr);
+    if (count >= uMaxOutputs)
+        return;
+    uint address = count * 3 * 2;
+
+    vec3 d = a + SHADOW_OFFSET;
+    vec3 e = b + SHADOW_OFFSET;
+    vec3 f = c + SHADOW_OFFSET;
+
+    vec3 inv_normal = -normal;
+
+    shadow_vertices[address + 0] = shadow_vertex(a, inv_normal);
+    shadow_vertices[address + 1] = shadow_vertex(c, inv_normal);
+    shadow_vertices[address + 2] = shadow_vertex(b, inv_normal);
+
+    shadow_vertices[address + 3] = shadow_vertex(d, normal);
+    shadow_vertices[address + 4] = shadow_vertex(e, normal);
+    shadow_vertices[address + 5] = shadow_vertex(f, normal);
+}
+
 void main() {
     uint id = gl_GlobalInvocationID.x;
     if (id >= uNumVertices)
@@ -69,6 +90,9 @@ void main() {
 
     uint index = id * 3;
     vec3 normal = vertices[index].normal.xyz;
+    if (dot(normal, LIGHT_DIR) >= 0) // if this triangle is lit, skip it
+        return;
+
     vec3 a = vertices[index + 0].position.xyz + uCenter;
     vec3 b = vertices[index + 1].position.xyz + uCenter;
     vec3 c = vertices[index + 2].position.xyz + uCenter;
@@ -77,37 +101,17 @@ void main() {
     if (dot(total, total) >= SHADOW_MIN_DST * SHADOW_MIN_DST * 3)
         return;
 
+    emit_front_back(a, b, c, normal);
+
     vec3 nd = vertices[index + 0].nn.xyz;
+    if (dot(nd, LIGHT_DIR) >= 0) // if the neighbor is lit, emit a shadow
+         emit_shadow(b, a);
+
     vec3 ne = vertices[index + 1].nn.xyz;
+    if (dot(ne, LIGHT_DIR) >= 0)
+         emit_shadow(c, b);
+
     vec3 nf = vertices[index + 2].nn.xyz;
-
-    if (dot(normal, LIGHT_DIR) < 0) { // if triangle is not lit
-        if (dot(nd, LIGHT_DIR) >= 0) // and this triangle is lit
-             emit_shadow(b, a);
-
-        if (dot(ne, LIGHT_DIR) >= 0)
-             emit_shadow(c, b);
-
-        if (dot(nf, LIGHT_DIR) >= 0)
-             emit_shadow(a, c);
-
-        uint index = atomicCounterIncrement(uTrianglePtr);
-        if (index >= uMaxOutputs)
-            return;
-        uint address = index * 3 * 2;
-
-        vec3 d = a + SHADOW_OFFSET + a;
-        vec3 e = b + SHADOW_OFFSET + b;
-        vec3 f = c + SHADOW_OFFSET + c;
-
-        vec3 inv_normal = -normal;
-
-        shadow_vertices[address + 0] = shadow_vertex(a, inv_normal);
-        shadow_vertices[address + 1] = shadow_vertex(c, inv_normal);
-        shadow_vertices[address + 2] = shadow_vertex(b, inv_normal);
-
-        shadow_vertices[address + 3] = shadow_vertex(d, normal);
-        shadow_vertices[address + 4] = shadow_vertex(e, normal);
-        shadow_vertices[address + 5] = shadow_vertex(f, normal);
-    }
+    if (dot(nf, LIGHT_DIR) >= 0)
+         emit_shadow(a, c);
 }
