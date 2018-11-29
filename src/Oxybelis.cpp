@@ -19,6 +19,8 @@ namespace {
 
     constexpr const Vec3D CAMERA_START = Vec3D(0, 0, -10'000.0_km);
     constexpr const double CAMERA_BASE_SPEED = 100.0_km;
+
+    constexpr const double CAMERA_ROLL_SPEED = 200;
 }
 
 Oxybelis::FrameBufferState::FrameBufferState(const Vec2I& dim):
@@ -195,7 +197,12 @@ void Oxybelis::connect_camera() {
 
     this->input_ctx.connect_axis(Input::Vertical, look_fn(&Camera::rotate_pitch));
     this->input_ctx.connect_axis(Input::Horizontal, look_fn(&Camera::rotate_yaw));
-    this->input_ctx.connect_axis(Input::Rotate, look_fn(&Camera::rotate_roll));
+
+    this->input_ctx.connect_axis(Input::Rotate, [this](double v, double dt) {
+        if (this->cursor_captured) {
+            this->camera.rotate_roll(v * dt * CAMERA_ROLL_SPEED);
+        }
+    });
 
     auto move_fn = [this](auto method) {
         auto f = std::bind(method, &this->camera, std::placeholders::_1);
