@@ -24,11 +24,11 @@ class Oxybelis {
         Texture color, distance;
         RenderBuffer depth;
 
-        FrameBuffer shadow_fb;
-        Texture dndz, zminmax;
-        RenderBuffer shadow_depth;
+        // FrameBuffer shadow_fb;
+        // Texture dndz, zminmax;
+        // RenderBuffer shadow_depth;
 
-        FrameBufferState(const Vec2I& dim);
+        FrameBufferState(const Vec2UI& dim);
     };
 
     ThreadPool thread_pool;
@@ -54,9 +54,9 @@ class Oxybelis {
     FrameBufferState fb_state;
 
 public:
-    Oxybelis(Mouse<Input>& mouse, const Vec2I& dim);
+    Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim);
     bool update(double dt);
-    void resize(const Vec2I& dim);
+    void resize(const Vec2UI& dim);
     void render();
 
     InputContext<Input>& input_context();

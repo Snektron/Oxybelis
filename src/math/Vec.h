@@ -16,6 +16,7 @@ using Vec2 = Vec<T, 2>;
 using Vec2F = Vec2<float>;
 using Vec2D = Vec2<double>;
 using Vec2I = Vec2<int>;
+using Vec2UI = Vec2<unsigned int>;
 
 template <typename T>
 using Vec3 = Vec<T, 3>;

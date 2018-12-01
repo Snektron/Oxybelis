@@ -23,9 +23,9 @@ namespace {
     constexpr const double CAMERA_ROLL_SPEED = 200;
 }
 
-Oxybelis::FrameBufferState::FrameBufferState(const Vec2I& dim):
-    depth(GL_DEPTH_COMPONENT32, dim.x, dim.y),
-    shadow_depth(GL_DEPTH_COMPONENT32, dim.x, dim.y) {
+Oxybelis::FrameBufferState::FrameBufferState(const Vec2UI& dim):
+    depth(GL_DEPTH_COMPONENT32, dim.x, dim.y)
+    /* shadow_depth(GL_DEPTH_COMPONENT32, dim.x, dim.y) */ {
 
     // Terrain FBO
     {
@@ -52,37 +52,9 @@ Oxybelis::FrameBufferState::FrameBufferState(const Vec2I& dim):
         GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
         glDrawBuffers(2, buffers);
     }
-
-    // Shadow FBO
-    {
-        this->shadow_fb.bind();
-        glViewport(0, 0, dim.x, dim.y);
-
-        glActiveTexture(GL_TEXTURE6); // 3 4 5 taken by atmosphere
-        this->dndz.bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, dim.x, dim.y, 0, GL_RG, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->dndz, 0);
-
-        glActiveTexture(GL_TEXTURE7);
-        this->zminmax.bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, dim.x, dim.y, 0, GL_RG, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, this->zminmax, 0);
-
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->shadow_depth);
-
-        GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-        glDrawBuffers(2, buffers);
-    }
-
-    FrameBuffer::screen().bind();
-    glViewport(0, 0, dim.x, dim.y);
 }
 
-Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
+Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     thread_pool(std::thread::hardware_concurrency() / 2),
     mouse(mouse), cursor_captured(false), quit(false),
     projection(dim, FIELD_OF_VIEW, NEAR, FAR),
@@ -92,7 +64,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
     atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
     terragen(this->thread_pool, earthlike::PointGenerator(std::random_device{}()), earthlike::TriangleGenerator{}),
     terrain(this->planet, this->terragen),
-    shadow(1), // GL_TEXTURE1
+    shadow(dim, 1), // GL_TEXTURE1
     fb_state(dim) {
 
     this->update_camera_speed();
@@ -118,7 +90,6 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2I& dim):
     this->input_ctx.connect_action(Input::SpeedDown, filter_fn(Action::Press, std::bind(change_speed, -1)));
 
     this->connect_camera();
-    // this->toggle_cursor();
 }
 
 bool Oxybelis::update([[maybe_unused]] double dt) {
@@ -126,9 +97,13 @@ bool Oxybelis::update([[maybe_unused]] double dt) {
     return this->quit;
 }
 
-void Oxybelis::resize(const Vec2I& dim) {
+void Oxybelis::resize(const Vec2UI& dim) {
     this->projection.resize(dim);
     this->fb_state = FrameBufferState(dim);
+    this->shadow.resize(dim);
+
+    FrameBuffer::screen().bind();
+    glViewport(0, 0, dim.x, dim.y);
 }
 
 void Oxybelis::render() {
@@ -146,28 +121,8 @@ void Oxybelis::render() {
     // Render shadow to its framebuffer
     {
         auto patch = this->terrain.current_patch();
-        if (patch) {
-            this->fb_state.shadow_fb.bind();     
-            GLfloat dndz_clear[] = {0, 0, 0, 0};
-            GLfloat zminmax_clear[] = {std::numeric_limits<GLfloat>::lowest(), 0, 0, 0};
-
-            glClearBufferfv(GL_COLOR, 0, dndz_clear);
-            glClearBufferfv(GL_COLOR, 1, zminmax_clear);
-            glClear(GL_DEPTH_BUFFER_BIT);
-
-            glDepthMask(GL_FALSE);
-            glDisable(GL_CULL_FACE);
-            glEnable(GL_BLEND);
-
-            glBlendEquationi(0, GL_FUNC_ADD);
-            glBlendEquationi(1, GL_MAX);
-
+        if (patch)
             this->shadow.render(patch.value(), proj, this->camera);
-
-            glDepthMask(GL_TRUE);
-            glEnable(GL_CULL_FACE);
-            glDisable(GL_BLEND);
-        }
     }
 
     // Finally render everything else

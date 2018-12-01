@@ -28,7 +28,7 @@
 void run(Window& window, InputManager<Input>& manager, Mouse<Input>& mouse) {
     using std::chrono::high_resolution_clock;
 
-    auto current_dim = Vec2I(window.dimensions());
+    auto current_dim = Vec2UI(window.dimensions());
     Oxybelis oxybelis(mouse, current_dim);
     manager.switch_context(oxybelis.input_context());
 
@@ -37,7 +37,7 @@ void run(Window& window, InputManager<Input>& manager, Mouse<Input>& mouse) {
     size_t frames = 0;
 
     while (!window.should_close()) {
-        auto dim = Vec2I(window.dimensions());
+        auto dim = Vec2UI(window.dimensions());
         if (dim.x != current_dim .x || dim.y != current_dim.y) {
             current_dim = dim;
             oxybelis.resize(dim);

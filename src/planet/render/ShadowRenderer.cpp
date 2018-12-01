@@ -39,13 +39,40 @@ namespace {
     };
 }
 
-ShadowRenderer::ShadowRenderer(GLuint normal_distance_texture):
+ShadowRenderer::FrameBufferState::FrameBufferState(const Vec2UI& dim):
+    shadow_depth(GL_DEPTH_COMPONENT32, dim.x, dim.y) {
+
+    this->fb.bind();
+    glViewport(0, 0, dim.x, dim.y);
+
+    glActiveTexture(GL_TEXTURE6); // 1, 2 taken by terrain, 3 4 5 taken by atmosphere
+    this->dndz.bind();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, dim.x, dim.y, 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->dndz, 0);
+
+    glActiveTexture(GL_TEXTURE7);
+    this->zminmax.bind();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, dim.x, dim.y, 0, GL_RG, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, this->zminmax, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->shadow_depth);
+
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, buffers);
+}
+
+ShadowRenderer::ShadowRenderer(const Vec2UI& dim, GLuint normal_distance_texture):
     shadow_compute(load_compute_shader()),
     num_vertices(this->shadow_compute.uniform("uNumVertices")),
     center(this->shadow_compute.uniform("uCenter")),
     shadow_draw(load_draw_shader()),
     perspective(this->shadow_draw.uniform("uPerspective")),
-    model(this->shadow_draw.uniform("uModel")) {
+    model(this->shadow_draw.uniform("uModel")),
+    state(dim) {
 
     this->shadow_compute.use();
 
@@ -71,6 +98,10 @@ ShadowRenderer::ShadowRenderer(GLuint normal_distance_texture):
     this->vao.enable_attrib(1);
 }
 
+void ShadowRenderer::resize(const Vec2UI& dim) {
+    this->state = FrameBufferState(dim);
+}
+
 void ShadowRenderer::begin() {
     this->shadow_compute.use();
     this->reset_counter();
@@ -92,19 +123,36 @@ void ShadowRenderer::end(const Mat4F& proj, const Camera& cam) {
     GLuint counters[2];
     glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint) * 2, &counters);
 
+    this->state.fb.bind();    
+
+    GLfloat dndz_clear[] = {0, 0, 0, 0};
+    GLfloat zminmax_clear[] = {std::numeric_limits<GLfloat>::lowest(), 0, 0, 0};
+
     if (counters[1] > 0) {
-        GLfloat val = -GLint(counters[1]);
-        GLfloat dndz_clear[] = {val, 0, 0, 0};
-        GLfloat zminmax_clear[] = {0, 0, 0, 0};
-        glClearBufferfv(GL_COLOR, 0, dndz_clear);
-        glClearBufferfv(GL_COLOR, 1, zminmax_clear);
+        dndz_clear[0] = -GLint(counters[1]);
+        zminmax_clear[0] = 0;
     }
+
+    glClearBufferfv(GL_COLOR, 0, dndz_clear);
+    glClearBufferfv(GL_COLOR, 1, zminmax_clear);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+
+    glBlendEquationi(0, GL_FUNC_ADD);
+    glBlendEquationi(1, GL_MAX);
 
     this->vao.bind();
     this->shadow_draw.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
     glUniformMatrix4fv(this->model, 1, GL_FALSE, static_cast<Mat4F>(cam.rotation.to_view_matrix()).data());
     glDrawArrays(GL_TRIANGLES, 0, counters[0] * 3 * 2);
+
+    glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
 }
 
 void ShadowRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {

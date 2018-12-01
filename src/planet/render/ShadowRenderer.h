@@ -6,8 +6,12 @@
 #include "graphics/camera/Camera.h"
 #include "graphics/Buffer.h"
 #include "graphics/VertexArray.h"
+#include "graphics/FrameBuffer.h"
+#include "graphics/RenderBuffer.h"
+#include "graphics/Texture.h"
 #include "planet/render/Terrain.h"
 #include "math/Mat.h"
+#include "math/Vec.h"
 
 struct Camera;
 class Chunk;
@@ -26,8 +30,17 @@ class ShadowRenderer {
     Buffer shadow_volumes;
     Buffer counter;
 
+    struct FrameBufferState {
+        FrameBuffer fb;
+        Texture dndz, zminmax;
+        RenderBuffer shadow_depth;
+
+        FrameBufferState(const Vec2UI& dim);
+    } state;
+
 public:
-    ShadowRenderer(GLuint normal_distance_texture);
+    ShadowRenderer(const Vec2UI& dim, GLuint normal_distance_texture);
+    void resize(const Vec2UI& dim);
     void begin();
     void dispatch(const Chunk& chunk, const Camera& cam);
     void end(const Mat4F& proj, const Camera& cam);
