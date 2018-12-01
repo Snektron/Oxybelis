@@ -32,8 +32,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     terragen(this->thread_pool, earthlike::PointGenerator(std::random_device{}()), earthlike::TriangleGenerator{}),
     planet(PLANET_LOCATION, PLANET_RADIUS, this->terragen),
     atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
-    terraren(dim),
-    shadow(dim, 1) {
+    planet_renderer(dim) {
 
     this->update_camera_speed();
 
@@ -67,8 +66,7 @@ bool Oxybelis::update([[maybe_unused]] double dt) {
 
 void Oxybelis::resize(const Vec2UI& dim) {
     this->projection.resize(dim);
-    this->terraren.resize(dim);
-    this->shadow.resize(dim);
+    this->planet_renderer.resize(dim);
 
     FrameBuffer::screen().bind();
     glViewport(0, 0, dim.x, dim.y);
@@ -81,24 +79,7 @@ void Oxybelis::render() {
     auto proj = this->projection.to_matrix();
     auto inv_proj = this->projection.to_inverse_matrix();
 
-    auto cam = Camera(this->camera);
-    cam.translation -= this->planet.translation;
-
-    // Render terrain to its framebuffer
-    this->terraren.render(this->planet, proj, cam);
-
-    // Render shadow to its framebuffer
-    this->shadow.render(this->planet, proj, cam);
-
-    // Finally render everything else
-    {
-        FrameBuffer::screen().bind();
-        glDisable(GL_DEPTH_TEST);
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
-        this->atmos.render(inv_proj, cam);
-        glEnable(GL_DEPTH_TEST);
-    }
+    this->planet_renderer.render(this->planet, this->atmos, proj, inv_proj, this->camera);
 }
 
 InputContext<Input>& Oxybelis::input_context() {

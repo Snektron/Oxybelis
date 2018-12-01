@@ -12,6 +12,7 @@
 #include "planet/Planet.h"
 #include "planet/terragen/earthlike.h"
 #include "planet/render/AtmosphereRenderer.h"
+#include "planet/render/PlanetRenderer.h"
 #include "planet/render/TerrainRenderer.h"
 #include "planet/render/ShadowRenderer.h"
 #include "utility/ThreadPool.h"
@@ -34,8 +35,7 @@ class Oxybelis {
     Planet planet;
 
     AtmosphereRenderer atmos;
-    TerrainRenderer terraren;
-    ShadowRenderer shadow;
+    PlanetRenderer planet_renderer;
 
 public:
     Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim);
