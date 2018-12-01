@@ -18,19 +18,54 @@ namespace {
     }
 }
 
-TerrainRenderer::TerrainRenderer():
+TerrainRenderer::FrameBufferState::FrameBufferState(const Vec2UI& dim):
+    depth(GL_DEPTH_COMPONENT32, dim.x, dim.y) {
+    this->fb.bind();
+    glViewport(0, 0, dim.x, dim.y);
+
+    glActiveTexture(GL_TEXTURE0);
+    this->color.bind();
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dim.x, dim.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->color, 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    this->distance.bind();
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, dim.x, dim.y, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, this->distance, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->depth);
+
+    GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, buffers);
+}
+
+TerrainRenderer::TerrainRenderer(const Vec2UI& dim):
     shader(load_shader()),
     perspective(this->shader.uniform("uPerspective")),
     model(this->shader.uniform("uModel")),
-    camera_origin(this->shader.uniform("uCameraOrigin")) {
+    camera_origin(this->shader.uniform("uCameraOrigin")),
+    state(dim) {
 }
 
-void TerrainRenderer::render(Terrain& terrain, const Mat4F& proj, const Camera& cam) {
+void TerrainRenderer::resize(const Vec2UI& dim) {
+    this->state = FrameBufferState(dim);
+}
+
+void TerrainRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {
+    this->prepare(proj);
+    patch.render(cam, this->model, this->camera_origin);
+}
+
+void TerrainRenderer::prepare(const Mat4F& proj) {
+    this->state.fb.bind();     
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     this->shader.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
-
-    auto patch = terrain.current_patch();
-    if (patch) {
-        patch->get().render(cam, this->model, this->camera_origin);
-    }
 }

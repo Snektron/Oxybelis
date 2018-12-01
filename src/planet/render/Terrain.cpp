@@ -42,8 +42,6 @@ void Terrain::update(const Camera& cam) {
     }
 
     if (this->pending_patch && this->pending_patch->is_ready()) {
-        std::cout << "VRAM usage: " << double(this->loader.vram_usage()) / (1024 * 1024) << " MiB" << std::endl;
-
         this->patch = std::move(this->pending_patch);
         this->pending_patch = NONE;
         this->loader.collect_garbage();

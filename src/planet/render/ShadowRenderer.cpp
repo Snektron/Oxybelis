@@ -102,10 +102,15 @@ void ShadowRenderer::resize(const Vec2UI& dim) {
     this->state = FrameBufferState(dim);
 }
 
-void ShadowRenderer::begin() {
+void ShadowRenderer::prepare() {
     this->shadow_compute.use();
-    this->reset_counter();
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SHADOW_VOLUMES_BINDING, this->shadow_volumes);
+    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, COUNTER_BINDING, this->counter);
+    glInvalidateBufferData(this->counter);
+    GLuint counter_value[] = {0, 0};
+    // For some reason OpenGL requires this data to be a float, even though its binary and will be 
+    // reinterpreted as an atomic_uint
+    glClearBufferData(GL_ATOMIC_COUNTER_BUFFER, GL_RG32F, GL_RG, GL_FLOAT, reinterpret_cast<void*>(&counter_value));
 }
 
 void ShadowRenderer::dispatch(const Chunk& chunk, const Camera& cam) {
@@ -116,7 +121,7 @@ void ShadowRenderer::dispatch(const Chunk& chunk, const Camera& cam) {
     glDispatchCompute(group_size, 1, 1);
 }
 
-void ShadowRenderer::end(const Mat4F& proj, const Camera& cam) {
+void ShadowRenderer::finish(const Mat4F& proj, const Camera& cam) {
     glMemoryBarrier(GL_ATOMIC_COUNTER_BARRIER_BIT);
 
     glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, COUNTER_BINDING, this->counter);
@@ -156,7 +161,7 @@ void ShadowRenderer::end(const Mat4F& proj, const Camera& cam) {
 }
 
 void ShadowRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {
-    this->begin();
+    this->prepare();
 
     for (auto& entry : patch.chunks) {
         if (entry->is_ready() && entry->chunk().lod == Lod::High) {
@@ -164,14 +169,5 @@ void ShadowRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& 
         }
     }
 
-    this->end(proj, cam);
-}
-
-void ShadowRenderer::reset_counter() {
-    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, COUNTER_BINDING, this->counter);
-    glInvalidateBufferData(this->counter);
-    GLuint counter_value[] = {0, 0};
-    // For some reason OpenGL requires this data to be a float, even though its binary and will be 
-    // reinterpreted as an atomic_uint
-    glClearBufferData(GL_ATOMIC_COUNTER_BUFFER, GL_RG32F, GL_RG, GL_FLOAT, reinterpret_cast<void*>(&counter_value));
+    this->finish(proj, cam);
 }

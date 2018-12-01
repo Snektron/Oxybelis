@@ -2,6 +2,7 @@
 #define _OXYBELIS_PLANET_CHUNK_CHUNKLOADER_H
 
 #include <unordered_map>
+#include <vector>
 #include <memory>
 #include "planet/chunk/ChunkId.h"
 #include "planet/chunk/Chunk.h"

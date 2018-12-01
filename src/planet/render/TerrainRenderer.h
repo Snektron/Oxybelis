@@ -1,12 +1,15 @@
-#ifndef _OXYBELIS_PLANET_RENDER_PLANETRENDERER_H
-#define _OXYBELIS_PLANET_RENDER_PLANETRENDERER_H
+#ifndef _OXYBELIS_PLANET_RENDER_TERRAINRENDERER_H
+#define _OXYBELIS_PLANET_RENDER_TERRAINRENDERER_H
 
 #include "math/Vec.h"
 #include "math/Mat.h"
 #include "graphics/shader/Program.h"
+#include "graphics/FrameBuffer.h"
+#include "graphics/RenderBuffer.h"
+#include "graphics/Texture.h"
 
 struct Camera;
-class Terrain;
+class ChunkPatch;
 struct Planet;
 
 class TerrainRenderer {
@@ -15,9 +18,21 @@ class TerrainRenderer {
     Uniform model;
     Uniform camera_origin;
 
+    struct FrameBufferState {
+        FrameBuffer fb;
+        Texture color, distance;
+        RenderBuffer depth;
+
+        FrameBufferState(const Vec2UI& dim);
+    } state;
+
 public:
-    TerrainRenderer();
-    void render(Terrain& terrain, const Mat4F& proj, const Camera& cam);
+    TerrainRenderer(const Vec2UI& dim);
+    void resize(const Vec2UI& dim);
+    void render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam);
+
+private:
+    void prepare(const Mat4F& proj);
 };
 
 #endif

@@ -19,18 +19,6 @@
 #include "OxybelisInput.h"
 
 class Oxybelis {
-    struct FrameBufferState {
-        FrameBuffer terrain_fb;
-        Texture color, distance;
-        RenderBuffer depth;
-
-        // FrameBuffer shadow_fb;
-        // Texture dndz, zminmax;
-        // RenderBuffer shadow_depth;
-
-        FrameBufferState(const Vec2UI& dim);
-    };
-
     ThreadPool thread_pool;
 
     InputContext<Input> input_ctx;
@@ -50,8 +38,6 @@ class Oxybelis {
     Terrain terrain;
     TerrainRenderer terraren;
     ShadowRenderer shadow;
-
-    FrameBufferState fb_state;
 
 public:
     Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim);

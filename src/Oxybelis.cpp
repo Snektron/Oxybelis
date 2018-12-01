@@ -23,37 +23,6 @@ namespace {
     constexpr const double CAMERA_ROLL_SPEED = 200;
 }
 
-Oxybelis::FrameBufferState::FrameBufferState(const Vec2UI& dim):
-    depth(GL_DEPTH_COMPONENT32, dim.x, dim.y)
-    /* shadow_depth(GL_DEPTH_COMPONENT32, dim.x, dim.y) */ {
-
-    // Terrain FBO
-    {
-        this->terrain_fb.bind();
-        glViewport(0, 0, dim.x, dim.y);
-
-        glActiveTexture(GL_TEXTURE0);
-        this->color.bind();
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dim.x, dim.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->color, 0);
-
-        glActiveTexture(GL_TEXTURE1);
-        this->distance.bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, dim.x, dim.y, 0, GL_RGBA, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, this->distance, 0);
-
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->depth);
-
-        GLenum buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-        glDrawBuffers(2, buffers);
-    }
-}
-
 Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     thread_pool(std::thread::hardware_concurrency() / 2),
     mouse(mouse), cursor_captured(false), quit(false),
@@ -64,8 +33,8 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
     terragen(this->thread_pool, earthlike::PointGenerator(std::random_device{}()), earthlike::TriangleGenerator{}),
     terrain(this->planet, this->terragen),
-    shadow(dim, 1), // GL_TEXTURE1
-    fb_state(dim) {
+    terraren(dim),
+    shadow(dim, 1) {
 
     this->update_camera_speed();
 
@@ -99,7 +68,7 @@ bool Oxybelis::update([[maybe_unused]] double dt) {
 
 void Oxybelis::resize(const Vec2UI& dim) {
     this->projection.resize(dim);
-    this->fb_state = FrameBufferState(dim);
+    this->terraren.resize(dim);
     this->shadow.resize(dim);
 
     FrameBuffer::screen().bind();
@@ -107,23 +76,19 @@ void Oxybelis::resize(const Vec2UI& dim) {
 }
 
 void Oxybelis::render() {
+    auto opt_patch = this->terrain.current_patch();
+    if (!opt_patch)
+        return;
+    auto patch = opt_patch.value();
+
     auto proj = this->projection.to_matrix();
+    auto inv_proj = this->projection.to_inverse_matrix();
 
     // Render terrain to its framebuffer
-    {
-        this->fb_state.terrain_fb.bind();     
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        this->terraren.render(this->terrain, proj, this->camera);
-    }
+    this->terraren.render(patch, proj, this->camera);
 
     // Render shadow to its framebuffer
-    {
-        auto patch = this->terrain.current_patch();
-        if (patch)
-            this->shadow.render(patch.value(), proj, this->camera);
-    }
+    this->shadow.render(patch, proj, this->camera);
 
     // Finally render everything else
     {
@@ -131,7 +96,7 @@ void Oxybelis::render() {
         glDisable(GL_DEPTH_TEST);
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
-        this->atmos.render(this->projection.to_inverse_matrix(), this->camera);
+        this->atmos.render(inv_proj, this->camera);
         glEnable(GL_DEPTH_TEST);
     }
 }
