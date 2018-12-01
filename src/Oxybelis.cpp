@@ -145,26 +145,29 @@ void Oxybelis::render() {
 
     // Render shadow to its framebuffer
     {
-        this->fb_state.shadow_fb.bind();     
-        GLfloat dndz_clear[] = {0, 0, 0, 0};
-        GLfloat zminmax_clear[] = {std::numeric_limits<GLfloat>::lowest(), 0, 0, 0};
+        auto patch = this->terrain.current_patch();
+        if (patch) {
+            this->fb_state.shadow_fb.bind();     
+            GLfloat dndz_clear[] = {0, 0, 0, 0};
+            GLfloat zminmax_clear[] = {std::numeric_limits<GLfloat>::lowest(), 0, 0, 0};
 
-        glClearBufferfv(GL_COLOR, 0, dndz_clear);
-        glClearBufferfv(GL_COLOR, 1, zminmax_clear);
-        glClear(GL_DEPTH_BUFFER_BIT);
+            glClearBufferfv(GL_COLOR, 0, dndz_clear);
+            glClearBufferfv(GL_COLOR, 1, zminmax_clear);
+            glClear(GL_DEPTH_BUFFER_BIT);
 
-        glDepthMask(GL_FALSE);
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_BLEND);
+            glDepthMask(GL_FALSE);
+            glDisable(GL_CULL_FACE);
+            glEnable(GL_BLEND);
 
-        glBlendEquationi(0, GL_FUNC_ADD);
-        glBlendEquationi(1, GL_MAX);
+            glBlendEquationi(0, GL_FUNC_ADD);
+            glBlendEquationi(1, GL_MAX);
 
-        this->shadow.render(this->terrain, proj, this->camera);
+            this->shadow.render(patch.value(), proj, this->camera);
 
-        glDepthMask(GL_TRUE);
-        glEnable(GL_CULL_FACE);
-        glDisable(GL_BLEND);
+            glDepthMask(GL_TRUE);
+            glEnable(GL_CULL_FACE);
+            glDisable(GL_BLEND);
+        }
     }
 
     // Finally render everything else

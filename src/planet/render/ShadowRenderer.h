@@ -10,8 +10,8 @@
 #include "math/Mat.h"
 
 struct Camera;
-class Terrain;
 class Chunk;
+class ChunkPatch;
 
 class ShadowRenderer {
     Program shadow_compute;
@@ -32,7 +32,7 @@ public:
     void dispatch(const Chunk& chunk, const Camera& cam);
     void end(const Mat4F& proj, const Camera& cam);
 
-    void render(Terrain& terrain, const Mat4F& proj, const Camera& cam);
+    void render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam);
 
 private:
     void reset_counter();

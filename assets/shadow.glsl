@@ -24,6 +24,7 @@ layout(std430, binding = 1) buffer shadow {
 };
 
 layout(binding = 2) uniform atomic_uint uTrianglePtr;
+layout(binding = 2) uniform atomic_uint uInsideShadow;
 
 uniform uint uMaxOutputs;
 uniform uint uNumVertices;
@@ -38,7 +39,7 @@ ShadowVertex shadow_vertex(vec3 p, vec3 n) {
     return ShadowVertex(vec4(p, 1), vec4(n, 1));
 }
 
-void emit_shadow(vec3 a, vec3 b) {
+void emit_shadow(vec3 a, vec3 b, vec3 n) {
     uint count = atomicCounterIncrement(uTrianglePtr);
     if (count >= uMaxOutputs)
         return;
@@ -49,15 +50,21 @@ void emit_shadow(vec3 a, vec3 b) {
     vec3 c = a + SHADOW_OFFSET;
     vec3 d = b + SHADOW_OFFSET;
 
-    vec3 normal = normalize(cross(b - a, c - a));
+    shadow_vertices[address + 0] = shadow_vertex(a, n);
+    shadow_vertices[address + 1] = shadow_vertex(c, n);
+    shadow_vertices[address + 2] = shadow_vertex(b, n);
 
-    shadow_vertices[address + 0] = shadow_vertex(a, normal);
-    shadow_vertices[address + 1] = shadow_vertex(c, normal);
-    shadow_vertices[address + 2] = shadow_vertex(b, normal);
+    shadow_vertices[address + 3] = shadow_vertex(b, n);
+    shadow_vertices[address + 4] = shadow_vertex(c, n);
+    shadow_vertices[address + 5] = shadow_vertex(d, n);
+}
 
-    shadow_vertices[address + 3] = shadow_vertex(b, normal);
-    shadow_vertices[address + 4] = shadow_vertex(c, normal);
-    shadow_vertices[address + 5] = shadow_vertex(d, normal);
+vec3 check_shadow(vec3 a, vec3 b, uint normal_index) {
+    vec3 face_normal = vertices[normal_index].nn.xyz;
+    vec3 shadow_normal = normalize(cross(b - a, -LIGHT_DIR));
+    if (dot(face_normal, LIGHT_DIR) >= 0) // if the neighbor is lit, emit a shadow
+        emit_shadow(a, b, shadow_normal);
+    return shadow_normal;
 }
 
 void emit_front_back(vec3 a, vec3 b, vec3 c, vec3 normal) {
@@ -103,15 +110,20 @@ void main() {
 
     emit_front_back(a, b, c, normal);
 
-    vec3 nd = vertices[index + 0].nn.xyz;
-    if (dot(nd, LIGHT_DIR) >= 0) // if the neighbor is lit, emit a shadow
-         emit_shadow(b, a);
+    vec3 n0 = check_shadow(b, a, index + 0);
+    vec3 n1 = check_shadow(c, b, index + 1);
+    vec3 n2 = check_shadow(a, c, index + 2);
 
-    vec3 ne = vertices[index + 1].nn.xyz;
-    if (dot(ne, LIGHT_DIR) >= 0)
-         emit_shadow(c, b);
+    vec3 x = -a;
+    vec3 y = -(c + SHADOW_OFFSET);
 
-    vec3 nf = vertices[index + 2].nn.xyz;
-    if (dot(nf, LIGHT_DIR) >= 0)
-         emit_shadow(a, c);
+    bool in_shadow =
+        dot(n0, x) < 0 &&
+        dot(n2, x) < 0 &&
+        dot(n1, y) < 0 &&
+        dot(-normal, x) < 0;
+        dot(normal, y) < 0;
+
+    if (in_shadow)
+        atomicCounterIncrement(uInsideShadow);
 }

@@ -17,19 +17,10 @@ const float PI = 3.141592654;
 
 const vec3 LIGHT_DIR = normalize(vec3(1, 2, -3));
 
-#define USE_LUMINANCE
-
-#ifdef USE_LUMINANCE
-#define GetSolarRadiance GetSolarLuminance
-#define GetSkyRadiance GetSkyLuminance
-#define GetSkyRadianceToPoint GetSkyLuminanceToPoint
-#define GetSunAndSkyIrradiance GetSunAndSkyIlluminance
-#endif
-
-vec3 GetSolarRadiance();
-vec3 GetSkyRadiance(vec3 camera, vec3 view_ray, float shadow_length, vec3 sun_direction, out vec3 transmittance);
-vec3 GetSkyRadianceToPoint(vec3 camera, vec3 point, float shadow_length, vec3 sun_direction, out vec3 transmittance);
-vec3 GetSunAndSkyIrradiance(vec3 p, vec3 normal, vec3 sun_direction, out vec3 sky_irradiance);
+vec3 GetSolarLuminance();
+vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, float shadow_length, vec3 sun_direction, out vec3 transmittance);
+vec3 GetSkyLuminanceToPoint(vec3 camera, vec3 point, float shadow_length, vec3 sun_direction, out vec3 transmittance);
+vec3 GetSunAndSkyIlluminance(vec3 p, vec3 normal, vec3 sun_direction, out vec3 sky_irradiance);
 
 float clamp2(float x, float minv, float maxv) {
     return max(min(x, maxv), minv);
@@ -58,18 +49,18 @@ void main() {
             sun_visibility = 1.0 - smoothstep(0, 10, shadow_length);
 
         vec3 sky_irradiance;
-        vec3 sun_irradiance = GetSunAndSkyIrradiance(p, n, LIGHT_DIR, sky_irradiance);
+        vec3 sun_irradiance = GetSunAndSkyIlluminance(p, n, LIGHT_DIR, sky_irradiance);
         ground_radiance = terrain * (1.0 / PI) * (sun_irradiance * sun_visibility + sky_irradiance);
 
         vec3 transmittance;
-        vec3 in_scatter = GetSkyRadianceToPoint(uCameraOrigin, p, shadow_length, LIGHT_DIR, transmittance);
+        vec3 in_scatter = GetSkyLuminanceToPoint(uCameraOrigin, p, shadow_length, LIGHT_DIR, transmittance);
         ground_radiance = ground_radiance * transmittance + in_scatter;
         ground_alpha = 1;
     }
 
     float shadow_length = clamp2(dndz.g, 0, zminmax.g);
     vec3 transmittance;
-    vec3 radiance = GetSkyRadiance(uCameraOrigin, rd, shadow_length, LIGHT_DIR, transmittance);
+    vec3 radiance = GetSkyLuminance(uCameraOrigin, rd, shadow_length, LIGHT_DIR, transmittance);
 
     radiance = mix(radiance, ground_radiance, ground_alpha);
 
