@@ -4,8 +4,8 @@
 #include "graphics/shader/ProgramBuilder.h"
 #include "graphics/camera/Camera.h"
 #include "planet/chunk/Chunk.h"
-#include "planet/chunk/ChunkPatch.h"
 #include "planet/terragen/TerrainData.h"
+#include "planet/Planet.h"
 #include "utility/utility.h"
 #include "assets.h"
 
@@ -102,13 +102,13 @@ void ShadowRenderer::resize(const Vec2UI& dim) {
     this->state = FrameBufferState(dim);
 }
 
-void ShadowRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {
+void ShadowRenderer::render(const Planet& planet, const Mat4F& proj, const Camera& cam) {
     this->prepare();
 
-    for (auto& entry : patch.chunks) {
-        if (entry->is_ready() && entry->chunk().lod == Lod::High)
-            this->dispatch(entry->chunk(), cam);
-    }
+    planet.foreach_chunk([&, this](const auto& chunk) {
+        if (chunk.lod == Lod::High)
+            this->dispatch(chunk, cam);
+    });
 
     this->finish(proj, cam);
 }

@@ -75,10 +75,8 @@ void Oxybelis::resize(const Vec2UI& dim) {
 }
 
 void Oxybelis::render() {
-    auto opt_patch = this->planet.current_patch();
-    if (!opt_patch)
+    if (!this->planet.has_drawable_terrain())
         return;
-    auto patch = opt_patch.value();
 
     auto proj = this->projection.to_matrix();
     auto inv_proj = this->projection.to_inverse_matrix();
@@ -87,10 +85,10 @@ void Oxybelis::render() {
     cam.translation -= this->planet.translation;
 
     // Render terrain to its framebuffer
-    this->terraren.render(patch, proj, cam);
+    this->terraren.render(this->planet, proj, cam);
 
     // Render shadow to its framebuffer
-    this->shadow.render(patch, proj, cam);
+    this->shadow.render(this->planet, proj, cam);
 
     // Finally render everything else
     {

@@ -14,7 +14,7 @@
 
 struct Camera;
 class Chunk;
-class ChunkPatch;
+class Planet;
 
 class ShadowRenderer {
     Program shadow_compute;
@@ -40,7 +40,7 @@ class ShadowRenderer {
 public:
     ShadowRenderer(const Vec2UI& dim, GLuint normal_distance_texture);
     void resize(const Vec2UI& dim);
-    void render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam);
+    void render(const Planet& planet, const Mat4F& proj, const Camera& cam);
 
 private:
     void prepare();

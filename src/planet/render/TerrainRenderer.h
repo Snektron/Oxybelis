@@ -9,8 +9,8 @@
 #include "graphics/Texture.h"
 
 struct Camera;
-class ChunkPatch;
 class Chunk;
+class Planet;
 
 class TerrainRenderer {
     Program shader;
@@ -29,7 +29,7 @@ class TerrainRenderer {
 public:
     TerrainRenderer(const Vec2UI& dim);
     void resize(const Vec2UI& dim);
-    void render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam);
+    void render(const Planet& planet, const Mat4F& proj, const Camera& cam);
 
 private:
     void prepare(const Mat4F& proj);

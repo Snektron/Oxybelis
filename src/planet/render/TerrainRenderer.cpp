@@ -7,7 +7,6 @@
 #include "graphics/shader/ProgramBuilder.h"
 #include "planet/Planet.h"
 #include "planet/chunk/Chunk.h"
-#include "planet/chunk/ChunkPatch.h"
 #include "assets.h"
 
 namespace {
@@ -57,13 +56,12 @@ void TerrainRenderer::resize(const Vec2UI& dim) {
     this->state = FrameBufferState(dim);
 }
 
-void TerrainRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {
+void TerrainRenderer::render(const Planet& planet, const Mat4F& proj, const Camera& cam) {
     this->prepare(proj);
 
-    for (auto& entry : patch.chunks) {
-        if (entry->is_ready() && entry->chunk().lod == Lod::High)
-            this->dispatch(entry->chunk(), cam);
-    }
+    planet.foreach_chunk([&, this](const auto& chunk) {
+        this->dispatch(chunk, cam);
+    });
 }
 
 void TerrainRenderer::prepare(const Mat4F& proj) {

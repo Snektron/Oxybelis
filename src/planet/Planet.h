@@ -11,8 +11,6 @@
 
 struct TerrainGeneratorBase;
 
-using ChunkPatchRef = std::reference_wrapper<ChunkPatch>;
-
 class Planet {
     ChunkLoader loader;
     Option<ChunkPatch> patch;
@@ -24,10 +22,27 @@ public:
 
     Planet(const Vec3D& translation, double radius, TerrainGeneratorBase& tg);
     void update(const Camera& cam);
-    Option<ChunkPatchRef> current_patch();
+
+    bool has_drawable_terrain() const;
+
+    template <typename F>
+    void foreach_chunk(F f) const;
 
     friend class TerrainRenderer;
     friend class ShadowRenderer;
 };
+
+template <typename F>
+void Planet::foreach_chunk(F f) const {
+    if (!this->patch && !this->pending_patch)
+        return;
+
+    auto& patch = this->patch ? this->patch.value() : this->pending_patch.value();
+
+    for (auto& entry : patch.chunks) {
+        if (entry->is_ready())
+            f(entry->chunk());
+    }
+}
 
 #endif

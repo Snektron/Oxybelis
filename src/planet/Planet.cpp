@@ -48,12 +48,6 @@ void Planet::update(const Camera& cam) {
     }
 }
 
-Option<ChunkPatchRef> Planet::current_patch() {
-    if (this->patch) {
-        return std::ref(this->patch.value());
-    } else if (this->pending_patch) {
-        return std::ref(this->pending_patch.value());
-    }
-
-    return NONE;
+bool Planet::has_drawable_terrain() const {
+    return this->patch || this->pending_patch;
 }
