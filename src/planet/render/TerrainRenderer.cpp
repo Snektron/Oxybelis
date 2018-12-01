@@ -7,6 +7,7 @@
 #include "graphics/shader/ProgramBuilder.h"
 #include "planet/Planet.h"
 #include "planet/render/Terrain.h"
+#include "planet/chunk/Chunk.h"
 #include "assets.h"
 
 namespace {
@@ -58,7 +59,12 @@ void TerrainRenderer::resize(const Vec2UI& dim) {
 
 void TerrainRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {
     this->prepare(proj);
-    patch.render(cam, this->model, this->camera_origin);
+    // patch.render(cam, this->model, this->camera_origin);
+
+    for (auto& entry : patch.chunks) {
+        if (entry->is_ready() && entry->chunk().lod == Lod::High)
+            this->dispatch(entry->chunk(), cam);
+    }
 }
 
 void TerrainRenderer::prepare(const Mat4F& proj) {
@@ -68,4 +74,14 @@ void TerrainRenderer::prepare(const Mat4F& proj) {
 
     this->shader.use();
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
+}
+
+void TerrainRenderer::dispatch(const Chunk& chunk, const Camera& cam) {
+    auto view = cam.to_view_matrix() * Mat4D::translation(chunk.center);
+
+    glUniformMatrix4fv(this->model, 1, GL_FALSE, static_cast<Mat4F>(view).data());
+    glUniform3fv(this->camera_origin, 1, static_cast<Vec3F>(cam.translation - chunk.center).data());
+
+    chunk.vao.bind();
+    glDrawArrays(GL_TRIANGLES, 0, chunk.vertices);
 }

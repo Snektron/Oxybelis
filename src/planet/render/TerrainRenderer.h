@@ -10,7 +10,7 @@
 
 struct Camera;
 class ChunkPatch;
-struct Planet;
+class Chunk;
 
 class TerrainRenderer {
     Program shader;
@@ -33,6 +33,7 @@ public:
 
 private:
     void prepare(const Mat4F& proj);
+    void dispatch(const Chunk& chunk, const Camera& cam);
 };
 
 #endif

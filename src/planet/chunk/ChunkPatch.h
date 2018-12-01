@@ -18,10 +18,9 @@ class ChunkPatch {
 public:
     ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoader& cache);
     bool is_ready();
-    void render(const Camera& cam, Uniform model, Uniform camera_origin);
 
-    friend class TerrainRenderer;
     friend class Terrain;
+    friend class TerrainRenderer;
     friend class ShadowRenderer;
 };
 

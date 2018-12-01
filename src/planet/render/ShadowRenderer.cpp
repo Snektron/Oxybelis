@@ -10,7 +10,7 @@
 #include "assets.h"
 
 namespace {
-    constexpr const size_t MAX_SHADOW_BUFFER_QUADS = 2'000'000;
+    constexpr const size_t MAX_SHADOW_BUFFER_QUADS = 200'000;
     constexpr const size_t SHADOW_VERTEX_SIZE = sizeof(Vec4F) * 2; // position and normal
     constexpr const size_t SHADOW_BUFFER_SIZE = MAX_SHADOW_BUFFER_QUADS * SHADOW_VERTEX_SIZE * 3 * 2; // 2 triangles for each shadow quad
 
@@ -102,6 +102,17 @@ void ShadowRenderer::resize(const Vec2UI& dim) {
     this->state = FrameBufferState(dim);
 }
 
+void ShadowRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {
+    this->prepare();
+
+    for (auto& entry : patch.chunks) {
+        if (entry->is_ready() && entry->chunk().lod == Lod::High)
+            this->dispatch(entry->chunk(), cam);
+    }
+
+    this->finish(proj, cam);
+}
+
 void ShadowRenderer::prepare() {
     this->shadow_compute.use();
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SHADOW_VOLUMES_BINDING, this->shadow_volumes);
@@ -158,16 +169,4 @@ void ShadowRenderer::finish(const Mat4F& proj, const Camera& cam) {
     glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
-}
-
-void ShadowRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {
-    this->prepare();
-
-    for (auto& entry : patch.chunks) {
-        if (entry->is_ready() && entry->chunk().lod == Lod::High) {
-            this->dispatch(entry->chunk(), cam);
-        }
-    }
-
-    this->finish(proj, cam);
 }

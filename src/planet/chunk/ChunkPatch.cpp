@@ -118,17 +118,3 @@ bool ChunkPatch::is_ready() {
     this->ready = true;
     return true;
 }
-
-void ChunkPatch::render(const Camera& cam, Uniform model, Uniform camera_origin) {
-    if (this->ready) {
-        for (auto& chunk_ref : this->chunks) {
-            chunk_ref->chunk().render(cam, model, camera_origin);
-        }
-    } else {
-        for (auto& chunk_ref : this->chunks) {
-            if (chunk_ref->update() == CachedChunk::Status::Ready) {
-                chunk_ref->chunk().render(cam, model, camera_origin);
-            }
-        }
-    }
-}

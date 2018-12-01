@@ -22,13 +22,12 @@ public:
 
     Chunk(const TerrainData& terrain);
 
-    void render(const Camera& cam, Uniform model, Uniform camera_origin) const;
-
     ChunkId id() const {
         return this->loc.id;
     }
 
     friend class ShadowRenderer;
+    friend class TerrainRenderer;
 };
 
 #endif

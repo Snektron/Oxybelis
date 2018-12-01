@@ -41,11 +41,12 @@ class ShadowRenderer {
 public:
     ShadowRenderer(const Vec2UI& dim, GLuint normal_distance_texture);
     void resize(const Vec2UI& dim);
+    void render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam);
+
+private:
     void prepare();
     void dispatch(const Chunk& chunk, const Camera& cam);
     void finish(const Mat4F& proj, const Camera& cam);
-
-    void render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam);
 };
 
 #endif
