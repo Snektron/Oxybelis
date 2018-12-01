@@ -17,7 +17,7 @@ class ChunkPatch {
 
 public:
     ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoader& cache);
-    bool is_ready();
+    bool update();
 
     friend class Terrain;
     friend class TerrainRenderer;

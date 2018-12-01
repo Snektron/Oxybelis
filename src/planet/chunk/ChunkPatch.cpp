@@ -106,7 +106,7 @@ ChunkPatch::ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoade
     });
 }
 
-bool ChunkPatch::is_ready() {
+bool ChunkPatch::update() {
     if (this->ready)
         return true;
 

@@ -6,8 +6,8 @@
 #include <glad/glad.h>
 #include "graphics/shader/ProgramBuilder.h"
 #include "planet/Planet.h"
-#include "planet/render/Terrain.h"
 #include "planet/chunk/Chunk.h"
+#include "planet/chunk/ChunkPatch.h"
 #include "assets.h"
 
 namespace {
@@ -59,7 +59,6 @@ void TerrainRenderer::resize(const Vec2UI& dim) {
 
 void TerrainRenderer::render(ChunkPatch& patch, const Mat4F& proj, const Camera& cam) {
     this->prepare(proj);
-    // patch.render(cam, this->model, this->camera_origin);
 
     for (auto& entry : patch.chunks) {
         if (entry->is_ready() && entry->chunk().lod == Lod::High)

@@ -9,7 +9,6 @@
 #include "graphics/FrameBuffer.h"
 #include "graphics/RenderBuffer.h"
 #include "graphics/Texture.h"
-#include "planet/render/Terrain.h"
 #include "math/Mat.h"
 #include "math/Vec.h"
 

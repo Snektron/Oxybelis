@@ -1,5 +1,5 @@
-#ifndef _OXYBELIS_PLANET_RENDER_TERRAIN_H
-#define _OXYBELIS_PLANET_RENDER_TERRAIN_H
+#ifndef _OXYBELIS_PLANET_TERRAIN_TERRAIN_H
+#define _OXYBELIS_PLANET_TERRAIN_TERRAIN_H
 
 #include <functional>
 #include "math/Vec.h"

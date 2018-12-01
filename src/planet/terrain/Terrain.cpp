@@ -1,5 +1,4 @@
-#include "planet/render/Terrain.h"
-#include <iostream>
+#include "planet/terrain/Terrain.h"
 #include "planet/Planet.h"
 
 namespace {
@@ -41,7 +40,7 @@ void Terrain::update(const Camera& cam) {
         this->pending_patch = ChunkPatch(cam.translation, lod, this->planet.radius, this->loader);
     }
 
-    if (this->pending_patch && this->pending_patch->is_ready()) {
+    if (this->pending_patch && this->pending_patch->update()) {
         this->patch = std::move(this->pending_patch);
         this->pending_patch = NONE;
         this->loader.collect_garbage();
