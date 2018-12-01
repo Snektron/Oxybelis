@@ -62,6 +62,7 @@ void main() {
     vec3 transmittance;
     vec3 radiance = GetSkyLuminance(uCameraOrigin, rd, shadow_length, LIGHT_DIR, transmittance);
 
+    radiance += max(transmittance * GetSolarLuminance() * pow(dot(rd, LIGHT_DIR) - 0.003, 3000), 0);
     radiance = mix(radiance, ground_radiance, ground_alpha);
 
     fColor = vec4(pow(vec3(1) - exp(-radiance * 10.0 * 1e-5), vec3(1.0 / 2.2)), 1);

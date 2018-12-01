@@ -14,7 +14,6 @@
 #include "planet/render/AtmosphereRenderer.h"
 #include "planet/render/TerrainRenderer.h"
 #include "planet/render/ShadowRenderer.h"
-#include "planet/terrain/Terrain.h"
 #include "utility/ThreadPool.h"
 #include "OxybelisInput.h"
 
@@ -31,11 +30,10 @@ class Oxybelis {
     int camera_speed_modifier;
     double camera_speed;
 
-    Planet planet;
-    AtmosphereRenderer atmos;
-
     earthlike::Generator terragen;
-    Terrain terrain;
+    Planet planet;
+
+    AtmosphereRenderer atmos;
     TerrainRenderer terraren;
     ShadowRenderer shadow;
 

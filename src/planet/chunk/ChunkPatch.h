@@ -19,7 +19,7 @@ public:
     ChunkPatch(const Vec3D& p, unsigned depth, double radius, ChunkLoader& cache);
     bool update();
 
-    friend class Terrain;
+    friend class Planet;
     friend class TerrainRenderer;
     friend class ShadowRenderer;
 };

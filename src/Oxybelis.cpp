@@ -12,7 +12,7 @@ namespace {
     constexpr const float NEAR = 0.01f;
     constexpr const float FAR = 10'000.0_km;
 
-    constexpr const Vec3D PLANET_LOCATION = Vec3D(0);
+    constexpr const Vec3D PLANET_LOCATION = Vec3D(-10'000.0_km, 0, 0);
     constexpr const double PLANET_RADIUS = 6'371.0_km;
 
     constexpr const double ATMOSPHERE_RADIUS = PLANET_RADIUS * 1.0094;
@@ -29,10 +29,9 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     projection(dim, FIELD_OF_VIEW, NEAR, FAR),
     camera(QuatD::identity(), CAMERA_START),
     camera_speed_modifier(2),
-    planet{PLANET_LOCATION, PLANET_RADIUS},
-    atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
     terragen(this->thread_pool, earthlike::PointGenerator(std::random_device{}()), earthlike::TriangleGenerator{}),
-    terrain(this->planet, this->terragen),
+    planet(PLANET_LOCATION, PLANET_RADIUS, this->terragen),
+    atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
     terraren(dim),
     shadow(dim, 1) {
 
@@ -62,7 +61,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
 }
 
 bool Oxybelis::update([[maybe_unused]] double dt) {
-    this->terrain.update(this->camera);
+    this->planet.update(this->camera);
     return this->quit;
 }
 
@@ -76,7 +75,7 @@ void Oxybelis::resize(const Vec2UI& dim) {
 }
 
 void Oxybelis::render() {
-    auto opt_patch = this->terrain.current_patch();
+    auto opt_patch = this->planet.current_patch();
     if (!opt_patch)
         return;
     auto patch = opt_patch.value();
@@ -84,11 +83,14 @@ void Oxybelis::render() {
     auto proj = this->projection.to_matrix();
     auto inv_proj = this->projection.to_inverse_matrix();
 
+    auto cam = Camera(this->camera);
+    cam.translation -= this->planet.translation;
+
     // Render terrain to its framebuffer
-    this->terraren.render(patch, proj, this->camera);
+    this->terraren.render(patch, proj, cam);
 
     // Render shadow to its framebuffer
-    this->shadow.render(patch, proj, this->camera);
+    this->shadow.render(patch, proj, cam);
 
     // Finally render everything else
     {
@@ -96,7 +98,7 @@ void Oxybelis::render() {
         glDisable(GL_DEPTH_TEST);
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
-        this->atmos.render(inv_proj, this->camera);
+        this->atmos.render(inv_proj, cam);
         glEnable(GL_DEPTH_TEST);
     }
 }
