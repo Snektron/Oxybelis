@@ -76,10 +76,14 @@ void Oxybelis::render() {
     if (!this->planet.has_drawable_terrain())
         return;
 
-    auto proj = this->projection.to_matrix();
-    auto inv_proj = this->projection.to_inverse_matrix();
+    auto info = RenderInfo {
+        this->camera,
+        this->projection.to_matrix(),
+        this->projection.to_inverse_matrix(),
+        this->camera.to_view_matrix()
+    };
 
-    this->planet_renderer.render(this->planet, this->atmos, proj, inv_proj, this->camera);
+    this->planet_renderer.render(this->planet, this->atmos, info);
 }
 
 InputContext<Input>& Oxybelis::input_context() {

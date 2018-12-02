@@ -56,11 +56,11 @@ void TerrainRenderer::resize(const Vec2UI& dim) {
     this->state = FrameBufferState(dim);
 }
 
-void TerrainRenderer::render(const Planet& planet, const Mat4F& proj, const Camera& cam) {
-    this->prepare(proj);
+void TerrainRenderer::render(const Planet& planet, const RenderInfo& info) {
+    this->prepare(info.proj);
 
     planet.foreach_chunk([&, this](const auto& chunk) {
-        this->dispatch(chunk, cam);
+        this->dispatch(chunk, info);
     });
 }
 
@@ -73,11 +73,11 @@ void TerrainRenderer::prepare(const Mat4F& proj) {
     glUniformMatrix4fv(this->perspective, 1, GL_FALSE, proj.data());
 }
 
-void TerrainRenderer::dispatch(const Chunk& chunk, const Camera& cam) {
-    auto view = cam.to_view_matrix() * Mat4D::translation(chunk.center);
+void TerrainRenderer::dispatch(const Chunk& chunk, const RenderInfo& info) {
+    auto view = info.view * Mat4D::translation(chunk.center);
 
     glUniformMatrix4fv(this->model, 1, GL_FALSE, static_cast<Mat4F>(view).data());
-    glUniform3fv(this->camera_origin, 1, static_cast<Vec3F>(cam.translation - chunk.center).data());
+    glUniform3fv(this->camera_origin, 1, static_cast<Vec3F>(info.cam.translation - chunk.center).data());
 
     chunk.vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, chunk.vertices);

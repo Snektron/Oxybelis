@@ -37,16 +37,16 @@ AtmosphereRenderer::AtmosphereRenderer(GLuint color_tex, GLuint nd_tex, GLuint d
     this->model->SetProgramUniforms(this->shader, 2, 3, 4, 5);
 }
 
-void AtmosphereRenderer::render(const Mat4F& inv_proj, const Camera& cam) const {
-    auto model_mat = static_cast<Mat4F>(cam.to_view_matrix());
+void AtmosphereRenderer::render(const RenderInfo& info) const {
+    auto model_mat = static_cast<Mat4F>(info.view);
 
     this->shader.use();
-    glUniformMatrix4fv(this->inv_proj_mat, 1, GL_FALSE, inv_proj.data());
+    glUniformMatrix4fv(this->inv_proj_mat, 1, GL_FALSE, info.inv_proj.data());
     glUniformMatrix4fv(this->model_mat, 1, GL_FALSE, model_mat.data());
 
-    glUniform3fv(this->camera_origin, 1, static_cast<Vec3F>(cam.translation).data());
-    glUniform3fv(this->camera_up, 1, static_cast<Vec3F>(cam.rotation.up()).data());
-    glUniform3fv(this->camera_dir, 1, static_cast<Vec3F>(cam.rotation.forward()).data());
+    glUniform3fv(this->camera_origin, 1, static_cast<Vec3F>(info.cam.translation).data());
+    glUniform3fv(this->camera_up, 1, static_cast<Vec3F>(info.cam.rotation.up()).data());
+    glUniform3fv(this->camera_dir, 1, static_cast<Vec3F>(info.cam.rotation.forward()).data());
 
     this->quad.render();
 }

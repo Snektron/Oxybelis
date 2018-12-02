@@ -102,15 +102,15 @@ void ShadowRenderer::resize(const Vec2UI& dim) {
     this->state = FrameBufferState(dim);
 }
 
-void ShadowRenderer::render(const Planet& planet, const Mat4F& proj, const Camera& cam) {
+void ShadowRenderer::render(const Planet& planet, const RenderInfo& info) {
     this->prepare();
 
     planet.foreach_chunk([&, this](const auto& chunk) {
         if (chunk.lod == Lod::High)
-            this->dispatch(chunk, cam);
+            this->dispatch(chunk, info.cam);
     });
 
-    this->finish(proj, cam);
+    this->finish(info.proj, info.cam);
 }
 
 void ShadowRenderer::prepare() {

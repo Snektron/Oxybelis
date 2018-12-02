@@ -11,6 +11,7 @@
 #include "graphics/Texture.h"
 #include "math/Mat.h"
 #include "math/Vec.h"
+#include "planet/render/RenderInfo.h"
 
 struct Camera;
 class Chunk;
@@ -40,7 +41,7 @@ class ShadowRenderer {
 public:
     ShadowRenderer(const Vec2UI& dim, GLuint normal_distance_texture);
     void resize(const Vec2UI& dim);
-    void render(const Planet& planet, const Mat4F& proj, const Camera& cam);
+    void render(const Planet& planet, const RenderInfo& info);
 
 private:
     void prepare();

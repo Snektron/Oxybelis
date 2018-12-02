@@ -3,6 +3,7 @@
 
 #include "planet/render/TerrainRenderer.h"
 #include "planet/render/ShadowRenderer.h"
+#include "planet/render/RenderInfo.h"
 #include "math/Vec.h"
 
 class Planet;
@@ -15,7 +16,7 @@ class PlanetRenderer {
 public:
     PlanetRenderer(const Vec2UI& dim);
     void resize(const Vec2UI& dim);
-    void render(const Planet& planet, const AtmosphereRenderer& atmos, const Mat4F& proj, const Mat4F& inv_proj, Camera cam);
+    void render(const Planet& planet, const AtmosphereRenderer& atmos, const RenderInfo& info);
 };
 
 #endif
