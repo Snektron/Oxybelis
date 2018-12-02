@@ -45,8 +45,8 @@ void AtmosphereRenderer::render(const RenderInfo& info) const {
     glUniformMatrix4fv(this->model_mat, 1, GL_FALSE, model_mat.data());
 
     glUniform3fv(this->camera_origin, 1, static_cast<Vec3F>(info.cam.translation).data());
-    glUniform3fv(this->camera_up, 1, static_cast<Vec3F>(info.cam.rotation.up()).data());
-    glUniform3fv(this->camera_dir, 1, static_cast<Vec3F>(info.cam.rotation.forward()).data());
+    glUniform3fv(this->camera_up, 1, model_mat.column(1).xyz.data());
+    glUniform3fv(this->camera_dir, 1, model_mat.column(3).xyz.data());
 
     this->quad.render();
 }

@@ -7,6 +7,7 @@
 #include "planet/chunk/ChunkLoader.h"
 #include "planet/chunk/ChunkPatch.h"
 #include "math/Vec.h"
+#include "math/Quat.h"
 #include "utility/Option.h"
 
 struct TerrainGeneratorBase;
@@ -18,9 +19,10 @@ class Planet {
 
 public:
     Vec3D translation;
+    QuatD rotation;
     double radius;
 
-    Planet(const Vec3D& translation, double radius, TerrainGeneratorBase& tg);
+    Planet(const Vec3D& translation, const QuatD& rotation, double radius, TerrainGeneratorBase& tg);
     void update(const Camera& cam);
 
     bool has_drawable_terrain() const;

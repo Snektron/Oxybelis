@@ -3,6 +3,7 @@
 #include <thread>
 #include <limits>
 #include <random>
+#include <cmath>
 #include "input/utility.h"
 #include "utility/units.h"
 #include "utility/utility.h"
@@ -12,7 +13,8 @@ namespace {
     constexpr const float NEAR = 0.01f;
     constexpr const float FAR = 10'000.0_km;
 
-    constexpr const Vec3D PLANET_LOCATION = Vec3D(-10'000.0_km, 0, 0);
+    constexpr const Vec3D PLANET_LOCATION = Vec3D(0, 0, 0);
+    constexpr const QuatD PLANET_ROTATION = QuatD::identity();
     constexpr const double PLANET_RADIUS = 6'371.0_km;
 
     constexpr const double ATMOSPHERE_RADIUS = PLANET_RADIUS * 1.0094;
@@ -30,7 +32,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     camera(QuatD::identity(), CAMERA_START),
     camera_speed_modifier(2),
     terragen(this->thread_pool, earthlike::PointGenerator(std::random_device{}()), earthlike::TriangleGenerator{}),
-    planet(PLANET_LOCATION, PLANET_RADIUS, this->terragen),
+    planet(PLANET_LOCATION, PLANET_ROTATION, PLANET_RADIUS, this->terragen),
     atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
     planet_renderer(dim) {
 
@@ -61,6 +63,9 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
 
 bool Oxybelis::update([[maybe_unused]] double dt) {
     this->planet.update(this->camera);
+    this->planet.rotation *= QuatD::axis_angle(0, 1, 0, dt);
+    this->planet.rotation.normalize();
+
     return this->quit;
 }
 
@@ -75,6 +80,9 @@ void Oxybelis::resize(const Vec2UI& dim) {
 void Oxybelis::render() {
     if (!this->planet.has_drawable_terrain())
         return;
+
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     auto info = RenderInfo {
         this->camera,

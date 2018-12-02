@@ -61,9 +61,13 @@ void main() {
     float shadow_length = clamp2(dndz.g, 0, zminmax.g);
     vec3 transmittance;
     vec3 radiance = GetSkyLuminance(uCameraOrigin, rd, shadow_length, LIGHT_DIR, transmittance);
+    float atmosphere_alpha = max(radiance.x, max(radiance.y, radiance.z));
+    atmosphere_alpha = pow(1 - exp(-atmosphere_alpha * 10.0 * 1e-5), 1.0 / 2.2);
 
     radiance += max(transmittance * GetSolarLuminance() * pow(dot(rd, LIGHT_DIR) - 0.003, 3000), 0);
     radiance = mix(radiance, ground_radiance, ground_alpha);
 
-    fColor = vec4(pow(vec3(1) - exp(-radiance * 10.0 * 1e-5), vec3(1.0 / 2.2)), 1);
+    vec3 color = pow(vec3(1) - exp(-radiance * 10.0 * 1e-5), vec3(1.0 / 2.2));
+
+    fColor = vec4(color, 1);
 }

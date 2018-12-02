@@ -37,9 +37,11 @@ void PlanetRenderer::render(const Planet& planet, const AtmosphereRenderer& atmo
     {
         FrameBuffer::screen().bind();
         glDisable(GL_DEPTH_TEST);
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+        glBlendEquation(GL_FUNC_ADD);
         atmos.render(translated_info);
+        glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
     }
 }

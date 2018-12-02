@@ -31,8 +31,8 @@ uniform uint uNumVertices;
 uniform vec3 uCenter;
 
 const vec3 LIGHT_DIR = normalize(vec3(1, 2, -3));
-const float SHADOW_LENGTH = 50000;
-const float SHADOW_MIN_DST = 100000;
+const float SHADOW_LENGTH = 30000;
+const float SHADOW_MIN_DST = 300000;
 const vec3 SHADOW_OFFSET = SHADOW_LENGTH * -LIGHT_DIR;
 
 ShadowVertex shadow_vertex(vec3 p, vec3 n) {

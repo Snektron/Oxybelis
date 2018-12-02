@@ -22,11 +22,12 @@ namespace {
     }
 }
 
-Planet::Planet(const Vec3D& translation, double radius, TerrainGeneratorBase& tg):
+Planet::Planet(const Vec3D& translation, const QuatD& rotation, double radius, TerrainGeneratorBase& tg):
     loader(tg),
     patch(NONE),
     pending_patch(NONE),
     translation(translation),
+    rotation(rotation),
     radius(radius) {
 }
     

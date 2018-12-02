@@ -7,10 +7,11 @@
 #include "planet/terragen/TerrainData.h"
 #include "planet/Planet.h"
 #include "utility/utility.h"
+#include "utility/units.h"
 #include "assets.h"
 
 namespace {
-    constexpr const size_t MAX_SHADOW_BUFFER_QUADS = 200'000;
+    constexpr const size_t MAX_SHADOW_BUFFER_QUADS = 2'000'000;
     constexpr const size_t SHADOW_VERTEX_SIZE = sizeof(Vec4F) * 2; // position and normal
     constexpr const size_t SHADOW_BUFFER_SIZE = MAX_SHADOW_BUFFER_QUADS * SHADOW_VERTEX_SIZE * 3 * 2; // 2 triangles for each shadow quad
 
@@ -19,6 +20,7 @@ namespace {
     constexpr const GLint SHADOW_VOLUMES_BINDING = 1;
     constexpr const GLint COUNTER_BINDING = 2;
     constexpr const size_t LOCAL_GROUP_SIZE = 32;
+    constexpr const double SHADOW_MIN_DST = 100.0_km;
 
     Program load_compute_shader() {
         return ProgramBuilder()
@@ -107,6 +109,8 @@ void ShadowRenderer::render(const Planet& planet, const RenderInfo& info) {
 
     planet.foreach_chunk([&, this](const auto& chunk) {
         if (chunk.lod == Lod::High)
+        // auto chunk_radius = distance(chunk.loc.corners.a, chunk.loc.corners.b) / 2.0;
+        // if (distance(info.cam.translation, chunk.center) < chunk_radius + SHADOW_MIN_DST)
             this->dispatch(chunk, info.cam);
     });
 
@@ -157,6 +161,7 @@ void ShadowRenderer::finish(const Mat4F& proj, const Camera& cam) {
     glDisable(GL_CULL_FACE);
     glEnable(GL_BLEND);
 
+    glBlendFunc(GL_ONE, GL_ONE);
     glBlendEquationi(0, GL_FUNC_ADD);
     glBlendEquationi(1, GL_MAX);
 

@@ -9,6 +9,8 @@ namespace earthlike {
     const Vec3F SNOW = Vec3F(0.5, 0.5, 0.8);
     const Vec3F ICE = Vec3F(0.4, 0.5, 0.8);
 
+    const Vec3F SAND = "#EAEB7C"_col;
+
     const Vec3F height_palette[] = {
         "#FFFFFF"_col,
         "#FFFEFF"_col,
@@ -22,7 +24,6 @@ namespace earthlike {
         "#698A17"_col,
         "#658609"_col,
         "#779319"_col,
-        "#EAEB7C"_col,
     };
 
     constexpr const double palette_size = sizeof(height_palette) / sizeof(height_palette[0]);
@@ -77,15 +78,39 @@ namespace earthlike {
         auto& temperature_global_noise_base = this->add_module<noise::module::Perlin>();
         temperature_global_noise_base.SetPersistence(0.4);
         temperature_global_noise_base.SetFrequency(1);
+        temperature_global_noise_base.SetOctaveCount(1);
 
         auto& temperature_global_noise = this->add_module<noise::module::ScaleBias>();
         temperature_global_noise.SetSourceModule(0, temperature_global_noise_base);
         temperature_global_noise.SetScale(0.2);
         temperature_global_noise.SetBias(0.0);
 
+        auto& temperature_base = this->add_module<noise::module::Add>();
+        temperature_base.SetSourceModule(0, temperature_global_noise);
+        temperature_base.SetSourceModule(1, solar_energy);
+
+        auto& terrain_temperature = this->add_module<noise::module::ScaleBias>();
+        terrain_temperature.SetSourceModule(0, terrain_selector);
+        terrain_temperature.SetScale(-0.1);
+        terrain_temperature.SetBias(0.07);
+
+        auto& temperature0 = this->add_module<noise::module::Add>();
+        temperature0.SetSourceModule(0, temperature_base);
+        temperature0.SetSourceModule(1, terrain_temperature);
+
+        auto& local_temperature_bias = this->add_module<noise::module::Perlin>();
+        local_temperature_bias.SetPersistence(0.4);
+        local_temperature_bias.SetFrequency(5000);
+        local_temperature_bias.SetOctaveCount(1);
+
+        auto& local_temperature = this->add_module<noise::module::ScaleBias>();
+        local_temperature.SetSourceModule(0, local_temperature_bias);
+        local_temperature.SetScale(0.01);
+        local_temperature.SetBias(0.0);
+
         auto& temperature = this->add_module<noise::module::Add>();
-        temperature.SetSourceModule(0, temperature_global_noise);
-        temperature.SetSourceModule(1, solar_energy);
+        temperature.SetSourceModule(0, temperature0);
+        temperature.SetSourceModule(1, local_temperature);
 
         this->terrain = &terrain_selector;
         this->temperature = &temperature;
