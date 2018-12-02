@@ -13,8 +13,7 @@
 #include "planet/terragen/earthlike.h"
 #include "planet/render/AtmosphereRenderer.h"
 #include "planet/render/PlanetRenderer.h"
-#include "planet/render/TerrainRenderer.h"
-#include "planet/render/ShadowRenderer.h"
+#include "planet/render/Skybox.h"
 #include "utility/ThreadPool.h"
 #include "OxybelisInput.h"
 
@@ -35,6 +34,7 @@ class Oxybelis {
     Planet planet;
 
     AtmosphereRenderer atmos;
+    Skybox skybox;
     PlanetRenderer planet_renderer;
 
 public:

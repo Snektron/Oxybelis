@@ -3,10 +3,13 @@
 #include <thread>
 #include <limits>
 #include <random>
+#include <array>
 #include <cmath>
 #include "input/utility.h"
 #include "utility/units.h"
 #include "utility/utility.h"
+#include "core/Resource.h"
+#include "assets.h"
 
 namespace {
     constexpr const float FIELD_OF_VIEW = 67.0_deg;
@@ -23,6 +26,15 @@ namespace {
     constexpr const double CAMERA_BASE_SPEED = 100.0_km;
 
     constexpr const double CAMERA_ROLL_SPEED = 200;
+
+    constexpr const std::array<Resource, 6> skybox_textures = {
+        assets::skybox::GalaxyTex_PositiveX_png,
+        assets::skybox::GalaxyTex_NegativeX_png,
+        assets::skybox::GalaxyTex_PositiveY_png,
+        assets::skybox::GalaxyTex_NegativeY_png,
+        assets::skybox::GalaxyTex_PositiveZ_png,
+        assets::skybox::GalaxyTex_NegativeZ_png,
+    };
 }
 
 Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
@@ -33,7 +45,8 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     camera_speed_modifier(2),
     terragen(this->thread_pool, earthlike::PointGenerator(std::random_device{}()), earthlike::TriangleGenerator{}),
     planet(PLANET_LOCATION, PLANET_ROTATION, PLANET_RADIUS, this->terragen),
-    atmos(0, 1, 6, 7, PLANET_RADIUS, ATMOSPHERE_RADIUS),
+    atmos(0, 1, 6, 7, 8, PLANET_RADIUS, ATMOSPHERE_RADIUS),
+    skybox(GL_TEXTURE8, skybox_textures),
     planet_renderer(dim) {
 
     this->update_camera_speed();

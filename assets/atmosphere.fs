@@ -9,6 +9,7 @@ uniform sampler2D uTerrain;
 uniform sampler2D uNormalDistance;
 uniform sampler2D uDndz;
 uniform sampler2D uZminmax;
+uniform samplerCube uSkybox;
 
 uniform vec3 uCameraOrigin;
 uniform vec3 uCameraDir;
@@ -27,13 +28,15 @@ float clamp2(float x, float minv, float maxv) {
 }
 
 void main() {
+    vec3 rd = normalize(vRayDir);
+
     vec3 terrain = texture(uTerrain, vFragCoord).rgb;
     vec4 normal_dist = texture(uNormalDistance, vFragCoord);
     vec2 dndz = texture(uDndz, vFragCoord).rg;
     vec2 zminmax = texture(uZminmax, vFragCoord).rg;
-    zminmax.r *= -1;
+    vec3 space = texture(uSkybox, rd).xyz;
 
-    vec3 rd = normalize(vRayDir);
+    zminmax.r *= -1;
 
     vec3 ground_radiance = vec3(0);
     float ground_alpha = 0;
@@ -65,9 +68,10 @@ void main() {
     atmosphere_alpha = pow(1 - exp(-atmosphere_alpha * 10.0 * 1e-5), 1.0 / 2.2);
 
     radiance += max(transmittance * GetSolarLuminance() * pow(dot(rd, LIGHT_DIR) - 0.003, 3000), 0);
+    radiance += space * 500 * transmittance;
     radiance = mix(radiance, ground_radiance, ground_alpha);
 
     vec3 color = pow(vec3(1) - exp(-radiance * 10.0 * 1e-5), vec3(1.0 / 2.2));
 
-    fColor = vec4(color, 1);
+    fColor = vec4(color.xyz, 1);
 }

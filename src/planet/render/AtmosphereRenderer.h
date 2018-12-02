@@ -22,7 +22,7 @@ class AtmosphereRenderer {
     Quad quad;
 
 public:
-    AtmosphereRenderer(GLuint color_tex, GLuint nd_tex, GLuint dndz_tex, GLuint zminmax_tex, GLdouble radius, double outer_radius);
+    AtmosphereRenderer(GLuint color_tex, GLuint nd_tex, GLuint dndz_tex, GLuint zminmax_tex, GLuint skybox_tex, GLdouble radius, double outer_radius);
     void render(const RenderInfo& info) const;
 };
 
