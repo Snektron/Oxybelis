@@ -69,7 +69,7 @@ void main() {
 
     radiance += max(transmittance * GetSolarLuminance() * pow(dot(rd, LIGHT_DIR) - 0.003, 3000), 0);
 
-    vec3 space_alpha = clamp(vec3(1) - (vec3(1) - transmittance) * 10.0, vec3(0), vec3(1));
+    vec3 space_alpha = clamp(vec3(1) - (vec3(1) - transmittance), vec3(0), vec3(1));
     radiance += space * space_alpha;
 
     radiance = mix(radiance, ground_radiance, ground_alpha);
