@@ -9,8 +9,6 @@ namespace earthlike {
     const Vec3F SNOW = Vec3F(0.5, 0.5, 0.8);
     const Vec3F ICE = Vec3F(0.4, 0.5, 0.8);
 
-    const Vec3F SAND = "#EAEB7C"_col;
-
     const Vec3F height_palette[] = {
         "#FFFFFF"_col,
         "#FFFEFF"_col,
