@@ -13,8 +13,8 @@
 
 namespace {
     constexpr const float FIELD_OF_VIEW = 67.0_deg;
-    constexpr const float NEAR = 0.01f;
-    constexpr const float FAR = 10'000.0_km;
+    constexpr const float CAM_NEAR = 0.01f;
+    constexpr const float CAM_FAR = 10'000.0_km;
 
     constexpr const Vec3D PLANET_LOCATION = Vec3D(0, 0, 0);
     constexpr const QuatD PLANET_ROTATION = QuatD::identity();
@@ -40,7 +40,7 @@ namespace {
 Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     thread_pool(std::thread::hardware_concurrency() / 2),
     mouse(mouse), cursor_captured(false), quit(false),
-    projection(dim, FIELD_OF_VIEW, NEAR, FAR),
+    projection(dim, FIELD_OF_VIEW, CAM_NEAR, CAM_FAR),
     camera(QuatD::identity(), CAMERA_START),
     camera_speed_modifier(2),
     terragen(this->thread_pool, earthlike::PointGenerator(std::random_device{}()), earthlike::TriangleGenerator{}),
