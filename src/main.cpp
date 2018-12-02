@@ -69,12 +69,12 @@ void run(Window& window, InputManager<Input>& manager, Mouse<Input>& mouse) {
 }
 
 int main(int argc, char* argv[]) {
-    bool quiet = false;
+    bool quiet = true;
 
     for (int i = 0; i < argc; ++i) {
         auto arg = std::experimental::string_view(argv[i]);
-        if (arg == "-q" || arg == "--no-debug")
-            quiet = true;
+        if (arg == "-d" || arg == "--gl-debug")
+            quiet = false;
     }
 
     if (glfwInit() != GLFW_TRUE) {
