@@ -28,12 +28,12 @@ namespace {
     constexpr const double CAMERA_ROLL_SPEED = 200;
 
     constexpr const std::array<Resource, 6> skybox_textures = {
-        assets::skybox::GalaxyTex_PositiveX_png,
-        assets::skybox::GalaxyTex_NegativeX_png,
-        assets::skybox::GalaxyTex_PositiveY_png,
-        assets::skybox::GalaxyTex_NegativeY_png,
-        assets::skybox::GalaxyTex_PositiveZ_png,
-        assets::skybox::GalaxyTex_NegativeZ_png,
+        assets::skybox::SkyboxXP_png,
+        assets::skybox::SkyboxXN_png,
+        assets::skybox::SkyboxYP_png,
+        assets::skybox::SkyboxYN_png,
+        assets::skybox::SkyboxZP_png,
+        assets::skybox::SkyboxZN_png,
     };
 }
 

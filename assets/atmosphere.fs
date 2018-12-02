@@ -17,6 +17,7 @@ uniform vec3 uCameraDir;
 const float PI = 3.141592654;
 
 const vec3 LIGHT_DIR = normalize(vec3(1, 2, -3));
+const float EXPOSURE = 1e-4;
 
 vec3 GetSolarLuminance();
 vec3 GetSkyLuminance(vec3 camera, vec3 view_ray, float shadow_length, vec3 sun_direction, out vec3 transmittance);
@@ -37,6 +38,7 @@ void main() {
     vec3 space = texture(uSkybox, rd).xyz;
 
     zminmax.r *= -1;
+    space = log(1.0001 - space) / -(EXPOSURE * 10.0);
 
     vec3 ground_radiance = vec3(0);
     float ground_alpha = 0;
@@ -64,14 +66,15 @@ void main() {
     float shadow_length = clamp2(dndz.g, 0, zminmax.g);
     vec3 transmittance;
     vec3 radiance = GetSkyLuminance(uCameraOrigin, rd, shadow_length, LIGHT_DIR, transmittance);
-    float atmosphere_alpha = max(radiance.x, max(radiance.y, radiance.z));
-    atmosphere_alpha = pow(1 - exp(-atmosphere_alpha * 10.0 * 1e-5), 1.0 / 2.2);
 
     radiance += max(transmittance * GetSolarLuminance() * pow(dot(rd, LIGHT_DIR) - 0.003, 3000), 0);
-    radiance += space * 500 * transmittance;
+
+    vec3 space_alpha = clamp(vec3(1) - (vec3(1) - transmittance) * 10.0, vec3(0), vec3(1));
+    radiance += space * space_alpha;
+
     radiance = mix(radiance, ground_radiance, ground_alpha);
 
-    vec3 color = pow(vec3(1) - exp(-radiance * 10.0 * 1e-5), vec3(1.0 / 2.2));
+    vec3 color = pow(vec3(1) - exp(-radiance * EXPOSURE), vec3(1.0 / 2.2));
 
     fColor = vec4(color.xyz, 1);
 }

@@ -20,7 +20,6 @@ namespace {
     constexpr const GLint SHADOW_VOLUMES_BINDING = 1;
     constexpr const GLint COUNTER_BINDING = 2;
     constexpr const size_t LOCAL_GROUP_SIZE = 32;
-    constexpr const double SHADOW_MIN_DST = 100.0_km;
 
     Program load_compute_shader() {
         return ProgramBuilder()
