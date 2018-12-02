@@ -14,9 +14,8 @@ RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Re
 ifeq ($(OS),Windows_NT)
     LDFLAGS += -lopengl32 -lgdi32
 else
-    LDFLAGS += -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -ldl
+    LDFLAGS += -Llib/linux64 -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -ldl -flto -lm -lrt
     CXXFLAGS += -flto
-    LDFLAGS += -flto -Llib/linux64
 endif
 
 find = $(shell find $1 -type f -name $2 -print 2>/dev/null)
