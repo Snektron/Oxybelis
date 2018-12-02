@@ -38,7 +38,7 @@ void main() {
     vec3 space = texture(uSkybox, rd).xyz;
 
     zminmax.r *= -1;
-    space = log(1.0001 - space) / -(EXPOSURE * 100.0);
+    space = log(1.0001 - space) / -(EXPOSURE * 60.0);
 
     vec3 ground_radiance = vec3(0);
     float ground_alpha = 0;
