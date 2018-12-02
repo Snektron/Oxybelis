@@ -5,12 +5,10 @@ SRC := src
 BUILD := build
 ASSETS := assets
 3RDPARTY := 3rdparty
-GLFW ?= glfw3
 CXXFLAGS := -I$(3RDPARTY) -I$(SRC) -I$(BUILD)/$(ASSETS) \
 	-g -std=c++14 -Wall -Wextra -O3 -march=native \
-	-DGLFW_INCLUDE_NONE -D_USE_MATH_DEFINES \
-	`pkg-config --cflags $(GLFW)`
-LDFLAGS := -g `pkg-config --libs $(GLFW)` -pthread
+	-DGLFW_INCLUDE_NONE -D_USE_MATH_DEFINES
+LDFLAGS := -g -lglfw3 -pthread
 RSRCFLAGS := -p _$(ASSETS)_ -S $(ASSETS) -n $(ASSETS) -I "core/Resource.h" -c Resource
 
 ifeq ($(OS),Windows_NT)
@@ -18,7 +16,7 @@ ifeq ($(OS),Windows_NT)
 else
     LDFLAGS += -lGL -lX11 -lXi -lXrandr -lXxf86vm -lXinerama -lXcursor -ldl
     CXXFLAGS += -flto
-    LDFLAGS += -flto
+    LDFLAGS += -flto -Llib/linux64
 endif
 
 find = $(shell find $1 -type f -name $2 -print 2>/dev/null)
