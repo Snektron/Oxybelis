@@ -2,6 +2,7 @@
 #define _PICOPNG_PICOPNG_H
 
 #include <vector>
+#include <cstddef>
 
 int decodePNG(
     std::vector<unsigned char>& out_image,
