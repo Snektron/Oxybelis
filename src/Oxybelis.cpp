@@ -74,7 +74,7 @@ Oxybelis::Oxybelis(Mouse<Input>& mouse, const Vec2UI& dim):
     this->connect_camera();
 }
 
-bool Oxybelis::update([[maybe_unused]] double dt) {
+bool Oxybelis::update(double dt) {
     this->planet.update(this->camera);
     this->planet.rotation *= QuatD::axis_angle(0, 1, 0, dt);
     this->planet.rotation.normalize();

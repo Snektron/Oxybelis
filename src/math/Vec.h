@@ -432,9 +432,9 @@ constexpr Vec<T, N>& Vec<T, N>::mix(const Vec<U, N>& other, const V& t) {
 // Convert a html-color string to a color constant: #aabbcc
 constexpr Vec3F operator ""_col(const char* str, size_t) {
     return Vec3F{
-        static_cast<double>((to_hex(str[1]) * 16 + to_hex(str[2])) / 255.0),
-        static_cast<double>((to_hex(str[3]) * 16 + to_hex(str[4])) / 255.0),
-        static_cast<double>((to_hex(str[5]) * 16 + to_hex(str[6])) / 255.0),
+        static_cast<float>((to_hex(str[1]) * 16 + to_hex(str[2])) / 255.f),
+        static_cast<float>((to_hex(str[3]) * 16 + to_hex(str[4])) / 255.f),
+        static_cast<float>((to_hex(str[5]) * 16 + to_hex(str[6])) / 255.f),
     };
 }
 

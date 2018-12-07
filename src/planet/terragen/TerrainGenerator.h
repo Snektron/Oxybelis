@@ -59,14 +59,15 @@ TerrainData TerrainGenerator<PG, TG>::generate_chunk_data(const TerrainGeneratio
 
     const auto& corners = param.loc.corners;
 
-    // Calculate local triangle points:
-    //        c
-    //       /|\
-    //      / | \
-    //     /  |  \
-    //    /   |   \
-    // a /____|____\ b
-    //        d
+    /* Calculate local triangle points:
+            c
+           /|\
+          / | \
+         /  |  \
+        /   |   \
+     a /____|____\ b
+            d
+    */
 
     const auto a_b = corners.b - corners.a;
     const auto c_d = -cross(corners.face_normal(), a_b);
