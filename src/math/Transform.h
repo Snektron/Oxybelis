@@ -51,6 +51,7 @@ struct Transform {
 using TransformF = Transform<float>;
 using TransformD = Transform<double>;
 
+// Code taken from Unreal Engine 4's FTransformNonVectorized::ToMatrixWithScale()
 template <typename T>
 Mat4<T> Transform<T>::to_matrix() const {
     Mat4<T> result;

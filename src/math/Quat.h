@@ -1,6 +1,8 @@
 #ifndef _OXYBELIS_MATH_QUAT_H
 #define _OXYBELIS_MATH_QUAT_H
 
+// Most formulas in this file are taken from https://en.wikipedia.org/wiki/Quaternion
+
 #include <cmath>
 #include "math/Mat.h"
 #include "math/Vec.h"
@@ -226,6 +228,7 @@ constexpr auto mix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
     return lhs + t * (rhs - lhs);
 }
 
+// See https://en.wikipedia.org/wiki/Slerp
 template <typename T, typename U, typename V>
 constexpr auto smix(const Quat<T>& lhs, const Quat<U>& rhs, V t) {
     auto dot = ::dot(lhs.vector, rhs.vector);
@@ -318,7 +321,6 @@ constexpr auto dbl(const T& x) {
 
 template <typename T>
 constexpr Vec3<T> Quat<T>::forward() const {
-    // this->rotation.to_matrix().column(2).xyz
     auto one = static_cast<T>(1);
 
     auto qr = this->w;
@@ -335,7 +337,6 @@ constexpr Vec3<T> Quat<T>::forward() const {
 
 template <typename T>
 constexpr Vec3<T> Quat<T>::up() const {
-    // this->rotation.to_matrix().column(1).xyz
     auto one = static_cast<T>(1);
 
     auto qr = this->w;
@@ -352,7 +353,6 @@ constexpr Vec3<T> Quat<T>::up() const {
 
 template <typename T>
 constexpr Vec3<T> Quat<T>::right() const {
-    // this->rotation.to_matrix().column(0).xyz
     auto one = static_cast<T>(1);
 
     auto qr = this->w;

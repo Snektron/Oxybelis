@@ -334,6 +334,7 @@ constexpr auto Mat<T, M, N>::axis_angle(const Vec3<T>& axis, const T& angle) {
     return Mat<T, M, N>::axis_angle(axis.x, axis.y, axis.z, angle);
 }
 
+// See https://en.wikipedia.org/wiki/Rotation_matrix
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::axis_angle(const T& x, const T& y, const T& z, const T& angle) {
     static_assert(M == 4 && N == 4, "Can only create a 4x4 rotation matrix");
@@ -358,6 +359,7 @@ constexpr auto Mat<T, M, N>::axis_angle(const T& x, const T& y, const T& z, cons
     return result;
 }
 
+// See https://en.wikipedia.org/wiki/Orthographic_projection
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::orthographic(const T& left, const T& right, const T& top, const T& bottom, const T& znear, const T& zfar) {
     static_assert(M == 4 && N == 4, "Can only create a 4x4 orthographic projection matrix");
@@ -378,6 +380,7 @@ constexpr auto Mat<T, M, N>::orthographic(const T& left, const T& right, const T
     return result;
 }
 
+// See http://ogldev.atspace.co.uk/www/tutorial12/tutorial12.html
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T& znear, const T& zfar) {
     static_assert(M == 4 && N == 4, "Can only create a 4x4 perspective projection matrix");
@@ -395,6 +398,7 @@ constexpr auto Mat<T, M, N>::perspective(const T& aspect, const T& fov, const T&
     return result;
 }
 
+// Code taken from glm lookAt function
 template <typename T, size_t M, size_t N>
 constexpr auto Mat<T, M, N>::look(const Vec3<T>& eye, const Vec3<T>& dir, const Vec3<T>& up) {
     static_assert(M == 4 && N == 4, "Can only create a 4x4 view matrix");

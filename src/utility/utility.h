@@ -23,6 +23,7 @@ auto defer(Fn&& f) {
     return Defer<Fn>{std::forward<Fn>(f)};
 }
 
+// see https://www.bfilipek.com/2018/06/variant.html#overload
 template <typename Fn, typename... Fns>
 struct Overload: Fn, Overload<Fns...> {
     Overload(Fn h, Fns... t):
@@ -56,6 +57,7 @@ constexpr void pack_foreach(F&& f, T&& h, Ts&&... tail) {
     pack_foreach(std::forward<F>(f), tail...);
 }
 
+// see https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
 template <class T>
 inline size_t hash_combine(size_t seed, const T& v) {
     std::hash<T> hasher;
