@@ -367,6 +367,7 @@ constexpr Vec3<T> Quat<T>::right() const {
     );
 }
 
+// See https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 template <typename T>
 constexpr Mat4<T> Quat<T>::to_matrix() const {
     Mat4<T> result;
