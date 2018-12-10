@@ -38,7 +38,7 @@ Forum, Wiley, 2008, Special Issue: Proceedings of the 19th Eurographics Symposiu
 Franklin Crow, 1977, Shadow algorithms for computer graphics, In Proc. SIGGRAPH, ACM Press, ACM, 242–248.
 
 Brano Kemen, 2009, "Outerra: Logarithmic Depth Buffer".
-    https://outerra.blogspot.com/ 2009/08/logarithmic-z-buffer.html
+    https://outerra.blogspot.com/2009/08/logarithmic-z-buffer.html
 
 Eric Bruneton, 2017, "Precomputed Atmospheric Scattering: a New Implementation".
     https://ebruneton.github.io/precomputed_atmospheric_scattering/
