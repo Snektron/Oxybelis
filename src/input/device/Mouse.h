@@ -9,6 +9,7 @@
 #include "input/AxisMap.h"
 #include "core/Window.h"
 #include "math/Vec.h"
+#include "utility/derive_enum_hash.h"
 
 constexpr const double MB_PRESS_VALUE = 1.0;
 constexpr const double MB_RELEASE_VALUE = 0.0;
@@ -20,6 +21,8 @@ enum class MouseAxis {
     Vertical,
     Horizontal
 };
+
+DERIVE_ENUM_HASH(MouseAxis)
 
 enum class MouseButton: int {
     Button1 = GLFW_MOUSE_BUTTON_1,
@@ -35,21 +38,7 @@ enum class MouseButton: int {
     Middle = GLFW_MOUSE_BUTTON_MIDDLE
 };
 
-namespace std {
-    template <>
-    struct hash<MouseAxis> {
-        size_t operator()(MouseAxis i) const {
-            return static_cast<size_t>(i);
-        }
-    };
-
-    template <>
-    struct hash<MouseButton> {
-        size_t operator()(MouseButton i) const {
-            return static_cast<size_t>(i);
-        }
-    };
-}
+DERIVE_ENUM_HASH(MouseButton)
 
 template <typename I>
 class Mouse {

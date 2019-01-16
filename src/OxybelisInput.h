@@ -4,6 +4,7 @@
 #include <functional>
 #include "input/device/Mouse.h"
 #include "input/device/Keyboard.h"
+#include "utility/derive_enum_hash.h"
 
 enum class Input {
     Quit,
@@ -18,14 +19,7 @@ enum class Input {
     ToggleMouse,
 };
 
-namespace std {
-    template <>
-    struct hash<Input> {
-        size_t operator()(Input i) const {
-            return static_cast<size_t>(i);
-        }
-    };
-}
+DERIVE_ENUM_HASH(Input)
 
 void initialize_input(Mouse<Input>& mouse, Keyboard<Input>& kb);
 
