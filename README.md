@@ -3,7 +3,7 @@
 ## Compilation
 
 To compile this project, simply run `make` in the project root. The executable can be found in
-`build/target/`, or can be ran directly using `make run`.
+`build/target/`, or can be run directly using `make run`.
 
 ## Dependencies
 
@@ -26,7 +26,7 @@ Esc to quit.
 ## AMD
 
 On AMD cards (at least on mine) the program occasionaly shows a black screen or artefacts on linux. In that
-case please restart the program until it is fixed. On windows however, it doesnt work at all. Other cards should be
+case please restart the program until it is fixed. On windows, however, it doesnt work at all. Other cards should be
 fine.
 
 ## References & Credits
@@ -43,7 +43,7 @@ Brano Kemen, 2009, "Outerra: Logarithmic Depth Buffer".
 Eric Bruneton, 2017, "Precomputed Atmospheric Scattering: a New Implementation".
     https://ebruneton.github.io/precomputed_atmospheric_scattering/
 
-Eugene Hopkins, "VoxelStorm".
+Eugene Hopkinson, "VoxelStorm".
     http://voxelstorm.com/
 
 Gianni Milanesi, "A 2D constrained Delaunay triangulation library”.
