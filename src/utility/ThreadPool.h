@@ -46,11 +46,11 @@ class ThreadPool {
 public:
     ThreadPool(std::size_t num_threads);
     ThreadPool(const ThreadPool&) = delete;
-    ThreadPool(ThreadPool&&) = default;
+    ThreadPool(ThreadPool&&) = delete;
     ~ThreadPool();
 
     ThreadPool& operator=(const ThreadPool&) = delete;
-    ThreadPool& operator=(ThreadPool&&) = default;
+    ThreadPool& operator=(ThreadPool&&) = delete;
 
     template <typename F>
     void schedule(F&& task);
