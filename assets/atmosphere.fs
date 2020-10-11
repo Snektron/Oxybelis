@@ -76,5 +76,5 @@ void main() {
 
     vec3 color = pow(vec3(1) - exp(-radiance * EXPOSURE), vec3(1.0 / 2.2));
 
-    fColor = vec4(color.xyz, 1);
+    fColor = vec4(color, 1);
 }

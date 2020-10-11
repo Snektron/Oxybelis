@@ -109,7 +109,8 @@ namespace atmosphere_constants {
                 MAX_SUN_ZENITH_ANGLE,
                 1, // length unit in meters
                 3, // use_luminance_ != PRECOMPUTED
-                true, false
+                false,
+                false
             )
         );
 

@@ -105,7 +105,7 @@ public:
         Variant v;
         v = std::forward<T>(item);
         return v;
-    } 
+    }
 
     constexpr Variant():
         id(DISENGAGED) {
