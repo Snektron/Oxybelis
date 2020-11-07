@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 #include <cmath>
+#include <functional>
 #include <glad/glad.h>
 #include "math/Vec.h"
 
