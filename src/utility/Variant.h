@@ -116,7 +116,7 @@ public:
         this->visit([&](auto& item) {
             using Type = std::remove_reference_t<decltype(item)>;
             // &item is uninitialized at this point
-            new (&item) Type(other.get_unchecked<Type>());
+            new (&item) Type(other.template get_unchecked<Type>());
         }, other.id);
 
         this->id = other.id; // set id after for exception safety
@@ -127,7 +127,7 @@ public:
         this->visit([&](auto& item) {
             using Type = std::remove_reference_t<decltype(item)>;
             // &item is uninitialized at this point
-            new (&item) Type(std::move(other.get_unchecked<Type>()));
+            new (&item) Type(std::move(other.template get_unchecked<Type>()));
         }, other.id);
 
         this->id = other.id; // set id after for exception safety
@@ -142,7 +142,7 @@ public:
         this->visit([&](auto& item) {
             using Type = std::remove_reference_t<decltype(item)>;
             // &item is uninitialized at this point
-            new (&item) Type(other.get_unchecked<Type>());
+            new (&item) Type(other.template get_unchecked<Type>());
         }, other.id);
 
         this->id = other.id; // set id after for exception safety
@@ -154,7 +154,7 @@ public:
         this->visit([&](auto& item) {
             using Type = std::remove_reference_t<decltype(item)>;
             // &item is uninitialized at this point
-            new (&item) Type(std::move(other.get_unchecked<Type>()));
+            new (&item) Type(std::move(other.template get_unchecked<Type>()));
         }, other.id);
 
         this->id = other.id; // set id after for exception safety

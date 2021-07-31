@@ -29,6 +29,14 @@ On AMD cards (at least on mine) the program occasionaly shows a black screen or 
 case please restart the program until it is fixed. On windows, however, it doesnt work at all. Other cards should be
 fine.
 
+## Screenshots
+
+![Evening](screenshots/evening.png)
+![From Space](screenshots/from-space.png)
+![Light Shafts](screenshots/light-shafts.png)
+![Northpole](screenshots/northpole.png)
+![Shadows](screenshots/shadows.png)
+
 ## References & Credits
 
 Eric Bruneton, Fabrice Neyret. Precomputed Atmospheric Scattering. Computer Graphics
